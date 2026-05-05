@@ -37,13 +37,7 @@ The perspective, taste, and decisions remain human.
 
 ## Running the project
 
-The project is designed to be simple.
-
-Just open the HTML file in a modern browser:
-
-```bash
-open fractales_v63.html
-```
+The project is designed to embed all in a single monolythic file. Just open fractales.html in a modern browser.
 
 ## Support the project
 
