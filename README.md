@@ -49,6 +49,6 @@ open fractales_v63.html
 
 Fractal Explorer is free and open source.
 
-If you enjoy the project, you can help it grow by buying me... not a coffee but some tokens! : ☕ [Buy me a coffee](https://buymeacoffee.com/fabricebreizh) ☕
+If you enjoy the project, you can help it grow by buying me... not a coffee but some tokens! : ☕ [Buy me some tokens](https://buymeacoffee.com/fabricebreizh) ☕
 
 Donations mainly help fund the tokens needed to keep experimenting, fixing, optimizing, and adding new ideas to the generator.
