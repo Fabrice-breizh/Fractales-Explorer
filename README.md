@@ -1,45 +1,56 @@
 # Fractal Explorer
 
-Un explorateur de fractales interactif, gratuit, autonome et utilisable directement dans le navigateur.
+A free, standalone, interactive fractal explorer that runs directly in the browser.
 
-Fractal Explorer permet d’explorer des fractales 2D et 3D, de zoomer, de jouer avec les palettes, d’exporter des images, de sauvegarder des vues favorites, et de redécouvrir ce plaisir très simple : pointer quelque part dans l’infini et voir ce qu’il cache.
+Fractal Explorer lets you explore 2D and 3D fractals, zoom in, play with color palettes, export images, save favorite views, and rediscover that very simple pleasure: pointing somewhere into infinity and seeing what it hides.
 
-## Pourquoi ce projet existe
+## Why this project exists
 
-J’ai découvert les fractales dans les années 1990.
+I discovered fractals in the 1990s.
 
-À l’époque, il y avait quelque chose de presque magique dans ces images : des formes mathématiques, calculées par des machines relativement modestes, qui semblaient pourtant contenir des mondes entiers. Mandelbrot, Julia, les palettes cyclées, les zooms lents, les rendus qui demandaient de la patience… tout cela avait un charme très particulier.
+Back then, there was something almost magical about these images: mathematical shapes, computed by relatively modest machines, that somehow seemed to contain entire worlds. Mandelbrot, Julia, cycling palettes, slow zooms, renders that required patience… all of it had a very particular charm.
 
-Des outils comme Fractint, XaoS, Ultra Fractal ou Electric Sheep ont marqué cette époque et cette culture visuelle. Ce projet est né de ce souvenir : retrouver ce sentiment d’exploration, mais dans un navigateur moderne, sans installation compliquée, avec une interface plus immédiate.
+Tools like Fractint, XaoS, Ultra Fractal, and Electric Sheep helped define that era and its visual culture. This project was born from that memory: the desire to recapture that feeling of exploration, but in a modern browser, without complicated installation, and with a more immediate interface.
 
 ## Vibe coded, human designed
 
-Ce projet est “vibe codé” : une partie importante du code a été écrite avec l’aide d’outils d’IA.
+This project is “vibe coded”: a significant part of the code was written with the help of AI tools.
 
-Mais il n’est pas “désigné par l’IA”.
+But it is not “designed by AI”.
 
-Les choix de direction, d’ergonomie, de rythme, de style visuel, de contenu, de priorités et d’expérience utilisateur sont humains. Ce projet est un dialogue entre une envie personnelle, des souvenirs visuels, des essais, des erreurs, des ajustements, et du code généré, relu, corrigé et orienté.
+The direction, ergonomics, pacing, visual style, content, priorities, and user experience are human choices. This project is a dialogue between a personal impulse, visual memories, experiments, mistakes, adjustments, and generated code that has been reviewed, corrected, and guided.
 
-L’IA a été un accélérateur.  
-Le regard, le goût et les décisions restent humains.
+AI was an accelerator.  
+The perspective, taste, and decisions remain human.
 
-## Fonctionnalités
+## Features
 
-- Exploration interactive de nombreuses fractales 2D
-- Fractales 3D comme Mandelbulb, Mandelbox, Menger Sponge et Julia quaternion
-- Zoom, déplacement, double-clic, raccourcis clavier
-- Palettes de couleurs et effets visuels
-- Export PNG en haute résolution
-- Favoris locaux avec import/export
-- Page d’accueil avec aperçu animé
-- Fonctionnement hors ligne via un fichier HTML autonome
-- Interface en français et en anglais
+- Interactive exploration of many 2D fractals
+- 3D fractals such as Mandelbulb, Mandelbox, Menger Sponge, and Quaternion Julia
+- Zoom, pan, double-click, keyboard shortcuts
+- Color palettes and visual effects
+- High-resolution PNG export
+- Local favorites with import/export
+- Home page with animated preview
+- Offline use through a standalone HTML file
+- Interface available in French and English
 
-## Lancer le projet
+## Running the project
 
-Le projet est conçu pour être simple.
+The project is designed to be simple.
 
-Ouvrez simplement le fichier HTML dans un navigateur moderne :
+Just open the HTML file in a modern browser:
 
 ```bash
 open fractales_v63.html
+```
+
+## Support the project
+
+Fractal Explorer is free and open source.
+
+If you enjoy the project, you can help it grow by buying me a coffee:
+
+[Buy me a coffee](https://buymeacoffee.com/fabricebreizh)
+
+Donations mainly help fund the tokens needed to keep experimenting, fixing, optimizing, and adding new ideas to the generator.
