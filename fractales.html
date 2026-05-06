@@ -26,7 +26,7 @@ body{margin:0;background:radial-gradient(circle at top,#141826 0,#0d1017 45%,#09
 button,input,select{font:inherit}button{cursor:pointer}
 .hidden{display:none!important}
 .app{display:grid;grid-template-columns:var(--sidebar) 1fr var(--sidebar);height:100%;position:relative;transition:grid-template-columns .22s ease}.app.lb-collapsed{grid-template-columns:0 1fr var(--sidebar)}.app.sb-collapsed{grid-template-columns:var(--sidebar) 1fr 0}.app.lb-collapsed.sb-collapsed{grid-template-columns:0 1fr 0}
-.sidebar{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0) 120px),var(--panel);border-left:1px solid var(--line);overflow:auto;overflow-anchor:none;padding:14px 14px 20px;position:relative;min-width:0;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.16) transparent;transition:padding .22s ease,border-color .22s ease;padding-top:53px;grid-column:3}
+.sidebar{background:#000;border-left:1px solid var(--line);overflow:auto;overflow-anchor:none;padding:14px 14px 20px;position:relative;min-width:0;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.16) transparent;transition:padding .22s ease,border-color .22s ease;padding-top:53px;grid-column:3}
 .sidebar::-webkit-scrollbar{width:8px}.sidebar::-webkit-scrollbar-track{background:transparent}.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:999px;border:2px solid transparent;background-clip:padding-box}.sidebar::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.24);background-clip:padding-box}
 .app.sb-collapsed .sidebar{padding:0;border-left-color:transparent;overflow:hidden}
 #sidebarEdgeToggle{grid-column:3;grid-row:1;position:fixed;top:50%;right:var(--sidebar);transform:translateY(-50%);z-index:32;width:28px;height:72px;display:flex;align-items:center;justify-content:center;padding:0;background:rgba(23,27,36,.85);border:1px solid rgba(255,255,255,.15);border-right:none;border-radius:10px 0 0 10px;color:var(--text);font-size:18px;font-weight:700;cursor:pointer;transition:right .22s ease,background .16s ease;backdrop-filter:blur(8px)}
@@ -42,8 +42,15 @@ button,input,select{font:inherit}button{cursor:pointer}
 .zoom-btns button.hint-blink{animation:zoomBtnHint 1.2s ease-in-out 3}
 @keyframes zoomBtnHint{0%,100%{transform:scale(1);box-shadow:0 0 0 rgba(124,108,248,0)}50%{transform:scale(1.08);box-shadow:0 0 18px rgba(124,108,248,.45)}}
 .main{grid-column:2;grid-row:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
-.topbar{position:fixed;top:0;left:0;right:0;z-index:11000;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);background:rgba(11,14,20,.88);backdrop-filter:blur(14px);box-shadow:0 6px 24px rgba(0,0,0,.25)}
+.topbar{position:fixed;top:0;left:0;right:0;z-index:11000;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line);background:rgba(11,14,20,.88);backdrop-filter:blur(14px);box-shadow:0 6px 24px rgba(0,0,0,.25)}
 .brand{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.topbar .brand{min-width:0;flex:0 0 auto}
+.topbar .actions{min-width:0;justify-self:end;flex:0 0 auto;flex-wrap:nowrap}
+.top-fractal-name{display:none;justify-self:center;min-width:0;max-width:min(360px,30vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0;background:transparent;border:0;color:var(--text);font-size:15px;font-weight:800;letter-spacing:.01em;text-align:center}
+body.at-home .topbar{display:none!important}
+body.at-home .top-fractal-name{display:none!important}
+@media(min-width:880px){body:not(.at-home) .top-fractal-name{display:block}}
+@media(min-width:1180px){.top-fractal-name{font-size:17px;max-width:min(460px,36vw)}}
 .brand h1{font-size:14px;margin:0;font-weight:700;letter-spacing:.01em}
 .badges,.actions,.seg{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .badge,.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:rgba(124,108,248,.12);border:1px solid rgba(124,108,248,.25);color:#cabfff;font-size:11px}
@@ -73,7 +80,13 @@ button,input,select{font:inherit}button{cursor:pointer}
 #tab3d{display:none!important}
 .tabpanel{display:none;gap:10px}.tabpanel.active{display:grid}
 .section{padding:11px;border:1px solid var(--line);border-radius:5px;background:rgba(255,255,255,.02)}
-.section h3{margin:0 0 9px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.section h3{margin:0 0 10px;padding:7px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.085);background:rgba(255,255,255,.075);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:rgba(238,244,255,.94)}
+.fav-open-btn{background:linear-gradient(180deg,rgba(62,145,95,.28),rgba(46,108,71,.2));border-color:rgba(104,197,138,.3);color:#dff6e6}
+.fav-open-btn:hover{background:linear-gradient(180deg,rgba(72,164,108,.34),rgba(52,122,80,.24));border-color:rgba(124,222,160,.4);color:#effcf2}
+.warning-note{display:flex;align-items:flex-start;gap:8px;margin-top:10px;font-size:11px;color:var(--text2);line-height:1.45}
+.warning-note .warning-icon{color:#ff9c43;font-size:14px;line-height:1;transform:translateY(1px)}
+.desktop-tip-lines{display:block;font-size:11px;color:var(--text2);line-height:1.55}
+.desktop-tip-bubble{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.03)}
 .row{display:grid;gap:7px;margin-bottom:9px}.row:last-child{margin-bottom:0}
 .label{display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--text2);font-size:12px}
 .value{color:var(--text);font-weight:600}
@@ -183,7 +196,7 @@ hr.sep{border:none;height:1px;background:var(--line);margin:10px 0}
 .muted{color:var(--muted)}
 .kbd{font:11px ui-monospace,SFMono-Regular,Consolas,monospace;padding:2px 6px;border-radius:6px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text)}
 
-.left-sidebar{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0) 120px),var(--panel);border-right:1px solid var(--line);overflow:auto;overflow-anchor:none;padding:14px 14px 18px;position:relative;min-width:0;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.16) transparent;padding-top:53px;grid-column:1}
+.left-sidebar{background:#000;border-right:1px solid var(--line);overflow:auto;overflow-anchor:none;padding:14px 14px 18px;position:relative;min-width:0;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.16) transparent;padding-top:53px;grid-column:1}
 .left-sidebar::-webkit-scrollbar{width:8px}.left-sidebar::-webkit-scrollbar-track{background:transparent}.left-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:999px;border:2px solid transparent;background-clip:padding-box}.left-sidebar::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.24);background-clip:padding-box}
 .app.lb-collapsed .left-sidebar{padding:0;border-right-color:transparent;overflow:hidden}
 #leftSidebarEdgeToggle{grid-column:1;grid-row:1;position:fixed;top:50%;left:var(--sidebar);transform:translateY(-50%);z-index:32;width:28px;height:72px;display:flex;align-items:center;justify-content:center;padding:0;background:rgba(23,27,36,.85);border:1px solid rgba(255,255,255,.15);border-left:none;border-radius:0 10px 10px 0;color:var(--text);font-size:18px;font-weight:700;cursor:pointer;transition:left .22s ease,background .16s ease;backdrop-filter:blur(8px)}
@@ -197,13 +210,13 @@ hr.sep{border:none;height:1px;background:var(--line);margin:10px 0}
 .left-current-desc{font-size:12px;color:var(--text2);line-height:1.45;margin:0}
 .desktop-favs-wrap .saved-list{max-height:none;overflow:visible}
 .desktop-fav-note{margin-top:8px;font-size:11px;color:var(--text2);line-height:1.45}
-.desktop-fav-reminder{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.desktop-fav-reminder{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
 .desktop-fav-reminder .muted{font-size:11px;line-height:1.35}
 .pulse-hint{animation:pulseHint 1.8s ease-in-out infinite}
 @keyframes pulseHint{0%,100%{box-shadow:0 0 0 rgba(124,108,248,0);border-color:rgba(124,108,248,.28)}50%{box-shadow:0 0 18px rgba(124,108,248,.28);border-color:rgba(124,108,248,.58)}}
-.desktop-tips{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(23,27,36,.15),rgba(23,27,36,.95) 18%,rgba(23,27,36,.98));padding-top:10px;margin-top:12px}
-.desktop-tip-lines{display:grid;gap:8px;font-size:11px;color:var(--text2);line-height:1.45}
-.desktop-tip-lines div{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.025)}
+.desktop-tips{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.95) 18%,#000);padding-top:10px;margin-top:12px}
+.desktop-tip-lines{display:block;font-size:11px;color:var(--text2);line-height:1.55}
+.desktop-tip-bubble{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.03)}
 .desktop-only{display:block}.desktop-left-only{display:block}
 @media(min-width:1001px){.tabs,.tabpanel[data-panel='home'],.tabpanel[data-panel='saved']{display:none!important}body:not(.mode3d) .tabpanel[data-panel='settings']{display:grid!important}body.mode3d .tabpanel[data-panel='settings']{display:none!important}body.mode3d #panel3d{display:grid!important}body:not(.mode3d) #panel3d{display:none!important}.sidebar{display:block!important}.left-sidebar{display:block!important}}
 
@@ -230,9 +243,10 @@ hr.sep{border:none;height:1px;background:var(--line);margin:10px 0}
   .quick-grid,.preset-grid,.modal-grid,.metric-grid{grid-template-columns:1fr}
 }
 /* ── SPLASH SCREEN ── */
-.splash{position:fixed;inset:54px 0 0 0;z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:14px 14px 16px;background:radial-gradient(circle at 50% 0,rgba(124,108,248,.16),transparent 34%),rgba(5,7,11,.42);backdrop-filter:blur(8px);transition:opacity .6s ease;pointer-events:auto;overflow-y:auto}
+.splash{position:fixed;inset:0;z-index:12000;display:flex;align-items:center;justify-content:center;padding:24px 14px;background:radial-gradient(circle at 50% 0,rgba(124,108,248,.18),transparent 34%),radial-gradient(circle at 80% 20%,rgba(89,182,255,.08),transparent 28%),#05070b;transition:opacity .6s ease;pointer-events:auto;overflow-y:auto}
 .splash.out{opacity:0;pointer-events:none}
-.splash-box{position:relative;background:linear-gradient(180deg,rgba(15,18,28,.92),rgba(12,16,24,.9));border:1px solid rgba(255,255,255,.09);border-radius:24px;padding:16px 24px 12px;text-align:center;max-width:1180px;width:min(1180px,96vw);box-shadow:0 30px 80px rgba(0,0,0,.55);max-height:calc(100vh - 74px);overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.16) transparent}
+body.at-home .app{visibility:hidden;pointer-events:none}
+.splash-box{position:relative;background:transparent;border:0;border-radius:0;padding:8px 24px 12px;text-align:center;max-width:1180px;width:min(1180px,96vw);box-shadow:none;max-height:none;overflow:visible;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.16) transparent}
 .splash-box::before{content:'';position:absolute;inset:-8% -10% auto;top:0;height:360px;background:radial-gradient(circle at 50% 28%,rgba(124,108,248,.34),transparent 24%),radial-gradient(circle at 58% 16%,rgba(255,128,96,.18),transparent 15%),radial-gradient(circle at 40% 22%,rgba(89,182,255,.12),transparent 18%);filter:blur(20px);pointer-events:none;opacity:.95}
 .splash-box>*{position:relative;z-index:1}
 .splash-top-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(420px,520px);gap:18px;align-items:start;margin-bottom:8px}
@@ -256,6 +270,7 @@ hr.sep{border:none;height:1px;background:var(--line);margin:10px 0}
 .s-tour{background:linear-gradient(135deg,rgba(20,80,50,.9),rgba(10,50,30,.95))!important;border-color:rgba(60,180,100,.3)!important}
 .s-all{background:linear-gradient(135deg,rgba(30,40,80,.85),rgba(15,20,50,.9))!important}
 .s-dl{background:linear-gradient(135deg,rgba(20,60,50,.85),rgba(10,35,30,.9))!important}
+.s-random{background:linear-gradient(135deg,rgba(80,38,125,.9),rgba(22,42,92,.92))!important;border-color:rgba(150,120,255,.35)!important}
 .splash-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.08)}
 .card-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.18);font-size:11px;font-weight:700;margin-bottom:auto}
 .card-visual{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;margin:0 auto 8px;color:#fff;background:radial-gradient(circle,rgba(255,255,255,.18),rgba(255,255,255,.03));box-shadow:inset 0 0 20px rgba(255,255,255,.06),0 0 20px rgba(0,0,0,.18)}
@@ -306,7 +321,7 @@ hr.sep{border:none;height:1px;background:var(--line);margin:10px 0}
 .prof-btn.rec::after{content:'★';margin-left:4px;font-size:10px;opacity:.7}
 @media(max-width:1080px){.splash-top-row{grid-template-columns:1fr}.profile-banner{max-width:none}.splash-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.trust-row{grid-template-columns:1fr}.trust-item+.trust-item{border-left:none;border-top:1px solid rgba(255,255,255,.08)}}
 @media(min-width:900px){.mini-canvas-wrap{max-height:400px}}
-@media(max-width:700px){.splash{padding:10px 10px 12px}.splash-box{padding:16px 14px 14px;border-radius:18px;max-height:calc(100vh - 64px)}.splash-top-row{gap:12px;margin-bottom:10px}.splash-box h1{font-size:clamp(1.9rem,11vw,3rem)}.splash-box .sub{font-size:clamp(1rem,4.8vw,1.3rem)}.hero-lead{font-size:14px;line-height:1.35}.splash-cards{grid-template-columns:1fr 1fr;gap:10px}.splash-card{min-height:120px;padding:10px}.card-visual{width:46px;height:46px;margin:0 auto 8px}.card-visual .icon{width:32px;height:32px}.card-title{font-size:1.3rem}.card-desc{font-size:11px;line-height:1.32}.card-tag{margin-top:10px;min-height:38px;padding:0 12px;font-size:11px}.profile-banner{padding:12px 14px;border-radius:18px}.profile-btn-bar{grid-template-columns:1fr}.profile-note{font-size:11px}}
+@media(max-width:700px){.splash{padding:14px 10px 16px;align-items:flex-start}.splash-box{padding:12px 14px 14px;border-radius:0;max-height:none}.splash-top-row{gap:12px;margin-bottom:10px}.splash-box h1{font-size:clamp(1.9rem,11vw,3rem)}.splash-box .sub{font-size:clamp(1rem,4.8vw,1.3rem)}.hero-lead{font-size:14px;line-height:1.35}.splash-cards{grid-template-columns:1fr 1fr;gap:10px}.splash-card{min-height:120px;padding:10px}.card-visual{width:46px;height:46px;margin:0 auto 8px}.card-visual .icon{width:32px;height:32px}.card-title{font-size:1.3rem}.card-desc{font-size:11px;line-height:1.32}.card-tag{margin-top:10px;min-height:38px;padding:0 12px;font-size:11px}.profile-banner{padding:12px 14px;border-radius:18px}.profile-btn-bar{grid-template-columns:1fr}.profile-note{font-size:11px}}
   .hero-cta-row{padding:0}
   .trust-row{grid-template-columns:1fr}
   .trust-item+.trust-item{border-left:none;border-top:1px solid rgba(255,255,255,.08)}
@@ -317,7 +332,7 @@ hr.sep{border:none;height:1px;background:var(--line);margin:10px 0}
 .lang-flag{width:18px;height:13px;display:inline-block;flex:0 0 auto;background-size:cover;background-repeat:no-repeat;background-position:center;border-radius:2px;box-shadow:0 0 0 1px rgba(255,255,255,.12) inset}
 .lang-flag.fr{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 12'%3E%3Crect width='6' height='12' fill='%230055A4'/%3E%3Crect x='6' width='6' height='12' fill='%23FFFFFF'/%3E%3Crect x='12' width='6' height='12' fill='%23EF4135'/%3E%3C/svg%3E")}
 .lang-flag.en{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 12'%3E%3Crect width='18' height='12' fill='%23012169'/%3E%3Cpath d='M0 0l18 12M18 0L0 12' stroke='%23fff' stroke-width='2.8'/%3E%3Cpath d='M0 0l18 12M18 0L0 12' stroke='%23C8102E' stroke-width='1.4'/%3E%3Cpath d='M9 0v12M0 6h18' stroke='%23fff' stroke-width='4'/%3E%3Cpath d='M9 0v12M0 6h18' stroke='%23C8102E' stroke-width='2.2'/%3E%3C/svg%3E") }
-@media(max-width:720px){.toolbar-label,.export-label,.brand-prefix,#topProfileBadge{display:none!important}.topbar{padding:6px 8px;gap:4px;height:48px}.actions{gap:3px}.main{padding-top:54px}}
+@media(max-width:720px){.toolbar-label,.export-label,.brand-prefix,.top-fractal-name{display:none!important}.topbar{padding:6px 8px;gap:4px;height:48px}.actions{gap:3px}.main{padding-top:54px}}
 
 @media(max-width:700px){
   .home-label{display:none}
@@ -356,6 +371,134 @@ body.mode3d .zoom-btns{display:flex}
 .metric3d .k{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .metric3d .v{font-size:12px;font-weight:700;margin-top:3px}
 /* ── FIN MOTEUR 3D ─────────────────────────────────────────── */
+
+/* Correctif mobile pour les modales.
+   Objectif : ne jamais cacher les actions de validation sous la barre navigateur
+   et permettre une sortie tactile meme quand le contenu depasse la hauteur utile. */
+.modal-backdrop{
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  padding-bottom:calc(18px + env(safe-area-inset-bottom,0px));
+}
+.modal{
+  max-height:calc(100dvh - 54px - 28px - env(safe-area-inset-bottom,0px));
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+@supports not (height:100dvh){
+  .modal{max-height:calc(100vh - 54px - 28px - env(safe-area-inset-bottom,0px))}
+}
+#exportModal .modal > div:last-child{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+}
+@media(max-width:600px){
+  .modal-backdrop{
+    inset:48px 0 0 0;
+    align-items:flex-start;
+    padding:8px 8px calc(72px + env(safe-area-inset-bottom,0px));
+  }
+  .modal{
+    width:calc(100vw - 16px);
+    max-height:calc(100dvh - 48px - 16px - env(safe-area-inset-bottom,0px));
+    border-radius:10px;
+    padding:10px;
+  }
+  @supports not (height:100dvh){
+    .modal{max-height:calc(100vh - 48px - 16px - env(safe-area-inset-bottom,0px))}
+  }
+  #exportModal .modal{
+    display:flex;
+    flex-direction:column;
+  }
+  #exportModal .modal-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:6px;
+    margin-bottom:8px;
+  }
+  #exportModal .export-choice{padding:8px 6px}
+  #exportModal .export-choice strong{font-size:13px}
+  #exportModal .export-choice div{font-size:10px}
+  #exportCustomW,#exportCustomH{flex:1 1 120px;min-width:0}
+  #exportUseCustomBtn{flex:1 0 100%;justify-content:center}
+  #exportModal .modal > div:last-child{
+    position:sticky;
+    bottom:0;
+    z-index:2;
+    margin:8px -10px -10px;
+    padding:10px 10px calc(10px + env(safe-area-inset-bottom,0px));
+    background:linear-gradient(180deg,rgba(23,27,36,.72),var(--panel) 35%,var(--panel));
+    border-top:1px solid var(--line);
+  }
+  #cancelExportBtn,#confirmExportBtn{
+    flex:1;
+    justify-content:center;
+    min-height:42px;
+  }
+}
+
+
+/* Footer accueil */
+.splash-footer{margin-top:12px;padding:12px 14px;border:1px solid rgba(255,255,255,.09);border-radius:16px;background:rgba(8,12,20,.52);color:var(--text2);font-size:12px;line-height:1.45;text-align:center}
+.splash-footer p{margin:0 0 7px;color:var(--text2)}
+.splash-footer p:last-of-type{margin-bottom:10px}
+.splash-footer-links{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.splash-footer a{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:6px 11px;border-radius:999px;border:1px solid rgba(124,108,248,.24);background:rgba(124,108,248,.12);color:#d9d3ff;text-decoration:none;font-weight:700}
+.splash-footer a:hover{background:rgba(124,108,248,.2);border-color:rgba(124,108,248,.38);color:#fff}
+.splash-footer .coffee-link{border-color:rgba(255,204,102,.26);background:rgba(255,204,102,.10);color:#ffe5ac}
+.splash-footer .coffee-link:hover{background:rgba(255,204,102,.18);border-color:rgba(255,204,102,.4);color:#fff3d0}
+@media(max-width:700px){.splash-footer{margin-top:10px;padding:10px 11px;font-size:11px;border-radius:14px}.splash-footer-links{gap:6px}.splash-footer a{width:100%;min-height:36px}}
+
+
+
+/* Accueil compact : liens intégrés, cartes régulières, prévisualisation inchangée */
+.splash-support-links{display:none}
+.splash-support-links a{display:inline-flex;align-items:center;min-height:24px;padding:3px 9px;border-radius:999px;border:1px solid rgba(124,108,248,.22);background:rgba(124,108,248,.09);color:#ddd8ff;text-decoration:none;font-weight:750}
+.splash-support-links a:hover{background:rgba(124,108,248,.18);border-color:rgba(124,108,248,.36);color:#fff}
+.splash-support-links .coffee-link{border-color:rgba(255,204,102,.24);background:rgba(255,204,102,.08);color:#ffe1a3}
+.splash-support-links .coffee-link:hover{background:rgba(255,204,102,.16);border-color:rgba(255,204,102,.38);color:#fff1cc}
+.support-separator{opacity:.42}
+.splash-mini-footer{align-self:end;display:flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;margin:0;padding:0 4px 2px;color:rgba(205,215,239,.64);font-size:11.5px;line-height:1.2;text-align:center}
+.splash-mini-footer a{display:inline-flex;align-items:center;min-height:24px;padding:3px 10px;border-radius:999px;border:1px solid rgba(124,108,248,.26);background:rgba(124,108,248,.1);color:#e5e0ff;text-decoration:none;font-weight:800}
+.splash-mini-footer a:hover{background:rgba(124,108,248,.18);border-color:rgba(124,108,248,.4);color:#fff}
+.splash-mini-footer .coffee-link{border-color:rgba(255,204,102,.28);background:rgba(255,204,102,.09);color:#ffe3aa}
+.splash-mini-footer .coffee-link:hover{background:rgba(255,204,102,.17);border-color:rgba(255,204,102,.44);color:#fff2cf}
+
+@media(min-width:701px){
+  .splash{align-items:stretch;padding:10px 14px;overflow:hidden}
+  .splash-box{height:calc(100dvh - 20px);max-height:calc(100dvh - 20px);display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:10px;padding:8px 24px 10px;overflow:hidden}
+  .splash-top-row{margin:0;gap:18px;align-items:center}
+  .splash-hero{padding-top:0;display:flex;flex-direction:column;justify-content:center}
+  .splash-box h1{font-size:clamp(1.65rem,3vw,2.35rem);line-height:.96;margin:0 0 4px}
+  .splash-box .sub{font-size:clamp(.88rem,1vw,1.08rem);margin:0 0 4px}
+  .hero-lead{font-size:clamp(11px,1vw,14px);line-height:1.34;max-width:620px}
+  .splash-cards{align-self:start;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0}
+  .splash-card{min-height:94px;height:clamp(92px,13.2vh,106px);padding:10px 12px;border-radius:13px;justify-content:flex-end}
+  .splash-card:hover{transform:translateY(-2px)}
+  .card-rec-badge{top:8px;left:10px;font-size:9px;padding:2px 7px}
+  .card-visual{position:absolute;right:13px;top:13px;width:38px;height:38px;margin:0;opacity:.72}
+  .card-visual .icon{width:28px;height:28px}
+  .card-title{font-size:clamp(.95rem,1.05vw,1.08rem);line-height:1.05;max-width:72%}
+  .s-mandelbrot .card-title{margin-top:16px}
+  .card-desc{font-size:10.5px;line-height:1.24;margin-top:3px;max-width:76%}
+  .card-tag{min-height:20px;margin-top:6px;padding:0 7px;border-radius:7px;font-size:10px}
+}
+
+@media(min-width:701px) and (min-height:760px){
+  .splash-cards{margin-top:clamp(8px,2.2vh,22px)}
+}
+
+@media(max-width:700px){
+  .splash-support-links{display:none}
+  .splash-support-links span:not(.support-separator){display:none}
+  .splash-support-links a{flex:1;justify-content:center;min-height:32px}
+  .splash-mini-footer{font-size:10px;padding-bottom:4px;gap:5px;white-space:normal;flex-wrap:wrap}
+  .splash-card{min-height:108px}
+  .card-visual{opacity:.78}
+}
+
 </style>
 <link rel="manifest" id="pwaManifest"></head>
 <body cz-shortcut-listen="true" class="at-home ui-overlay-open">
@@ -389,6 +532,13 @@ body.mode3d .zoom-btns{display:flex}
         <h1>Fractal Explorer</h1>
         <p class="sub">Explorez l'infini mathématique</p>
         <p class="hero-lead" id="heroLead">40 fractales interactives en 2D et 3D · Zoomez. Explorez. Émerveillez-vous !</p>
+        <div class="splash-support-links" aria-label="Liens du projet">
+          <span id="homeFooterGithub">Code source</span>
+          <a id="homeFooterGithubLink" href="https://github.com/Fabrice-breizh/" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <span class="support-separator" aria-hidden="true">·</span>
+          <span id="homeFooterCoffee">Soutenir le projet</span>
+          <a class="coffee-link" id="homeFooterCoffeeLink" href="https://buymeacoffee.com/fabricebreizh" target="_blank" rel="noopener noreferrer">Buy me a coffee</a>
+        </div>
       </div>
             <div class="mini-canvas-wrap">
         <canvas id="miniCanvas"></canvas>
@@ -415,6 +565,12 @@ body.mode3d .zoom-btns{display:flex}
         <div class="card-desc">Parcourez les plus belles fractales</div>
         <div class="card-tag" id="splashTourCount">26 lieux &#224; d&#233;couvrir</div>
       </button>
+      <button class="splash-card s-random" id="splashRandomBtn">
+        <div class="card-visual"><svg class="icon"><use href="#icon-multibrot"/></svg></div>
+        <div class="card-title" id="splashRandomTitle">Fractale al&#233;atoire</div>
+        <div class="card-desc" id="splashRandomDesc">Lancer une vue surprise</div>
+        <div class="card-tag" id="splashRandomTag">D&#233;couverte rapide</div>
+      </button>
       <button class="splash-card s-all" id="splashAllBtn">
         <div class="card-visual"><svg class="icon"><use href="#icon-grid"/></svg></div>
         <div class="card-title" id="splashAllTitle">Toutes les fractales</div>
@@ -428,12 +584,45 @@ body.mode3d .zoom-btns{display:flex}
         <div class="card-tag" id="splashDlTag">Version hors ligne</div>
       </button>
     </div>
+    <footer class="splash-mini-footer" id="homeMiniFooter">
+      <span id="homeMiniProjectsText">Mes projets :</span>
+      <a id="homeMiniGithubLink" href="https://github.com/Fabrice-breizh/" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <span class="support-separator" aria-hidden="true">·</span>
+      <span id="homeMiniCoffeeText">Pour rester éveillé :</span>
+      <a class="coffee-link" id="homeMiniCoffeeLink" href="https://buymeacoffee.com/fabricebreizh" target="_blank" rel="noopener noreferrer">Buy me a coffee</a>
+    </footer>
   </div>
 </div>
 
 <div class="app advanced-ui sb-collapsed" id="appRoot">
 
   <aside class="left-sidebar" id="leftSidebar">
+    <div class="section">
+      <h3 id="desktopFractalTitle">Fractale</h3>
+      <div class="left-current-name" id="desktopCurrentFractalName">Mandelbrot</div>
+      <p class="left-current-desc" id="desktopCurrentFractalDesc">L’ensemble classique avec le chemin de zoom le plus profond et le plus stable.</p>
+      <div class="left-action-stack" style="margin-top:10px">
+        <button class="btn primary" id="desktopChangeFractalBtn" title="Changer de fractale">Changer de fractale</button>
+      </div>
+      <div class="left-mini-grid">
+        <button class="btn" id="desktopSaveFavBtn">Ajouter aux favoris</button>
+        <button class="btn" id="desktopResetBtn">Réinitialiser la vue</button>
+      </div>
+    </div>
+
+    <div class="section desktop-favs-wrap">
+      <h3 id="desktopFavoritesTitle">Favoris</h3>
+      <div class="saved-list" id="desktopFavoritesList"><div class="saved-item"><div><strong style="font-size: 12px;">Multibrot 20 billions</strong><small>Multibrot · 20 billions</small></div><div class="saved-actions"><button class="btn sm fav-open-btn" type="button">Ouvrir</button><button class="btn sm danger" type="button">✕</button></div></div><div class="saved-item"><div><strong style="font-size: 12px;">Multibrot 14 millions</strong><small>Multibrot · 14 millions</small></div><div class="saved-actions"><button class="btn sm fav-open-btn" type="button">Ouvrir</button><button class="btn sm danger" type="button">✕</button></div></div><div class="saved-item"><div><strong style="font-size: 12px;">Multibrot 14 millions</strong><small>Multibrot · 14 millions</small></div><div class="saved-actions"><button class="btn sm fav-open-btn" type="button">Ouvrir</button><button class="btn sm danger" type="button">✕</button></div></div><div class="saved-item"><div><strong style="font-size: 12px;">Barnsley 3 91×</strong><small>Barnsley 3 · 91×</small></div><div class="saved-actions"><button class="btn sm fav-open-btn" type="button">Ouvrir</button><button class="btn sm danger" type="button">✕</button></div></div><div class="saved-item"><div><strong style="font-size: 12px;">Burning Ship 2.4 mille</strong><small>Burning Ship · 2.4 mille</small></div><div class="saved-actions"><button class="btn sm fav-open-btn" type="button">Ouvrir</button><button class="btn sm danger" type="button">✕</button></div></div></div>
+      <div class="desktop-fav-reminder">
+        <div class="muted warning-note" id="desktopFavReminderWrap"><span class="warning-icon" aria-hidden="true">⚠</span><span id="desktopFavReminderText">Pensez à sauvegarder vos favoris.</span></div>
+        <div class="saved-actions">
+          <button class="btn sm pulse-hint" id="desktopExportFavsBtn">↓ Exporter</button>
+          <button class="btn sm" id="desktopImportFavsBtn">↑ Importer</button>
+        </div>
+      </div>
+      <div class="desktop-fav-note" id="desktopFavHintText">Ils sont gardés dans le navigateur local. Un export évite les pertes.</div>
+    </div>
+
     <div class="section">
       <h3 id="desktopInfoTitle">Infos</h3>
       <div class="info-stack">
@@ -446,39 +635,10 @@ body.mode3d .zoom-btns{display:flex}
       </div>
     </div>
 
-    <div class="section">
-      <h3 id="desktopFractalTitle">Fractale</h3>
-      <div class="left-current-name" id="desktopCurrentFractalName">Mandelbrot</div>
-      <p class="left-current-desc" id="desktopCurrentFractalDesc">L’ensemble classique avec le chemin de zoom le plus profond et le plus stable.</p>
-      <div class="left-action-stack" style="margin-top:10px">
-        <button class="btn primary" id="desktopChangeFractalBtn" title="Changer de fractale">Changer de fractale</button>
-        <button class="btn" id="desktopRandomBtn">🎲 <span class="surprise-side-label">Fractale aléatoire</span></button>
-      </div>
-      <div class="left-mini-grid">
-        <button class="btn" id="desktopSaveFavBtn">Ajouter aux favoris</button>
-        <button class="btn" id="desktopResetBtn">Réinitialiser la vue</button>
-      </div>
-    </div>
-
-    <div class="section desktop-favs-wrap">
-      <h3 id="desktopFavoritesTitle">Favoris</h3>
-      <div class="saved-list" id="desktopFavoritesList"><div class="saved-item"><div><strong style="font-size: 12px;">Multibrot 20 billions</strong><small>Multibrot · 20 billions</small></div><div class="saved-actions"><button class="btn sm" type="button">Ouvrir</button><button class="btn sm danger" type="button">✕</button></div></div><div class="saved-item"><div><strong style="font-size: 12px;">Multibrot 14 millions</strong><small>Multibrot · 14 millions</small></div><div class="saved-actions"><button class="btn sm" type="button">Ouvrir</button><button class="btn sm danger" type="button">✕</button></div></div><div class="saved-item"><div><strong style="font-size: 12px;">Multibrot 14 millions</strong><small>Multibrot · 14 millions</small></div><div class="saved-actions"><button class="btn sm" type="button">Ouvrir</button><button class="btn sm danger" type="button">✕</button></div></div><div class="saved-item"><div><strong style="font-size: 12px;">Barnsley 3 91×</strong><small>Barnsley 3 · 91×</small></div><div class="saved-actions"><button class="btn sm" type="button">Ouvrir</button><button class="btn sm danger" type="button">✕</button></div></div><div class="saved-item"><div><strong style="font-size: 12px;">Burning Ship 2.4 mille</strong><small>Burning Ship · 2.4 mille</small></div><div class="saved-actions"><button class="btn sm" type="button">Ouvrir</button><button class="btn sm danger" type="button">✕</button></div></div></div>
-      <div class="desktop-fav-reminder">
-        <div class="muted" id="desktopFavReminderText">Pensez à sauvegarder vos favoris.</div>
-        <div class="saved-actions">
-          <button class="btn sm pulse-hint" id="desktopExportFavsBtn">↓ Exporter</button>
-          <button class="btn sm" id="desktopImportFavsBtn">↑ Importer</button>
-        </div>
-      </div>
-      <div class="desktop-fav-note" id="desktopFavHintText">Ils sont gardés dans le navigateur local. Un export évite les pertes.</div>
-    </div>
-
     <div class="desktop-tips section">
       <h3 id="desktopTipsTitle">Conseils</h3>
       <div class="desktop-tip-lines" id="desktopTipLines">
-        <div id="desktopTip1">Molette : zoom vers le curseur pour explorer les détails.</div>
-        <div id="desktopTip2">Glisser : déplacer · Shift+glisser : zoom rectangle.</div>
-        <div id="desktopTip3">Double-clic : zoom ×2 · Home : vue par défaut.</div>
+        <div class="desktop-tip-bubble" id="desktopTipsBubble">Molette : zoom vers le curseur pour explorer les détails.<br>Glisser : déplacer.<br>Shift+glisser : zoom rectangle.<br>Double-clic : zoom ×2.<br>Home : vue par défaut.</div>
       </div>
     </div>
   </aside>
@@ -528,9 +688,6 @@ body.mode3d .zoom-btns{display:flex}
           <div><span class="kbd">+</span><span class="kbd">−</span> zoom · ←→↑↓ déplacer · Accueil : réinitialiser</div>
           <div><span class="kbd">Tab</span> Tab panneau · H aide</div>
         </div>
-      </div>
-      <div class="quick-grid" style="margin-top:10px">
-        <button class="btn primary" id="surpriseSideBtn" style="justify-content:center">🎲 <span class="surprise-side-label">Fractale aléatoire</span></button>
       </div>
     </div>
 
@@ -670,11 +827,13 @@ body.mode3d .zoom-btns{display:flex}
           <input type="text" id="saveName" placeholder="Nom de la vue…">
           <button class="btn primary" id="saveNamedBtn">★</button>
         </div>
-        <div class="saved-list" id="savedList"><div class="saved-item"><div><strong style="font-size: 12px;">Multibrot 20 billions</strong><small>Multibrot · 20 billions</small></div><div class="saved-actions"><button class="btn sm" type="button">Ouvrir</button><button class="btn sm danger" type="button">✕</button></div></div><div class="saved-item"><div><strong style="font-size: 12px;">Multibrot 14 millions</strong><small>Multibrot · 14 millions</small></div><div class="saved-actions"><button class="btn sm" type="button">Ouvrir</button><button class="btn sm danger" type="button">✕</button></div></div><div class="saved-item"><div><strong style="font-size: 12px;">Multibrot 14 millions</strong><small>Multibrot · 14 millions</small></div><div class="saved-actions"><button class="btn sm" type="button">Ouvrir</button><button class="btn sm danger" type="button">✕</button></div></div><div class="saved-item"><div><strong style="font-size: 12px;">Barnsley 3 91×</strong><small>Barnsley 3 · 91×</small></div><div class="saved-actions"><button class="btn sm" type="button">Ouvrir</button><button class="btn sm danger" type="button">✕</button></div></div><div class="saved-item"><div><strong style="font-size: 12px;">Burning Ship 2.4 mille</strong><small>Burning Ship · 2.4 mille</small></div><div class="saved-actions"><button class="btn sm" type="button">Ouvrir</button><button class="btn sm danger" type="button">✕</button></div></div></div>
+        <div class="saved-list" id="savedList"><div class="saved-item"><div><strong style="font-size: 12px;">Multibrot 20 billions</strong><small>Multibrot · 20 billions</small></div><div class="saved-actions"><button class="btn sm fav-open-btn" type="button">Ouvrir</button><button class="btn sm danger" type="button">✕</button></div></div><div class="saved-item"><div><strong style="font-size: 12px;">Multibrot 14 millions</strong><small>Multibrot · 14 millions</small></div><div class="saved-actions"><button class="btn sm fav-open-btn" type="button">Ouvrir</button><button class="btn sm danger" type="button">✕</button></div></div><div class="saved-item"><div><strong style="font-size: 12px;">Multibrot 14 millions</strong><small>Multibrot · 14 millions</small></div><div class="saved-actions"><button class="btn sm fav-open-btn" type="button">Ouvrir</button><button class="btn sm danger" type="button">✕</button></div></div><div class="saved-item"><div><strong style="font-size: 12px;">Barnsley 3 91×</strong><small>Barnsley 3 · 91×</small></div><div class="saved-actions"><button class="btn sm fav-open-btn" type="button">Ouvrir</button><button class="btn sm danger" type="button">✕</button></div></div><div class="saved-item"><div><strong style="font-size: 12px;">Burning Ship 2.4 mille</strong><small>Burning Ship · 2.4 mille</small></div><div class="saved-actions"><button class="btn sm fav-open-btn" type="button">Ouvrir</button><button class="btn sm danger" type="button">✕</button></div></div></div>
         <div class="quick-grid" style="margin-top:12px">
           <button class="btn sm pulse-hint" id="exportFavsBtn" style="justify-content:center">↓ Exporter</button>
           <button class="btn sm" id="importFavsBtn" style="justify-content:center">↑ Importer</button>
         </div>
+        <div class="warning-note" id="favWarningWrap"><span class="warning-icon" aria-hidden="true">⚠</span><span id="favReminderText">Pensez à sauvegarder vos favoris.</span></div>
+        <div class="desktop-fav-note" id="favHintText">Ils sont gardés dans le navigateur local. Un export évite les pertes.</div>
         <input type="file" id="importFavsFile" accept=".json" style="display:none">
       </div>
     </div>
@@ -785,11 +944,11 @@ body.mode3d .zoom-btns{display:flex}
       <div class="brand">
         <button class="btn sm mobile-toggle" id="openSidebarBtn" style="order:-2;font-size:15px;padding:6px 12px;flex-shrink:0" title="Menu">☰</button>
         <button class="btn sm" id="homeBtn" title="Accueil" style="font-size:15px;padding:6px 12px;flex-shrink:0;background:linear-gradient(180deg,#8a7cff,#7260f6);border-color:#8474ff;color:#fff;order:-1">🏠<span class="home-label"> Accueil</span></button>
-        <span id="topProfileBadge" class="profile-badge balanced">⚖️ Équilibré</span>
       </div>
+      <span id="topFractalName" class="top-fractal-name" aria-live="polite">Mandelbrot</span>
       <div class="actions">
-        <button class="btn sm" id="undoBtn" title="Annuler" style="">↩</button>
-        <button class="btn sm primary" id="surpriseBtn" title="Vue aléatoire">🎲<span class="toolbar-label surprise-label"> Aléatoire</span></button>
+        <button class="btn sm" id="undoBtn" title="Annuler" style="">↩<span class="toolbar-label undo-label"> Annuler</span></button>
+        <button class="btn sm" id="topSaveFavBtn" title="Ajouter aux favoris" aria-label="Ajouter aux favoris">+<span class="toolbar-label topfav-label"> Favoris</span> ★</button>
         <button class="btn sm" id="shareBtn" title="Copier lien">🔗<span class="toolbar-label share-label"> Copier lien</span></button>
         <button class="btn sm" id="aideBtn" title="Aide rapide">?</button>
         <button class="btn sm primary" id="exportBtn" title="Export PNG">⬇<span class="toolbar-label export-label">Export PNG</span></button>
@@ -1779,6 +1938,7 @@ const runtime={
   viewReadoutsKey:'',
   sideInfosKey:'',
   debugInfoKey:'',
+  renderDeferredForHome:false,
   uiRafPending:false,
   uiDirty:{full:false,lite:false,view:false,debug:false}
 };
@@ -1877,6 +2037,10 @@ const Scheduler={
     });
   },
   requestRender(){
+    if(document.body.classList.contains('at-home')){
+      runtime.renderDeferredForHome=true;
+      return;
+    }
     if(isFractal3D()){
       const idx3d=state.ftype-FRACTAL_3D_BASE;
       if(!document.body.classList.contains('mode3d')){
@@ -2275,7 +2439,7 @@ const FRACTAL_DEFAULTS={
   3: {cx:'0',cy:'0',fracExp:2},
   4: {cx:'0',cy:'0',newtonDegree:3},
   5: {cx:'0',cy:'0'},
-  6: {cx:'-0.4',cy:'-0.5'},
+  6: {cx:'-0.4',cy:'-0.5',scale:4.6875},
   7: {cx:'0',cy:'0',jre:-0.25,jim:0.54,phoenixP:0.42},
   8: {cx:'-0.5',cy:'0'},
   9: {cx:'0',cy:'0'},                       // Cosinus — Mandelbrot-style (C=pixel)
@@ -2295,7 +2459,7 @@ const FRACTAL_DEFAULTS={
   38:{cx:'0',cy:'0',scale:3.0},
   29:{cx:'0',cy:'0',scale:4.0},
   30:{cx:'0',cy:'0',scale:4.0},
-  31:{cx:'0',cy:'0',scale:3.5},
+  31:{cx:'-0.452083806915064865260554975872956640339709986017193996180389',cy:'0.104337833172033965253826305304697878330416057100055402277490',scale:13.0434782609,maxIter:1000},
   // Perpendicular Mandelbrot — filaments latéraux visibles
   11:{cx:'-0.5',cy:'0.5',scale:1.8},
   // Feather — vue sur les plumes (coords issues d'exploration)
@@ -2521,8 +2685,9 @@ function initStartupUI(){
       applyPerfProfile(saved,false);
     }
   }catch(e){}
-  // Lancer le benchmark 2D après le rendu initial
-  setTimeout(()=>_runBench2d(), 400);
+  // Lancer le benchmark 2D après l'ouverture réelle du viewer.
+  // Quand l'accueil est affiché en vraie page, le shader principal ne tourne plus derrière.
+  setTimeout(()=>{ if(!document.body.classList.contains('at-home')) _runBench2d(); }, 400);
   updateProfileBanner();
   // Charger une fractale 3D depuis l'URL
   if(globalThis.__pendingEnterMode3D!==undefined){
@@ -4292,27 +4457,35 @@ function updateFavoritesExportHint(favs){
   try{exported=+(localStorage.getItem('frac-favs-export-count')||0);}catch(e){}
   const needs=count>0&&exported<count;
   ['exportFavsBtn','desktopExportFavsBtn'].forEach(id=>{const b=$(id); if(b) b.classList.toggle('pulse-hint',needs);});
-  const reminder=$('desktopFavReminderText');
-  const hint=$('desktopFavHintText');
-  if(reminder) reminder.textContent=(currentLocale==='fr')?'Pensez à sauvegarder vos favoris.':'Remember to back up your favorites.';
-  if(hint) hint.textContent=(currentLocale==='fr')?'Ils sont gardés dans le navigateur local. Un export évite les pertes.':'They are kept in your local browser. Export avoids accidental loss.';
+  const reminderText=(currentLocale==='fr')?'Pensez à sauvegarder vos favoris.':'Remember to back up your favorites.';
+  const hintText=(currentLocale==='fr')?'Ils sont gardés dans le navigateur local. Un export évite les pertes.':'They are kept in your local browser. Export avoids accidental loss.';
+  ['desktopFavReminderText','favReminderText'].forEach(id=>{const el=$(id); if(el) el.textContent=reminderText;});
+  ['desktopFavHintText','favHintText'].forEach(id=>{const el=$(id); if(el) el.textContent=hintText;});
 }
 function updateDesktopTips(){
   const is3d=document.body.classList.contains('mode3d');
   const fr=currentLocale==='fr';
-  const lines=is3d? [
-    fr?'Glisser : orbite autour du volume.':'Drag: orbit around the volume.',
-    fr?'Molette : zoom · Shift+glisser : panoramique.':'Wheel: zoom · Shift+drag: pan.',
-    fr?'Double-clic : recadrer rapidement la vue.':'Double-click: quickly recenter the view.'
-  ] : [
-    fr?'Molette : zoom vers le curseur pour explorer les détails.':'Wheel: zoom toward the cursor to inspect details.',
-    fr?'Glisser : déplacer · Shift+glisser : zoom rectangle.':'Drag: move · Shift+drag: box zoom.',
-    fr?'Double-clic : zoom ×2 · Home : vue par défaut.':'Double-click: ×2 zoom · Home: default view.'
-  ];
-  ['desktopTip1','desktopTip2','desktopTip3'].forEach((id,i)=>{const el=$(id); if(el) el.textContent=lines[i]||'';});
+  const lines=is3d
+    ? (fr
+      ? ['Glisser : orbite autour du volume.','Molette : zoom.','Shift+glisser : panoramique.','Double-clic : recadrer rapidement la vue.']
+      : ['Drag: orbit around the volume.','Wheel: zoom.','Shift+drag: pan.','Double-click: quickly recenter the view.'])
+    : (fr
+      ? ['Molette : zoom vers le curseur pour explorer les détails.','Glisser : déplacer.','Shift+glisser : zoom rectangle.','Double-clic : zoom ×2.','Home : vue par défaut.']
+      : ['Wheel: zoom toward the cursor to inspect details.','Drag: move.','Shift+drag: box zoom.','Double-click: ×2 zoom.','Home: default view.']);
+  const el=$('desktopTipsBubble');
+  if(el) el.innerHTML=lines.map(line=>'<div>'+line+'</div>').join('');
+}
+function updateTopFractalName(){
+  const el=$('topFractalName');
+  if(!el) return;
+  const meta=fractMeta(state.ftype);
+  const name=meta?.name||'';
+  smartSetText(el,name);
+  el.title=(currentLocale==='fr'?'Fractale actuelle : ':'Current fractal: ')+name;
 }
 function updateDesktopLeftPanel(){
   const meta=fractMeta(state.ftype);
+  updateTopFractalName();
   smartSetText($('desktopCurrentFractalName'),meta.name);
   smartSetText($('desktopCurrentFractalDesc'),meta.desc);
   const is3d=document.body.classList.contains('mode3d');
@@ -4413,7 +4586,7 @@ function renderSaved(){
       details.appendChild(title);
       details.appendChild(small);
       const actions=document.createElement('div');actions.className='saved-actions';
-      const openBtn=document.createElement('button');openBtn.className='btn sm';openBtn.type='button';openBtn.textContent=t('saved.open');
+      const openBtn=document.createElement('button');openBtn.className='btn sm fav-open-btn';openBtn.type='button';openBtn.textContent=t('saved.open');
       const delBtn=document.createElement('button');delBtn.className='btn sm danger';delBtn.type='button';delBtn.textContent='✕';
       openBtn.onclick=()=>applyState(fav.state,{push:true,renderNow:true});
       delBtn.onclick=()=>{const next=loadFavorites();next.splice(idx,1);storageSet(APP_KEYS.favorites,JSON.stringify(next));renderSaved();};
@@ -4563,6 +4736,7 @@ function updateUI(){
   updateEffectsChips();
   updateDebugInfo();
   updateProfileUI();
+  updateTopFractalName();
   updateDesktopLeftPanel();
   applyUiPrefs();
   syncModeChrome();
@@ -5011,7 +5185,7 @@ const I18N_EXTRA={
     otherFractals:(count)=>'Voir la liste des '+count+' fractales',
     quickActions:'Choix rapide', recommendedProfile:'Profil recommandé', tips:'Conseils',
     saveReminder:'Pensez à sauvegarder vos favoris.', localStorageHint:'Ils sont gardés dans le navigateur local. Un export évite les pertes.',
-    changeFractal:'Changer de fractale', randomFractal:'Fractale aléatoire', resetView:'Réinitialiser la vue', addFavorite:'Ajouter aux favoris',
+    changeFractal:'Changer de fractale', randomFractal:'Fractale aléatoire', randomFractalDesc:'Lancer une vue surprise', randomFractalTag:'Découverte rapide', resetView:'Réinitialiser la vue', addFavorite:'Ajouter aux favoris', topFavorite:'Favoris', topFavoriteTitle:'Ajouter aux favoris',
     installTitle:"Installer l'app", installDesc:"Accès direct depuis votre écran d'accueil · iOS & Android", installTag:'Gratuit · Sans store',
     tour:'Visite guidée', tourDesc:'Parcourez les plus belles fractales', tourCount:(n)=>n+' lieux à découvrir',
     fullCatalog:'Vue complète', download:'Télécharger', downloadHtml:'Télécharger le fichier HTML', offline:'Version hors ligne',
@@ -5021,7 +5195,10 @@ const I18N_EXTRA={
     home:'Accueil', languageNext:'Switch to English', undo:'Annuler', share:'Copier lien', fullscreen:'Plein écran', help:'Aide rapide',
     defaultView:'Vue par défaut', recommendedSettings:'Paramètres recommandés', restartRotation:'Relancer la rotation',
     dragOrbit:'Glisser : orbite · Molette : zoom', shiftPan:'Shift+glisser : panoramique', doubleCenter:'Double-clic : centrer sur ce point',
-    noFavorites:'Aucun favori enregistré.', viewName:'Nom de la vue…', buddha:'Buddhabrot', ssResolution:'Résolution', rotation:'rotation'
+    noFavorites:'Aucun favori enregistré.', viewName:'Nom de la vue…', buddha:'Buddhabrot', ssResolution:'Résolution', rotation:'rotation',
+    homeGithubText:'Code source',
+    homeCoffeeText:'Soutenir le projet',
+    homeGithubLink:'GitHub', homeCoffeeLink:'Buy me a coffee', homeMiniProjects:'Mes projets :', homeMiniCoffee:'Pour rester éveillé :'
   },
   en:{
     metaDescription:'Explore interactive 2D and 3D fractals — Mandelbrot, Julia, Buddhabrot, Mandelbulb and more. Works offline.',
@@ -5030,7 +5207,7 @@ const I18N_EXTRA={
     otherFractals:(count)=>'See the list of '+count+' fractals',
     quickActions:'Quick actions', recommendedProfile:'Recommended profile', tips:'Tips',
     saveReminder:'Remember to save your favorites.', localStorageHint:'They are stored in this browser. Export them to avoid losing them.',
-    changeFractal:'Change fractal', randomFractal:'Random fractal', resetView:'Reset view', addFavorite:'Add to favorites',
+    changeFractal:'Change fractal', randomFractal:'Random fractal', randomFractalDesc:'Launch a surprise view', randomFractalTag:'Quick discovery', resetView:'Reset view', addFavorite:'Add to favorites', topFavorite:'Favorites', topFavoriteTitle:'Add to favorites',
     installTitle:'Install app', installDesc:'Direct access from your home screen · iOS & Android', installTag:'Free · No store',
     tour:'Guided tour', tourDesc:'Browse the most beautiful fractals', tourCount:(n)=>n+' places to discover',
     fullCatalog:'Full catalog', download:'Download', downloadHtml:'Download the HTML file', offline:'Offline copy',
@@ -5040,7 +5217,10 @@ const I18N_EXTRA={
     home:'Home', languageNext:'Passer en français', undo:'Undo', share:'Copy link', fullscreen:'Fullscreen', help:'Quick help',
     defaultView:'Default view', recommendedSettings:'Recommended settings', restartRotation:'Restart rotation',
     dragOrbit:'Drag: orbit · Wheel: zoom', shiftPan:'Shift+drag: pan', doubleCenter:'Double-click: center on this point',
-    noFavorites:'No favorites saved yet.', viewName:'View name…', buddha:'Buddhabrot', ssResolution:'Resolution', rotation:'rotation'
+    noFavorites:'No favorites saved yet.', viewName:'View name…', buddha:'Buddhabrot', ssResolution:'Resolution', rotation:'rotation',
+    homeGithubText:'Source code',
+    homeCoffeeText:'Support the project',
+    homeGithubLink:'GitHub', homeCoffeeLink:'Buy me a coffee', homeMiniProjects:'My projects:', homeMiniCoffee:'Stay awake fund:'
   }
 };
 function textById(id,value){const el=document.getElementById(id);if(el&&value!==undefined)el.textContent=value;}
@@ -5067,12 +5247,11 @@ function applyDeclarativeI18n(){
   textById('quickActionsLabel',x.quickActions); textById('profileRecommendationLabel',x.recommendedProfile);
   textById('installBtnTitle',x.installTitle); textById('installBtnDesc',x.installDesc); textById('installBtnTag',x.installTag);
   textById('splashTourTitle2',x.tour); ; textById('splashTourCount',x.tourCount(TOUR_STEPS.length));
-  textById('splashAllTag',x.fullCatalog); textById('splashDlTitle',x.download); textById('splashDlDesc',x.downloadHtml); textById('splashDlTag',x.offline);
+  textById('splashRandomTitle',x.randomFractal); textById('splashRandomDesc',x.randomFractalDesc); textById('splashRandomTag',x.randomFractalTag);
+  textById('splashAllTag',x.fullCatalog); textById('splashDlTitle',x.download); textById('splashDlDesc',x.downloadHtml); textById('splashDlTag',x.offline); textById('homeFooterGithub',x.homeGithubText); textById('homeFooterCoffee',x.homeCoffeeText); textById('homeFooterGithubLink',x.homeGithubLink); textById('homeFooterCoffeeLink',x.homeCoffeeLink); textById('homeMiniFooter',x.homeMiniFooter);
   textById('desktopTipsTitle',x.tips); textById('desktopFavReminderText',x.saveReminder); textById('desktopFavHintText',x.localStorageHint);
   textById('desktopChangeFractalBtn',x.changeFractal); textById('desktopSaveFavBtn',x.addFavorite); textById('desktopResetBtn',x.resetView);
-  htmlById('desktopRandomBtn','🎲 <span class="surprise-side-label">'+x.randomFractal+'</span>');
   textById('sidebarGalleryBtn',ui.galleryButton); textById('saveFavBtn',x.addFavorite); textById('resetBtn',x.resetView);
-  htmlById('surpriseSideBtn','🎲 <span class="surprise-side-label">'+x.randomFractal+'</span>');
   textById('depthSettingsTitle',ui.depth); textById('iterLabel',ui.iterations); textById('powerSettingsTitle',x.shape); textById('expLabel',x.exponent);
   textById('paletteSettingsTitle',ui.palette); textById('paletteShiftLabel',ui.shift); textById('paletteCyclesLabel',ui.cycles);
   textById('qualitySettingsTitle',ui.quality); textById('effectsSettingsTitle',ui.visualEffects);
@@ -5087,6 +5266,9 @@ function applyDeclarativeI18n(){
   textById('cancelExportBtn',x.cancel); textById('confirmExportBtn',x.export); textById('closeHelpBtn',x.close);
   attrById('homeBtn','title',x.home); const homeLabel=document.querySelector('#homeBtn .home-label'); if(homeLabel) homeLabel.textContent=' '+x.home;
   attrById('undoBtn','title',x.undo); attrById('shareBtn','title',x.share); attrById('fullscreenBtn','title',x.fullscreen); attrById('aideBtn','title',x.help);
+  const undoLabel=document.querySelector('#undoBtn .undo-label'); if(undoLabel) undoLabel.textContent=' '+x.undo;
+  const topFavBtn=document.getElementById('topSaveFavBtn'); if(topFavBtn){topFavBtn.title=x.topFavoriteTitle;topFavBtn.setAttribute('aria-label',x.topFavoriteTitle);}
+  const topFavLabel=document.querySelector('#topSaveFavBtn .topfav-label'); if(topFavLabel) topFavLabel.textContent=' '+x.topFavorite;
   const shareLabel=document.querySelector('#shareBtn .share-label'); if(shareLabel) shareLabel.textContent=' '+x.share;
   const fullscreenLabel=document.querySelector('#fullscreenBtn .fullscreen-label'); if(fullscreenLabel) fullscreenLabel.textContent=' '+x.fullscreen;
   const langBtn=document.getElementById('langToggle'); if(langBtn){langBtn.title=x.languageNext;langBtn.setAttribute('aria-label',x.languageNext);}
@@ -5133,6 +5315,7 @@ function applyFractalTranslations(){
 function applyStaticTranslations(){
   document.documentElement.lang=currentLocale;
   const ui=I18N[currentLocale].ui;
+  const x=I18N_EXTRA[currentLocale];
   const langBtn=$('langToggle');
   const nextLocale=currentLocale==='fr'?'en':'fr';
   const nextLabel=nextLocale==='fr'?'Passer en français':'Switch to English';
@@ -5163,6 +5346,17 @@ function applyStaticTranslations(){
   setTxt('cardMandelbulbTag',fr?'Volumes organiques':'Organic volumes');
   setTxt('cardTourTitle',fr?'Visite guidée':'Guided tour');
   setTxt('cardTourDesc',fr?'Parcourez les plus belles fractales':'Browse the most beautiful fractals');
+  setTxt('splashRandomTitle',x.randomFractal);
+  setTxt('splashRandomDesc',x.randomFractalDesc);
+  setTxt('splashRandomTag',x.randomFractalTag);
+  setTxt('homeFooterGithub',x.homeGithubText);
+  setTxt('homeFooterCoffee',x.homeCoffeeText);
+  setTxt('homeFooterGithubLink',x.homeGithubLink);
+  setTxt('homeFooterCoffeeLink',x.homeCoffeeLink);
+  setTxt('homeMiniProjectsText',x.homeMiniProjects);
+  setTxt('homeMiniGithubLink',x.homeGithubLink);
+  setTxt('homeMiniCoffeeText',x.homeMiniCoffee);
+  setTxt('homeMiniCoffeeLink',x.homeCoffeeLink);
   const tabs=document.querySelectorAll('#tabs .tab'); if(tabs[0]) tabs[0].childNodes[0].textContent=ui.tabs.home; if(tabs[1]) tabs[1].childNodes[0].textContent=ui.tabs.settings; if(tabs[2]) tabs[2].childNodes[0].textContent=ui.tabs.saved+' ';
   document.querySelector('[data-panel="home"] .section h3').textContent=ui.info;
   const infoKeys=document.querySelectorAll('.info-key'); if(infoKeys[0]) infoKeys[0].textContent=ui.zoom; if(infoKeys[1]) infoKeys[1].textContent=ui.real; if(infoKeys[2]) infoKeys[2].textContent=ui.imag; if(infoKeys[3]) infoKeys[3].textContent=ui.engine; if(infoKeys[4]) infoKeys[4].textContent='FPS'; if(infoKeys[5]) infoKeys[5].textContent=currentLocale==='fr'?'Résolution':'Resolution'; if(infoKeys[6]) infoKeys[6].textContent=ui.iterations; if(infoKeys[7]) infoKeys[7].textContent=ui.effects;
@@ -5178,7 +5372,6 @@ function applyStaticTranslations(){
     $('desktopChangeFractalBtn').textContent=t('ui.changeFractal');
     $('desktopChangeFractalBtn').title=t('ui.changeFractal');
   }
-  if($('desktopRandomBtn')) $('desktopRandomBtn').innerHTML='🎲 <span class="surprise-side-label">'+ui.random+'</span>';
   if($('desktopSaveFavBtn')) $('desktopSaveFavBtn').textContent=ui.addToFavorites;
   if($('desktopResetBtn')) $('desktopResetBtn').textContent=ui.resetView;
   if($('desktopExportFavsBtn')) $('desktopExportFavsBtn').textContent='↓ '+ui.export;
@@ -5204,7 +5397,7 @@ function applyStaticTranslations(){
     const prefixHtml=navPrefixes[idx].map(k=>`<span class="kbd">${k}</span>`).join(idx===2?'':'');
     el.innerHTML=`${prefixHtml} ${navTexts[idx]}`;
   });
-  if($('surpriseSideBtn')) $('surpriseSideBtn').innerHTML='🎲 <span class="surprise-side-label">'+ui.random+'</span>'; $('homeBtn').title=ui.home; $('homeBtn').querySelector('.home-label').textContent=' '+ui.home;
+  $('homeBtn').title=ui.home; $('homeBtn').querySelector('.home-label').textContent=' '+ui.home;
   setTxt('depthSettingsTitle',ui.depth);
   setTxt('iterLabel',ui.iterations);
   setTxt('powerSettingsTitle',currentLocale==='fr'?'Forme de la fractale':'Fractal shape');
@@ -5233,7 +5426,10 @@ $('qualityMode').options[0].textContent=ui.progressive; $('qualityMode').options
   [7,8,9,10,11,12,13,14,15].forEach((idx,i)=>{ if(allLabels[idx]) allLabels[idx].textContent=map[7+i]; });
   document.querySelector('.tabpanel[data-panel="saved"] .section h3').textContent=ui.favorites;
   $('saveName').placeholder=ui.viewNamePlaceholder; $('exportFavsBtn').textContent='↓ '+ui.export; $('importFavsBtn').textContent='↑ '+ui.import;
-  $('undoBtn').title=ui.undo; $('surpriseBtn').title=ui.randomTitle; const surpLabel=$('surpriseBtn').querySelector('.surprise-label'); if(surpLabel) surpLabel.textContent=' '+ui.random; const surpSideLabel=$('surpriseSideBtn')?.querySelector('.surprise-side-label'); if(surpSideLabel) surpSideLabel.textContent=ui.random; $('shareBtn').title=ui.copyLink; const shareLabel=$('shareBtn').querySelector('.share-label'); if(shareLabel) shareLabel.textContent=' '+ui.copyLink; $('exportBtn').title=ui.exportPng; const exportLabel=$('exportBtn').querySelector('.export-label'); if(exportLabel) exportLabel.textContent=ui.exportPng; $('fullscreenBtn').title=ui.fullscreen; const fullscreenLabel=$('fullscreenBtn').querySelector('.fullscreen-label'); if(fullscreenLabel) fullscreenLabel.textContent=' '+ui.fullscreen;
+  $('undoBtn').title=ui.undo; const undoLabel=$('undoBtn').querySelector('.undo-label'); if(undoLabel) undoLabel.textContent=' '+ui.undo;
+  const topFavBtn=$('topSaveFavBtn'); if(topFavBtn){topFavBtn.title=x.topFavoriteTitle;topFavBtn.setAttribute('aria-label',x.topFavoriteTitle);}
+  const topFavLabel=document.querySelector('#topSaveFavBtn .topfav-label'); if(topFavLabel) topFavLabel.textContent=' '+x.topFavorite;
+  $('shareBtn').title=ui.copyLink; const shareLabel=$('shareBtn').querySelector('.share-label'); if(shareLabel) shareLabel.textContent=' '+ui.copyLink; $('exportBtn').title=ui.exportPng; const exportLabel=$('exportBtn').querySelector('.export-label'); if(exportLabel) exportLabel.textContent=ui.exportPng; $('fullscreenBtn').title=ui.fullscreen; const fullscreenLabel=$('fullscreenBtn').querySelector('.fullscreen-label'); if(fullscreenLabel) fullscreenLabel.textContent=' '+ui.fullscreen;
   syncModeChrome();
   $('computingText').textContent=ui.computing;
   $('tourBanner').querySelector('.tour-pause-msg').textContent=ui.pausedTour; $('tourPrevBtn').title=ui.prevStep; $('tourNextBtn').title=ui.nextStep; $('tourCloseBtn').title=ui.stopTour;
@@ -5441,16 +5637,15 @@ function setupBindings(){
   $('undoBtn').onclick=undo;
   $('resetBtn').onclick=()=>resetView(true);
   document.querySelectorAll('[data-style-preset]').forEach(btn=>btn.onclick=()=>applyStylePreset(btn.dataset.stylePreset));
-  $('surpriseBtn').onclick=surprise;
   $('shareBtn').onclick=copyShare;
   $('aideBtn').onclick=()=>openModal('aideModal',true);
   // Fullscreen
   $('fullscreenBtn').onclick=()=>{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();};
   $('saveFavBtn').onclick=()=>saveFavorites($('saveName').value.trim());
+  if($('topSaveFavBtn')) $('topSaveFavBtn').onclick=() => saveFavorites($('saveName')?.value.trim());
   if($('desktopSaveFavBtn')) $('desktopSaveFavBtn').onclick=() => saveFavorites($('saveName')?.value.trim());
   if($('desktopResetBtn')) $('desktopResetBtn').onclick=() => resetView();
   if($('desktopChangeFractalBtn')) $('desktopChangeFractalBtn').onclick=() => openGallery();
-  if($('desktopRandomBtn')) $('desktopRandomBtn').onclick=surprise;
   if($('desktopExportFavsBtn')) $('desktopExportFavsBtn').onclick=exportFavorites;
   if($('desktopImportFavsBtn')) $('desktopImportFavsBtn').onclick=()=>$('importFavsFile').click();
   $('saveNamedBtn').onclick=()=>saveFavorites($('saveName').value.trim());
@@ -5669,7 +5864,6 @@ $('zoomOutBtn').addEventListener('touchend',e=>{
     if(Date.now()-lastTouchEnd<500)return; // ignorer click synthétique mobile
     setZoomAnchor(e.clientX,e.clientY);
   });
-  $('surpriseSideBtn').onclick=surprise;
   $('histEqBtn').onclick=computeHistogramEq;
 
   // ── Splash screen logic ──
@@ -5703,6 +5897,17 @@ $('zoomOutBtn').addEventListener('touchend',e=>{
       $('sidebarEdgeToggle').textContent='›';
     }
     updateHudVisibility();
+    if(runtime.renderDeferredForHome){
+      runtime.renderDeferredForHome=false;
+      Scheduler.requestCanvasResize();
+      Scheduler.requestRender();
+    }else{
+      Scheduler.requestCanvasResize();
+      Scheduler.requestRender();
+    }
+    if(typeof BENCH2D!=='undefined' && !BENCH2D.done && !BENCH2D.running){
+      setTimeout(()=>_runBench2d(),180);
+    }
   }
   $('homeBtn').onclick=()=>{
     if(document.body.classList.contains('mode3d')) exitMode3D();
@@ -5744,6 +5949,8 @@ $('zoomOutBtn').addEventListener('touchend',e=>{
   if(_tb2) _tb2.onclick=(e)=>{e.preventDefault();e.stopPropagation();closeSplash();setTimeout(()=>tourStart(),20);};
   const _aBtn=document.getElementById('splashAllBtn');
   if(_aBtn) _aBtn.onclick=(e)=>{e.preventDefault();e.stopPropagation();closeSplash();setTimeout(()=>openModal('galleryModal',true),50);};
+  const _rBtn=document.getElementById('splashRandomBtn');
+  if(_rBtn) _rBtn.onclick=(e)=>{e.preventDefault();e.stopPropagation();if(tourActive)tourStop();closeSplash();setTimeout(()=>surprise(),50);};
 
   document.querySelectorAll('[data-launch]').forEach(btn=>{
     btn.onclick=(e)=>{
@@ -5901,8 +6108,8 @@ $('zoomOutBtn').addEventListener('touchend',e=>{
     document.addEventListener('fullscreenchange',()=>setTimeout(scheduleResizeCanvas,120));
   }
   document.querySelectorAll('.modal-backdrop').forEach(m=>{
-    if(m.dataset.boundBackdrop==='1')return;
-    m.dataset.boundBackdrop='1';
+    if(m.dataset.backdropClickBound==='1')return;
+    m.dataset.backdropClickBound='1';
     m.addEventListener('click',e=>{if(e.target===m) openModal(m.id,false);});
   });
   if(!runtime.uiOverlayWatcherInstalled){
