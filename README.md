@@ -43,6 +43,4 @@ The project is designed to embed all in a single monolythic file. Just open frac
 
 Fractal Explorer is free and open source.
 
-If you enjoy the project, you can help it grow by buying me... not a coffee but some tokens! : ☕ [Buy me some tokens](https://buymeacoffee.com/fabricebreizh) ☕
-
-Donations mainly help fund the tokens needed to keep experimenting, fixing, optimizing, and adding new ideas to the generator.
+If you enjoy the project, you can help it grow by keeping me awake... ☕ [Buy me a cofee !](https://buymeacoffee.com/fabricebreizh) ☕
