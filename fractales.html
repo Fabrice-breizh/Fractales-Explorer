@@ -109,11 +109,13 @@ input[type="range"]{width:100%;accent-color:var(--accent)}
 .canvas-wrap{position:relative;background:var(--canvas);flex:1;min-height:0;overflow:hidden;cursor:crosshair}
 canvas{display:block;width:100%;height:100%}
 #cpuCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none;z-index:1}
-body.at-home #cpuCanvas{display:none !important}
+#transitionCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none;z-index:3;transform-origin:center center;will-change:opacity,transform;image-rendering:auto}
+body.at-home #cpuCanvas,body.at-home #transitionCanvas{display:none !important}
 /* Overlay UI: la galerie et le splash doivent masquer le viewer entier.
    Sinon les fonds semi-transparents laissent voir la derniere frame CPU/GPU. */
 body.ui-overlay-open #glc,
 body.ui-overlay-open #cpuCanvas,
+body.ui-overlay-open #transitionCanvas,
 body.ui-overlay-open #selCanvas,
 body.ui-overlay-open #glc3d{display:none!important;visibility:hidden!important}
 body.ui-overlay-open .canvas-wrap{background:var(--canvas)!important}
@@ -348,7 +350,7 @@ body.at-home #undoBtn{display:none!important}
 /* Canvas 3D — masqué par défaut, affiché en mode3d */
 #glc3d{display:none;position:absolute;inset:0;width:100%;height:100%;z-index:4;background:#000;image-rendering:auto}
 body.mode3d #glc3d{display:block}
-body.mode3d #glc,body.mode3d #cpuCanvas,body.mode3d #selCanvas{display:none}
+body.mode3d #glc,body.mode3d #cpuCanvas,body.mode3d #transitionCanvas,body.mode3d #selCanvas{display:none}
 body.mode3d .zoom-btns{display:flex}
 
 /* Sidebar 3D */
@@ -521,6 +523,33 @@ body.mode3d .zoom-btns{display:flex}
 .desktop-tip-bubble{
   background:rgba(255,255,255,.075)!important;
   border-color:rgba(255,255,255,.13)!important;
+}
+
+
+/* Contraste renforce entre les palettes noires et les bulles de rubriques */
+.left-sidebar .section,
+.sidebar .section,
+.tabpanel .section{
+  background:linear-gradient(180deg,rgba(255,255,255,.105),rgba(255,255,255,.072))!important;
+  border-color:rgba(255,255,255,.20)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 8px 20px rgba(0,0,0,.28);
+}
+.left-sidebar .section h3,
+.sidebar .section h3,
+.tabpanel .section h3{
+  background:rgba(255,255,255,.18)!important;
+  border-color:rgba(255,255,255,.24)!important;
+  color:rgba(248,250,255,.98)!important;
+}
+.preset,
+.saved-item,
+.metric{
+  background:linear-gradient(180deg,rgba(255,255,255,.085),rgba(255,255,255,.052))!important;
+  border-color:rgba(255,255,255,.16)!important;
+}
+.desktop-tip-bubble{
+  background:rgba(255,255,255,.115)!important;
+  border-color:rgba(255,255,255,.18)!important;
 }
 </style>
 <link rel="manifest" id="pwaManifest"></head>
@@ -993,10 +1022,11 @@ body.mode3d .zoom-btns{display:flex}
     <span class="bp-count" id="buddhaCount">0</span>
   </div>
       <canvas id="glc" width="1520" height="879" style="visibility: visible;"></canvas>
+      <canvas id="transitionCanvas" width="1520" height="879" aria-hidden="true"></canvas>
       <canvas id="cpuCanvas" width="1520" height="879" style="display: none; visibility: hidden;"></canvas>
       <canvas id="selCanvas" width="1216" height="703"></canvas>
-      <div id="computingOverlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 12px 22px; border-radius: 8px; background: rgba(8, 12, 18, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(124, 108, 248, 0.3); color: rgb(202, 191, 255); font-size: 13px; font-weight: 600; pointer-events: none; z-index: 10; letter-spacing: 0.02em; animation: 1.5s ease-in-out infinite pulse; display: none;"><span id="computingText">⟳ Calcul en cours…</span></div>
-      <style>#computingOverlay{animation:pulse 1.5s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:.7}50%{opacity:1}}</style>
+      <div id="computingOverlay" style="position:absolute;left:50%;bottom:18px;transform:translateX(-50%);padding:8px 14px;border-radius:999px;background:rgba(8,12,18,.78);backdrop-filter:blur(10px);border:1px solid rgba(124,108,248,.28);color:rgb(202,191,255);font-size:12px;font-weight:600;pointer-events:none;z-index:10;letter-spacing:.02em;animation:1.5s ease-in-out infinite pulse;display:none;max-width:calc(100% - 32px);white-space:nowrap;box-shadow:0 6px 22px rgba(0,0,0,.28);"><span id="computingText">⟳ Calcul en cours…</span></div>
+      <style>#computingOverlay{animation:pulse 1.5s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:.72}50%{opacity:1}}@media(max-width:720px){#computingOverlay{bottom:14px!important;font-size:11px!important;padding:7px 12px!important}}</style>
 
       <div class="hud">
         <div class="hud-left" id="hudInfos" style="display: flex;">
@@ -1107,6 +1137,8 @@ body.mode3d .zoom-btns{display:flex}
 <script>
 // ── SHADERS ─────────────────────────────────────────────────────────
 const canvas=document.getElementById('glc');
+const transitionCanvas=document.getElementById('transitionCanvas');
+const transitionCtx=transitionCanvas?transitionCanvas.getContext('2d',{alpha:true}):null;
 const cpuCanvas=document.getElementById('cpuCanvas');
 const cpuCtx=cpuCanvas.getContext('2d',{alpha:false});
 const wrap=document.getElementById('canvasWrap');
@@ -1671,8 +1703,24 @@ const perturb={
   rebuildTimer:null,
   // Overlay aideer
   _ov(){return $('computingOverlay');},
-  showOverlay(){const o=this._ov();if(o)o.style.display='';},
-  hideOverlay(){const o=this._ov();if(o)o.style.display='none';},
+  showOverlay(){
+    const o=this._ov();
+    if(o){
+      clearTimeout(this._hideOverlayTimer);
+      o.style.display='';
+      o.dataset.visibleSince=String(performance.now());
+    }
+  },
+  hideOverlay(){
+    const o=this._ov();
+    if(!o)return;
+    const since=+(o.dataset.visibleSince||0);
+    const wait=Math.max(0,220-(performance.now()-since));
+    clearTimeout(this._hideOverlayTimer);
+    this._hideOverlayTimer=setTimeout(()=>{
+      if(!this.building)o.style.display='none';
+    },wait);
+  },
 
   // ── Lifecycle transitions ──────────────────────────────────────
   invalidate(){
@@ -1732,7 +1780,8 @@ const perturb={
       return jsCpow(zr,zi,d);
     }
     function chunk(){
-      if(my!==self.genID||glLost){self.building=false;self.hideOverlay();return;}
+      if(my!==self.genID)return;
+      if(glLost){self.building=false;self.hideOverlay();return;}
       const end=Math.min(i+(isMultibrot?500:200),maxIt);
       while(i<end){
         if(isMultibrot){
@@ -1755,7 +1804,8 @@ const perturb={
         }
       }
       if(i<maxIt){setTimeout(chunk,0);return;}
-      if(my!==self.genID||glLost||!gl||gl.isContextLost()){self.building=false;self.hideOverlay();return;}
+      if(my!==self.genID)return;
+      if(glLost||!gl||gl.isContextLost()){self.building=false;self.hideOverlay();return;}
       // Upload texture
       const src=new Float32Array(pairs);
       let n=src.length/2;
@@ -1773,9 +1823,11 @@ const perturb={
       gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
       gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
-      self.len=n;self.lastPairs=src;self.ready=true;self.building=false;
+      self.len=n;self.lastPairs=src;self.ready=true;
       self.ref={cx:hcx,cy:hcy,len:n,iters:maxIt};
-      self.hideOverlay();self.render();
+      self.render();
+      self.building=false;
+      requestAnimationFrame(()=>self.hideOverlay());
     }
     setTimeout(chunk,0);
   },
@@ -1804,6 +1856,7 @@ const perturb={
   reset(){
     this.tex=null;this.len=0;this.ready=false;this.building=false;
     this.genID++;this.ref=null;this.lastPairs=null;this.hideOverlay();
+    if(this._hideOverlayTimer){clearTimeout(this._hideOverlayTimer);this._hideOverlayTimer=null;}
     if(this.rebuildTimer){clearTimeout(this.rebuildTimer);this.rebuildTimer=null;}
   },
 
@@ -2108,6 +2161,75 @@ function flushURLSync(){ Scheduler.flushURL(); }
 function scheduleResizeCanvas(){ Scheduler.requestCanvasResize(); }
 function scheduleResize3d(){ Scheduler.request3DResize(); }
 function invalidateApp(opts={}){ Scheduler.invalidate(opts); }
+
+// Transition douce entre deux vues 2D : l'ancienne image reste en surimpression
+// et se zoome/fond pendant que la nouvelle vue est rendue dessous.
+const ViewTransition={active:false,raf:null,lastStart:0,duration:260};
+function beginViewZoomTransition(f=1,clientX=null,clientY=null){
+  if(!transitionCanvas||!transitionCtx||!canvas)return;
+  if(document.body.classList.contains('at-home')||document.body.classList.contains('mode3d')||uiOverlayOpen())return;
+  const now=performance.now();
+  // Evite de recapturer à chaque cran de molette, ce qui serait coûteux.
+  if(ViewTransition.active && now-ViewTransition.lastStart<120)return;
+  const r=canvas.getBoundingClientRect();
+  const W=canvas.width,H=canvas.height;
+  if(!W||!H||!r.width||!r.height)return;
+  try{
+    transitionCanvas.width=W;
+    transitionCanvas.height=H;
+    transitionCtx.setTransform(1,0,0,1,0,0);
+    transitionCtx.clearRect(0,0,W,H);
+    const sourceIsCpu=isCpuFractal() && cpuCanvas && getComputedStyle(cpuCanvas).display!=='none';
+    if(sourceIsCpu){
+      transitionCtx.drawImage(cpuCanvas,0,0,W,H);
+    }else if(gl && !glLost && !(gl.isContextLost&&gl.isContextLost())){
+      const pixels=new Uint8Array(W*H*4);
+      if(gl.finish)gl.finish();
+      gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
+      const img=transitionCtx.createImageData(W,H);
+      const row=W*4;
+      for(let y=0;y<H;y++){
+        img.data.set(pixels.subarray((H-1-y)*row,(H-y)*row),y*row);
+      }
+      transitionCtx.putImageData(img,0,0);
+    }else{
+      transitionCtx.drawImage(canvas,0,0,W,H);
+    }
+  }catch(e){
+    try{transitionCtx.clearRect(0,0,W,H);transitionCtx.drawImage(canvas,0,0,W,H);}catch(_){return;}
+  }
+  if(ViewTransition.raf)cancelAnimationFrame(ViewTransition.raf);
+  ViewTransition.active=true;
+  ViewTransition.lastStart=now;
+  const ax=clientX==null?r.width/2:Math.max(0,Math.min(r.width,clientX-r.left));
+  const ay=clientY==null?r.height/2:Math.max(0,Math.min(r.height,clientY-r.top));
+  const targetScale=Math.max(0.18,Math.min(7.5,1/Math.max(1e-9,f)));
+  transitionCanvas.style.display='block';
+  transitionCanvas.style.opacity='1';
+  transitionCanvas.style.transformOrigin=ax+'px '+ay+'px';
+  transitionCanvas.style.transform='scale(1)';
+  transitionCanvas.style.filter='none';
+  const start=performance.now();
+  const duration=ViewTransition.duration;
+  const step=(ts)=>{
+    const raw=Math.min(1,(ts-start)/duration);
+    const ease=1-Math.pow(1-raw,3);
+    const sc=1+(targetScale-1)*ease;
+    transitionCanvas.style.transform='scale('+sc.toFixed(4)+')';
+    transitionCanvas.style.opacity=String(Math.max(0,1-raw*1.05));
+    if(raw<1 && !document.body.classList.contains('at-home') && !uiOverlayOpen()){
+      ViewTransition.raf=requestAnimationFrame(step);
+    }else{
+      transitionCanvas.style.display='none';
+      transitionCanvas.style.opacity='0';
+      transitionCanvas.style.transform='scale(1)';
+      transitionCanvas.style.filter='none';
+      ViewTransition.active=false;
+      ViewTransition.raf=null;
+    }
+  };
+  ViewTransition.raf=requestAnimationFrame(step);
+}
 const Actions={
   applyViewPatch(patch,{push=false,renderNow=true,invalidate=false,sync=true}={}){
     applyState(patch,{push,renderNow:false});
@@ -2132,7 +2254,8 @@ const Actions={
     applyState(extra,{push,renderNow:false});
     resetView(false);
   },
-  zoomAt(world,f,{push=false,end=false}={}){
+  zoomAt(world,f,{push=false,end=false,clientX=null,clientY=null}={}){
+    beginViewZoomTransition(f,clientX,clientY);
     if(push)historyStack.push(snapshot());
     state.cx=new D(f).mul(state.cx).plus(new D(1-f).mul(world.x));
     state.cy=new D(f).mul(state.cy).plus(new D(1-f).mul(world.y));
@@ -4137,14 +4260,16 @@ function render(){
     if(perturb.canRender()){
       perturb.render();
     } else {
-      const isJuliaType=(state.ftype===1);
       const zoom=currentZoom();
-      if(!isJuliaType || zoom < PERTURB_ZOOM*2){
-        // Mandelbrot/Multibrot ou Julia à zoom modéré : fallback standard OK
+      const safeStdZoom=(state.ftype===10)?MULTIBROT_DEEP_PERTURB_ZOOM*2:PERTURB_ZOOM*2;
+      if(zoom<safeStdZoom){
+        // Zoom modéré : le rendu standard reste propre et réactif.
         renderStandard(W,H,iters);
+      } else {
+        // Zoom profond : conserver la dernière image affichée plutôt que montrer
+        // un fallback float32 grossier, pixellisé ou uniformément coloré.
+        if(!runtime.interacting)perturb.showOverlay();
       }
-      // Julia à zoom profond : garder le dernier frame — évite le saut visuel
-      // (renderStandard serait trop imprécis à ce zoom)
     }
     // Rebuild orbit when user STOPS runtime.interacting
     if(!runtime.interacting){
@@ -4180,6 +4305,7 @@ function resizeCanvas(){
     return;
   }
   canvas.width=W;canvas.height=H;
+  if(transitionCanvas){transitionCanvas.width=W;transitionCanvas.height=H;transitionCanvas.style.display='none';}
   cpuCanvas.width=W;cpuCanvas.height=H;
   clearCpuCanvas();
   const sc=$('selCanvas');
@@ -5050,6 +5176,9 @@ function setZoomAnchor(clientX,clientY){
 }
 function zoomToAnchor(f,{push=false,end=false,warn=false}={}){
   if(zoomAnchor){
+    const sx=zoomAnchorScreen?zoomAnchorScreen.x:null;
+    const sy=zoomAnchorScreen?zoomAnchorScreen.y:null;
+    beginViewZoomTransition(f,sx,sy);
     if(push)historyStack.push(snapshot());
     state.cx=new D(zoomAnchor.x);
     state.cy=new D(zoomAnchor.y);
@@ -5779,7 +5908,7 @@ $('zoomInBtn').onclick=e=>{
   stopCanvasInteractionFromButton(e);
   historyStack.push(snapshot());
   if(!zoomToAnchor(0.5,{end:true})){
-    state.scale=clampScale(state.scale*0.5);invalidateApp({ui:'view',render:true,url:'defer',invalidatePerturb:true});updateZoomBar();
+    beginViewZoomTransition(0.5,null,null);state.scale=clampScale(state.scale*0.5);invalidateApp({ui:'view',render:true,url:'defer',invalidatePerturb:true});updateZoomBar();
   }
 };
 $('zoomOutBtn').onclick=e=>{
@@ -5791,7 +5920,7 @@ $('zoomOutBtn').onclick=e=>{
   stopCanvasInteractionFromButton(e);
   historyStack.push(snapshot());
   if(!zoomToAnchor(2,{end:true,warn:false})){
-    state.scale=clampScale(state.scale*2,{warn:false});invalidateApp({ui:'view',render:true,url:'defer',invalidatePerturb:true});
+    beginViewZoomTransition(2,null,null);state.scale=clampScale(state.scale*2,{warn:false});invalidateApp({ui:'view',render:true,url:'defer',invalidatePerturb:true});
   }
 };
 // Mobile : touchend déclenche l'action (onclick bloqué par stopCanvasInteractionFromButton)
@@ -5799,14 +5928,14 @@ $('zoomInBtn').addEventListener('touchend',e=>{
   e.preventDefault();e.stopPropagation();
   historyStack.push(snapshot());
   if(!zoomToAnchor(0.5,{end:true})){
-    state.scale=clampScale(state.scale*0.5,{warn:true});invalidateApp({ui:'view',render:true,url:'defer',invalidatePerturb:true});updateZoomBar();
+    beginViewZoomTransition(0.5,null,null);state.scale=clampScale(state.scale*0.5,{warn:true});invalidateApp({ui:'view',render:true,url:'defer',invalidatePerturb:true});updateZoomBar();
   }
 },{passive:false});
 $('zoomOutBtn').addEventListener('touchend',e=>{
   e.preventDefault();e.stopPropagation();
   historyStack.push(snapshot());
   if(!zoomToAnchor(2,{end:true,warn:true})){
-    state.scale=clampScale(state.scale*2,{warn:true});invalidateApp({ui:'view',render:true,url:'defer',invalidatePerturb:true});updateZoomBar();
+    beginViewZoomTransition(2,null,null);state.scale=clampScale(state.scale*2,{warn:true});invalidateApp({ui:'view',render:true,url:'defer',invalidatePerturb:true});updateZoomBar();
   }
 },{passive:false});
   // Gestion touch unifiée : tap (anchor zoom) + pan + pinch
@@ -6045,12 +6174,12 @@ $('zoomOutBtn').addEventListener('touchend',e=>{
     runtime.interacting=true;
     const w=worldXY(e.clientX,e.clientY);
     const f=Math.pow(1.0015,e.deltaY);
-    Actions.zoomAt(w,f);
+    Actions.zoomAt(w,f,{clientX:e.clientX,clientY:e.clientY});
     updateZoomBar();
   },{passive:false});
   wrap.addEventListener('dblclick',e=>{
     const w=worldXY(e.clientX,e.clientY);const f=.5;
-    Actions.zoomAt(w,f,{push:true,end:true});
+    Actions.zoomAt(w,f,{push:true,end:true,clientX:e.clientX,clientY:e.clientY});
   });
 
   let lastTD=null,tStart=null,tVX=null,tVY=null;
@@ -6096,14 +6225,14 @@ $('zoomOutBtn').addEventListener('touchend',e=>{
       }
       historyStack.push(snapshot());
       if(!zoomToAnchor(0.77,{warn:true})){
-        state.scale=clampScale(state.scale*0.77,{warn:true});invalidateApp({ui:'view',render:true,url:'defer',invalidatePerturb:true,interacting:true});
+        beginViewZoomTransition(0.77,null,null);state.scale=clampScale(state.scale*0.77,{warn:true});invalidateApp({ui:'view',render:true,url:'defer',invalidatePerturb:true,interacting:true});
       }
       updateZoomBar();
     }
     else if(e.key==='-'||e.key==='_'||e.code==='NumpadSubtract'||e.code==='Minus'){
       historyStack.push(snapshot());
       if(!zoomToAnchor(1.3,{warn:false})){
-        state.scale=clampScale(state.scale*1.3,{warn:false});invalidateApp({ui:'view',render:true,url:'defer',invalidatePerturb:true,interacting:true});
+        beginViewZoomTransition(1.3,null,null);state.scale=clampScale(state.scale*1.3,{warn:false});invalidateApp({ui:'view',render:true,url:'defer',invalidatePerturb:true,interacting:true});
       }
     }
     else if(e.key==='Escape'){openModal('aideModal',false);openModal('exportModal',false);openModal('galleryModal',false);$('sidebar').classList.remove('open');if(tourActive)tourStop();}
