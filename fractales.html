@@ -40,6 +40,7 @@ button,input,select{font:inherit}button{cursor:pointer}
 .zoom-btns button:hover{background:rgba(40,46,60,.9)}
 .zoom-btns button:active{background:rgba(124,108,248,.3)}
 .zoom-btns button.hint-blink{animation:zoomBtnHint 1.2s ease-in-out 3}
+.app.sb-collapsed .zoom-btns{gap:84px}
 @keyframes zoomBtnHint{0%,100%{transform:scale(1);box-shadow:0 0 0 rgba(124,108,248,0)}50%{transform:scale(1.08);box-shadow:0 0 18px rgba(124,108,248,.45)}}
 .main{grid-column:2;grid-row:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
 .topbar{position:fixed;top:0;left:0;right:0;z-index:11000;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line);background:rgba(11,14,20,.88);backdrop-filter:blur(14px);box-shadow:0 6px 24px rgba(0,0,0,.25)}
@@ -499,6 +500,28 @@ body.mode3d .zoom-btns{display:flex}
   .card-visual{opacity:.78}
 }
 
+
+
+/* Ajustements UI : zoom + rubriques */
+.zoom-btns{
+  height:200px;
+  gap:0!important;
+  justify-content:space-between;
+  top:50%;
+  transform:translateY(-50%);
+}
+.app.sb-collapsed .zoom-btns{
+  gap:0!important;
+}
+.section h3{
+  background:rgba(255,255,255,.135)!important;
+  border-color:rgba(255,255,255,.17)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+}
+.desktop-tip-bubble{
+  background:rgba(255,255,255,.075)!important;
+  border-color:rgba(255,255,255,.13)!important;
+}
 </style>
 <link rel="manifest" id="pwaManifest"></head>
 <body cz-shortcut-listen="true" class="at-home ui-overlay-open">
