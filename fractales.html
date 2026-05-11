@@ -188,7 +188,12 @@ body.ui-overlay-open .canvas-wrap{background:var(--canvas)!important}
 @keyframes guidePulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.035);opacity:.82}}
 .guide-bubble{position:fixed;z-index:3;width:min(360px,calc(100vw - 28px));padding:15px 16px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:linear-gradient(180deg,rgba(34,41,56,.98),rgba(24,29,40,.98));box-shadow:0 22px 70px rgba(0,0,0,.48);backdrop-filter:blur(14px);color:var(--text)}
 .guide-bubble h2{margin:2px 28px 8px 0;font-size:15px;line-height:1.25;color:#fff}
-.guide-bubble p{margin:0;color:var(--text2);font-size:12px;line-height:1.55}
+.guide-bubble p,.guide-bubble .guide-text{margin:0;color:var(--text2);font-size:12px;line-height:1.55}
+.guide-bubble .guide-text h3{margin:10px 0 5px;font-size:12px;line-height:1.2;color:#fff;font-weight:800}
+.guide-bubble .guide-text h3:first-child{margin-top:0}
+.guide-bubble .guide-text ul{margin:0 0 8px 18px;padding:0;display:grid;gap:4px}
+.guide-bubble .guide-text li{padding-left:1px}
+.guide-bubble .guide-text .kbd{color:var(--text)}
 .guide-step-count{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#bdb6ff;margin-bottom:4px;font-weight:700}
 .guide-close{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:9px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);color:var(--text);cursor:pointer}
 .guide-close:hover{background:rgba(255,255,255,.14)}
@@ -625,7 +630,7 @@ body.mode3d .zoom-btns{display:flex}
           <a id="homeFooterGithubLink" href="https://github.com/Fabrice-breizh/" target="_blank" rel="noopener noreferrer">GitHub</a>
           <span class="support-separator" aria-hidden="true">·</span>
           <span id="homeFooterCoffee">Soutenir le projet</span>
-          <a class="coffee-link" id="homeFooterCoffeeLink" href="https://buymeacoffee.com/fabricebreizh" target="_blank" rel="noopener noreferrer">Buy me a coffee</a>
+          <a class="coffee-link" id="homeFooterCoffeeLink" href="https://buymeacoffee.com/fabricebreizh" target="_blank" rel="noopener noreferrer">☕ Buy me a coffee ! ☕</a>
         </div>
       </div>
             <div class="mini-canvas-wrap">
@@ -677,7 +682,7 @@ body.mode3d .zoom-btns{display:flex}
       <a id="homeMiniGithubLink" href="https://github.com/Fabrice-breizh/" target="_blank" rel="noopener noreferrer">GitHub</a>
       <span class="support-separator" aria-hidden="true">·</span>
       <span id="homeMiniCoffeeText">Pour rester éveillé :</span>
-      <a class="coffee-link" id="homeMiniCoffeeLink" href="https://buymeacoffee.com/fabricebreizh" target="_blank" rel="noopener noreferrer">Buy me a coffee</a>
+      <a class="coffee-link" id="homeMiniCoffeeLink" href="https://buymeacoffee.com/fabricebreizh" target="_blank" rel="noopener noreferrer">☕ Buy me a coffee ! ☕</a>
     </footer>
   </div>
 </div>
@@ -723,12 +728,6 @@ body.mode3d .zoom-btns{display:flex}
       </div>
     </div>
 
-    <div class="desktop-tips section">
-      <h3 id="desktopTipsTitle">Conseils</h3>
-      <div class="desktop-tip-lines" id="desktopTipLines">
-        <div class="desktop-tip-bubble" id="desktopTipsBubble">Molette : zoom vers le curseur pour explorer les détails.<br>Glisser : déplacer.<br>Shift+glisser : zoom rectangle.<br>Double-clic : zoom ×2.<br>Home : vue par défaut.</div>
-      </div>
-    </div>
   </aside>
 
   <button id="leftSidebarEdgeToggle">‹</button>
@@ -1038,7 +1037,7 @@ body.mode3d .zoom-btns{display:flex}
         <button class="btn sm" id="undoBtn" title="Annuler" style="">↩<span class="toolbar-label undo-label"> Annuler</span></button>
         <button class="btn sm" id="topSaveFavBtn" title="Ajouter aux favoris" aria-label="Ajouter aux favoris">+<span class="toolbar-label topfav-label"> Favoris</span> ★</button>
         <button class="btn sm" id="shareBtn" title="Partager"><span class="share-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 11l7.6-4.2"></path><path d="M8.2 13l7.6 4.2"></path></svg></span><span class="toolbar-label share-label"> Partager</span></button>
-        <button class="btn sm" id="aideBtn" title="Aide rapide">?</button>
+        <button class="btn sm" id="aideBtn" title="Aide rapide">?<span class="toolbar-label help-label"> Aide</span></button>
         <button class="btn sm primary" id="exportBtn" title="Export PNG">⬇<span class="toolbar-label export-label">Export PNG</span></button>
         <button class="btn sm iconbtn" id="langToggle" title="Switch to English" aria-label="Switch to English"><span class="lang-flag fr" aria-hidden="true"></span></button>
         <button class="btn sm" id="fullscreenBtn" title="Plein écran">⛶<span class="toolbar-label fullscreen-label"> Plein écran</span></button>
@@ -1102,7 +1101,7 @@ body.mode3d .zoom-btns{display:flex}
     <button class="guide-close" id="guideTourClose" type="button" aria-label="Fermer">×</button>
     <div class="guide-step-count" id="guideTourStepCount">1/4</div>
     <h2 id="guideTourTitle"></h2>
-    <p id="guideTourText"></p>
+    <div id="guideTourText" class="guide-text"></div>
     <div class="guide-actions">
       <div class="guide-left">
         <button class="guide-skip" id="guideTourSkip" type="button">Passer</button>
@@ -1209,9 +1208,9 @@ const gpuCaps={maxTextureSize:0,maxViewportDims:[0,0],renderer:'',floatTex:false
 function tryCreateGL(){
   const names=['webgl2','webgl','experimental-webgl'];
   const attrsList=[
-    {antialias:false,alpha:false,depth:false,stencil:false,preserveDrawingBuffer:false,powerPreference:'default',failIfMajorPerformanceCaveat:false},
-    {antialias:false,alpha:false,depth:false,stencil:false,preserveDrawingBuffer:false,powerPreference:'low-power',failIfMajorPerformanceCaveat:true},
-    {antialias:false,alpha:false,depth:false,stencil:false,preserveDrawingBuffer:false}
+    {antialias:false,alpha:false,depth:false,stencil:false,preserveDrawingBuffer:true,powerPreference:'default',failIfMajorPerformanceCaveat:false},
+    {antialias:false,alpha:false,depth:false,stencil:false,preserveDrawingBuffer:true,powerPreference:'low-power',failIfMajorPerformanceCaveat:true},
+    {antialias:false,alpha:false,depth:false,stencil:false,preserveDrawingBuffer:true}
   ];
   let last='';
   for(const name of names){
@@ -2908,7 +2907,7 @@ function initStartupUI(){
 // ── Mini-canvas accueil ─────────────────────────────────────
 const MINI_DESTINATIONS = [
   // ── Acte 1 : Mandelbrot (type 0) — palette Feu ─────────────
-  {type:0, cx:-0.5,       cy:0,         scale:4.0,   iter:300,  label:'Mandelbrot'},
+  // Démarrage immédiat en zoom : plus de plan fixe global avant l'animation.
   {type:0, cx:-0.7436,    cy:0.1319,    scale:0.035, iter:900,  label:'Mandelbrot'},
   {type:0, cx:-0.7436448, cy:0.1318253, scale:0.0004,iter:1100, label:'Mandelbrot'},
   {type:0, cx:-1.7549,    cy:0.0,       scale:0.005, iter:900,  label:'Mandelbrot'},
@@ -2952,8 +2951,8 @@ function miniInit() {
   const w = (wrap && wrap.clientWidth > 0) ? wrap.clientWidth : 400;
   canvas.width = w;
   canvas.height = Math.round(w * 9/16);
-  const gl = canvas.getContext('webgl2',{antialias:false,powerPreference:'high-performance'})
-           || canvas.getContext('webgl',{antialias:false,powerPreference:'high-performance'});
+  const gl = canvas.getContext('webgl2',{antialias:false,powerPreference:'high-performance',preserveDrawingBuffer:true})
+           || canvas.getContext('webgl',{antialias:false,powerPreference:'high-performance',preserveDrawingBuffer:true});
   if (!gl) { console.warn('mini-canvas: no WebGL'); return; }
   miniState.gl = gl;
   gl.viewport(0, 0, canvas.width, canvas.height);
@@ -3081,17 +3080,12 @@ function miniInit() {
 function miniGoTo(idx) {
   const d = MINI_DESTINATIONS[idx % MINI_DESTINATIONS.length];
   miniState.destIdx = idx;
-  if (idx === 0) {
-    // Vue globale : Mandelbrot en entier, pas de zoom — on contemple avant de plonger
-    miniState.fromCx = d.cx; miniState.fromCy = d.cy; miniState.fromScale = d.scale;
-    miniState.duration = 4000; // 4s sur la vue globale avant de passer à la suite
-  } else {
-    // Partir du scale courant (ou d'un peu plus loin si on arrive d'une zone très zoomée)
-    const from = Math.max(miniState.scale, d.scale * (6 + Math.random() * 4));
-    miniState.fromCx = d.cx; miniState.fromCy = d.cy;
-    miniState.fromScale = Math.min(from, 3.0); // jamais plus loin que la vue globale
-    miniState.duration = 13000 + Math.random() * 6000;
-  }
+  // Démarrer chaque séquence déjà en mouvement : aucun palier fixe au début.
+  const firstRun = miniState.startTime === 0 && idx === 0;
+  const from = firstRun ? 3.0 : Math.max(miniState.scale, d.scale * (6 + Math.random() * 4));
+  miniState.fromCx = d.cx; miniState.fromCy = d.cy;
+  miniState.fromScale = Math.max(d.scale * 1.08, Math.min(from, 3.0)); // toujours plus large que la cible
+  miniState.duration = 13000 + Math.random() * 6000;
   miniState.tCx = d.cx; miniState.tCy = d.cy;
   miniState.tScale = d.scale; miniState.tIter = d.iter;
   miniState.tType = d.type||0;
@@ -4791,16 +4785,28 @@ function sanitizeFavoriteName(value,fallback=''){
 }
 function favoritePreviewSource(){
   if(document.body.classList.contains('mode3d') && $('glc3d')?.width) return $('glc3d');
-  const transition=$('transitionCanvas');
-  if(transition && transition.style.display!=='none' && transition.width && transition.height) return transition;
-  const main=$('glc');
-  if(main?.width) return main;
   const cpu=$('cpuCanvas');
+  if((isCpuFractal()||runtimeProfile.name==='legacy') && cpu?.width && cpu?.height) return cpu;
+  const main=$('glc');
+  if(main?.width && main?.height) return main;
   return cpu?.width?cpu:null;
 }
-function captureFavoriteThumbnail(){
+function favoriteThumbnailHasContent(ctx,w,h){
   try{
-    const src=favoritePreviewSource();
+    const data=ctx.getImageData(0,0,w,h).data;
+    let samples=0,visible=0,varied=0;
+    for(let i=0;i<data.length;i+=16){
+      const r=data[i],g=data[i+1],b=data[i+2],a=data[i+3];
+      const max=Math.max(r,g,b),min=Math.min(r,g,b);
+      if(a>8 && r+g+b>12) visible++;
+      if(a>8 && max-min>4) varied++;
+      samples++;
+    }
+    return visible>Math.max(6,samples*0.004)||varied>Math.max(5,samples*0.004);
+  }catch(e){return true;}
+}
+function makeFavoriteThumbnailFromCanvas(src){
+  try{
     if(!src||!src.width||!src.height) return '';
     const thumb=document.createElement('canvas');
     thumb.width=176; thumb.height=110;
@@ -4814,7 +4820,48 @@ function captureFavoriteThumbnail(){
     ctx.imageSmoothingEnabled=true;
     ctx.imageSmoothingQuality='high';
     ctx.drawImage(src,dx,dy,dw,dh);
+    if(!favoriteThumbnailHasContent(ctx,thumb.width,thumb.height)) return '';
     return thumb.toDataURL('image/webp',0.82);
+  }catch(e){return '';}
+}
+function makeFavoriteThumbnailFromWebGL(src,ctxGL){
+  try{
+    if(!src||!src.width||!src.height||!ctxGL||ctxGL.isContextLost?.()) return '';
+    const w=src.width,h=src.height;
+    ctxGL.bindFramebuffer(ctxGL.FRAMEBUFFER,null);
+    if(ctxGL.finish) ctxGL.finish();
+    const pixels=new Uint8Array(w*h*4);
+    ctxGL.readPixels(0,0,w,h,ctxGL.RGBA,ctxGL.UNSIGNED_BYTE,pixels);
+    const copy=document.createElement('canvas');
+    copy.width=w; copy.height=h;
+    const cctx=copy.getContext('2d',{alpha:false});
+    if(!cctx) return '';
+    const img=cctx.createImageData(w,h);
+    const row=w*4;
+    for(let y=0;y<h;y++){
+      const srcStart=(h-1-y)*row;
+      const dstStart=y*row;
+      img.data.set(pixels.subarray(srcStart,srcStart+row),dstStart);
+    }
+    cctx.putImageData(img,0,0);
+    return makeFavoriteThumbnailFromCanvas(copy);
+  }catch(e){return '';}
+}
+function captureFavoriteThumbnail(){
+  try{
+    const src=favoritePreviewSource();
+    if(!src||!src.width||!src.height) return '';
+    let data='';
+    if(src.id==='glc' && typeof gl!=='undefined' && gl && !glLost){
+      data=makeFavoriteThumbnailFromWebGL(src,gl);
+      if(data) return data;
+    }
+    if(src.id==='glc3d' && typeof gl3!=='undefined' && gl3){
+      data=makeFavoriteThumbnailFromWebGL(src,gl3);
+      if(data) return data;
+    }
+    data=makeFavoriteThumbnailFromCanvas(src);
+    return data||'';
   }catch(e){return '';}
 }
 function normalizeFavoriteEntry(fav){
@@ -5494,13 +5541,13 @@ const I18N_EXTRA={
     realC:'Constante c réelle', imagC:'Constante c imaginaire', juliaHint:'Modifie la constante c. Indépendant de l’exposant.',
     shape:'Forme de la fractale', exponent:'Exposant', phoenix:'Mémoire Phoenix', newton:'Degré Newton',
     resolution:'Résolution', fps:'FPS', gallerySearch:'Rechercher…', close:'Fermer', cancel:'Annuler', export:'Exporter',
-    home:'Accueil', languageNext:'Switch to English', undo:'Annuler', share:'Copier lien', fullscreen:'Plein écran', help:'Aide rapide',
+    home:'Accueil', languageNext:'Switch to English', undo:'Annuler', share:'Copier lien', fullscreen:'Plein écran', help:'Aide rapide', helpShort:'Aide',
     defaultView:'Vue par défaut', recommendedSettings:'Paramètres recommandés', restartRotation:'Relancer la rotation',
     dragOrbit:'Glisser : orbite · Molette : zoom', shiftPan:'Shift+glisser : panoramique', doubleCenter:'Double-clic : centrer sur ce point',
     noFavorites:'Aucun favori enregistré.', viewName:'Nom de la vue…', buddha:'Buddhabrot', ssResolution:'Résolution', rotation:'rotation',
     homeGithubText:'Code source',
     homeCoffeeText:'Soutenir le projet',
-    homeGithubLink:'GitHub', homeCoffeeLink:'Buy me a coffee', homeMiniProjects:'Mes projets :', homeMiniCoffee:'Pour rester éveillé :'
+    homeGithubLink:'GitHub', homeCoffeeLink:'☕ Buy me a coffee ! ☕', homeMiniProjects:'Mes projets :', homeMiniCoffee:'Pour rester éveillé :'
   },
   en:{
     metaDescription:'Explore interactive 2D and 3D fractals — Mandelbrot, Julia, Buddhabrot, Mandelbulb and more. Works offline.',
@@ -5516,13 +5563,13 @@ const I18N_EXTRA={
     realC:'Real c constant', imagC:'Imaginary c constant', juliaHint:'Changes the c constant. Independent from the exponent.',
     shape:'Fractal shape', exponent:'Exponent', phoenix:'Phoenix memory', newton:'Newton degree',
     resolution:'Resolution', fps:'FPS', gallerySearch:'Search…', close:'Close', cancel:'Cancel', export:'Export',
-    home:'Home', languageNext:'Passer en français', undo:'Undo', share:'Copy link', fullscreen:'Fullscreen', help:'Quick help',
+    home:'Home', languageNext:'Passer en français', undo:'Undo', share:'Copy link', fullscreen:'Fullscreen', help:'Quick help', helpShort:'Help',
     defaultView:'Default view', recommendedSettings:'Recommended settings', restartRotation:'Restart rotation',
     dragOrbit:'Drag: orbit · Wheel: zoom', shiftPan:'Shift+drag: pan', doubleCenter:'Double-click: center on this point',
     noFavorites:'No favorites saved yet.', viewName:'View name…', buddha:'Buddhabrot', ssResolution:'Resolution', rotation:'rotation',
     homeGithubText:'Source code',
     homeCoffeeText:'Support the project',
-    homeGithubLink:'GitHub', homeCoffeeLink:'Buy me a coffee', homeMiniProjects:'My projects:', homeMiniCoffee:'Stay awake fund:'
+    homeGithubLink:'GitHub', homeCoffeeLink:'☕ Buy me a coffee ! ☕', homeMiniProjects:'My projects:', homeMiniCoffee:'Stay awake fund:'
   }
 };
 function textById(id,value){const el=document.getElementById(id);if(el&&value!==undefined)el.textContent=value;}
@@ -5573,6 +5620,7 @@ function applyDeclarativeI18n(){
   const topFavLabel=document.querySelector('#topSaveFavBtn .topfav-label'); if(topFavLabel) topFavLabel.textContent=' '+x.topFavorite;
   const shareLabel=document.querySelector('#shareBtn .share-label'); if(shareLabel) shareLabel.textContent=' '+x.share;
   const fullscreenLabel=document.querySelector('#fullscreenBtn .fullscreen-label'); if(fullscreenLabel) fullscreenLabel.textContent=' '+x.fullscreen;
+  const helpLabel=document.querySelector('#aideBtn .help-label'); if(helpLabel) helpLabel.textContent=' '+x.helpShort;
   const langBtn=document.getElementById('langToggle'); if(langBtn){langBtn.title=x.languageNext;langBtn.setAttribute('aria-label',x.languageNext);}
   textById('computingText',ui.computing); textById('buddhaCount',document.getElementById('buddhaCount')?.textContent||'0');
   first('#buddhaProgress .bp-label',el=>el.textContent=x.buddha); first('#ssProgress3d .ss-label',el=>el.textContent=x.ssResolution);
@@ -5755,17 +5803,27 @@ $('qualityMode').options[0].textContent=ui.progressive; $('qualityMode').options
 
 
 // ── Visite guidée de l'interface ─────────────────────────────────
-const GUIDE_TOUR_KEY='fractal-interface-tour-seen-v1';
+const GUIDE_TOUR_KEY='fractal-interface-tour-seen-v3';
 const GUIDE_TOUR_I18N={
   fr:{
     replay:'Revoir la visite guidée',
     skip:'Passer', prev:'Précédent', next:'Suivant', finish:'Terminer', close:'Fermer',
     stepLabel:(i,n)=>`Étape ${i}/${n}`,
     steps:[
-      {title:'Cible rouge et zoom', text:'Cliquez sur la fractale pour placer la cible rouge, puis utilisez + ou − pour zoomer autour d’elle.'},
+      {
+        title:'Comment naviguer',
+        htmlDesktop:`<h3>À la souris</h3><ul><li><span class="kbd">Glisser</span> : déplacer la vue.</li><li><span class="kbd">Molette</span> : zoomer vers le curseur.</li><li><span class="kbd">Shift</span> + <span class="kbd">glisser</span> : sélectionner une zone à zoomer.</li><li><span class="kbd">Double-clic</span> : zoomer ×2 sur le point visé.</li></ul><h3>Au clavier</h3><ul><li><span class="kbd">+</span> / <span class="kbd">−</span> : zoomer et dézoomer.</li><li><span class="kbd">←</span> <span class="kbd">→</span> <span class="kbd">↑</span> <span class="kbd">↓</span> : déplacer la vue.</li><li><span class="kbd">Accueil</span> : réinitialiser la vue.</li><li><span class="kbd">Tab</span> : ouvrir ou fermer le panneau.</li><li><span class="kbd">H</span> : ouvrir l’aide.</li><li><span class="kbd">G</span> : ouvrir la galerie.</li><li><span class="kbd">T</span> : lancer la visite guidée Mandelbrot.</li><li><span class="kbd">Échap</span> : fermer les fenêtres ou revenir à l’accueil en 3D.</li></ul>`,
+        htmlMobile:`<h3>À l’écran</h3><ul><li>Glisser avec un doigt : déplacer la vue.</li><li>Pincer avec deux doigts : zoomer ou dézoomer.</li><li>Sur une fractale 3D, glisser fait tourner la scène.</li></ul>`
+      },
+      {
+        title:'Point rouge et zoom précis',
+        textDesktop:'Cliquez sur la fractale pour placer le point rouge à l’endroit où vous voulez zoomer. Utilisez ensuite les boutons + ou −. Pour zoomer sur une zone, maintenez Shift et tracez une sélection à la souris.',
+        textMobile:'Touchez la fractale pour placer le point rouge à l’endroit où vous voulez zoomer. Utilisez ensuite les boutons + ou − pour zoomer précisément autour de ce point.'
+      },
       {title:'Favoris', text:'Gardez une belle vue avec “+ Favoris”. Dans le volet gauche, Importer / Exporter permet de sauvegarder vos favoris ou de les partager.'},
       {title:'Exporter une image', text:'Utilisez Export PNG pour enregistrer la vue actuelle en image, avec plusieurs tailles possibles.'},
-      {title:'Plein écran', text:'Le plein écran rend l’exploration plus immersive, surtout sur les vues très détaillées.'}
+      {title:'Plein écran', text:'Le plein écran rend l’exploration plus immersive, surtout sur les vues très détaillées.'},
+      {title:'Relancer cette aide', text:'Le bouton ? permet de rouvrir cette aide à tout moment depuis l’explorateur.'}
     ]
   },
   en:{
@@ -5773,24 +5831,53 @@ const GUIDE_TOUR_I18N={
     skip:'Skip', prev:'Previous', next:'Next', finish:'Finish', close:'Close',
     stepLabel:(i,n)=>`Step ${i}/${n}`,
     steps:[
-      {title:'Red target and zoom', text:'Click the fractal to place the red target, then use + or − to zoom around it.'},
+      {
+        title:'How to navigate',
+        htmlDesktop:`<h3>With the mouse</h3><ul><li><span class="kbd">Drag</span>: move the view.</li><li><span class="kbd">Wheel</span>: zoom toward the cursor.</li><li><span class="kbd">Shift</span> + <span class="kbd">drag</span>: select an area to zoom into.</li><li><span class="kbd">Double-click</span>: zoom ×2 on the selected point.</li></ul><h3>With the keyboard</h3><ul><li><span class="kbd">+</span> / <span class="kbd">−</span>: zoom in and out.</li><li><span class="kbd">←</span> <span class="kbd">→</span> <span class="kbd">↑</span> <span class="kbd">↓</span>: move the view.</li><li><span class="kbd">Home</span>: reset the view.</li><li><span class="kbd">Tab</span>: open or close the panel.</li><li><span class="kbd">H</span>: open help.</li><li><span class="kbd">G</span>: open the gallery.</li><li><span class="kbd">T</span>: launch the Mandelbrot guided tour.</li><li><span class="kbd">Esc</span>: close windows or return home in 3D.</li></ul>`,
+        htmlMobile:`<h3>On screen</h3><ul><li>Drag with one finger: move the view.</li><li>Pinch with two fingers: zoom in or out.</li><li>On a 3D fractal, drag to rotate the scene.</li></ul>`
+      },
+      {
+        title:'Red point and precise zoom',
+        textDesktop:'Click the fractal to place the red point where you want to zoom. Then use the + or − buttons. To zoom into an area, hold Shift and draw a selection with the mouse.',
+        textMobile:'Tap the fractal to place the red point where you want to zoom. Then use the + or − buttons to zoom precisely around that point.'
+      },
       {title:'Favorites', text:'Save a beautiful view with “+ Favorites”. In the left panel, Import / Export lets you back up your favorites or share them.'},
       {title:'Export an image', text:'Use Export PNG to save the current view as an image, with several size options.'},
-      {title:'Fullscreen', text:'Fullscreen makes exploration more immersive, especially on highly detailed views.'}
+      {title:'Fullscreen', text:'Fullscreen makes exploration more immersive, especially on highly detailed views.'},
+      {title:'Replay this help', text:'Use the ? button to reopen this help at any time from the explorer.'}
     ]
   }
 };
 const GUIDE_TOUR_STEPS=[
-  {targets:['#zoomInBtn','#zoomTarget','#zoomOutBtn'], prefer:'left', dot:'#zoomTarget', links:true},
+  {targets:['#canvasWrap'], prefer:'left'},
+  {targets:['#zoomTarget'], prefer:'left', dot:'#zoomTarget'},
   {targets:['#topSaveFavBtn','#desktopExportFavsBtn','#desktopImportFavsBtn'], anchorTargets:['#topSaveFavBtn'], prefer:'bottom', links:true, emphasis:['#desktopExportFavsBtn','#desktopImportFavsBtn']},
   {targets:['#exportBtn'], prefer:'bottom'},
-  {targets:['#fullscreenBtn'], prefer:'bottom'}
+  {targets:['#fullscreenBtn'], prefer:'bottom'},
+  {targets:['#aideBtn'], prefer:'bottom'}
 ];
 let guideTourActive=false;
 let guideTourStep=0;
 let guideTourResizeBound=false;
 let guideTourAutoTimer=null;
 function guideTourLang(){return GUIDE_TOUR_I18N[currentLocale]||GUIDE_TOUR_I18N.en||GUIDE_TOUR_I18N.fr;}
+function guideTourIsPhone(){
+  return window.innerWidth<=720 || (((navigator.maxTouchPoints||0)>0) && window.innerWidth<=1000);
+}
+function guideTourCopyAt(idx){
+  const g=guideTourLang();
+  const fallback=(GUIDE_TOUR_I18N.fr.steps[idx]||{});
+  const copy=g.steps[idx]||fallback;
+  const title=typeof copy.title==='function'?copy.title():copy.title;
+  const phone=guideTourIsPhone();
+  let html=phone ? (copy.htmlMobile || fallback.htmlMobile) : (copy.htmlDesktop || fallback.htmlDesktop);
+  let text=phone ? (copy.textMobile || fallback.textMobile) : (copy.textDesktop || fallback.textDesktop);
+  html=html || copy.html || fallback.html || '';
+  text=text || copy.text || fallback.text || '';
+  if(typeof html==='function') html=html();
+  if(typeof text==='function') text=text();
+  return {title:title||'',html:html||'',text:text||''};
+}
 function guidedTourSeen(){return storageGet(GUIDE_TOUR_KEY,'')==='1';}
 function setGuidedTourSeen(){storageSet(GUIDE_TOUR_KEY,'1');}
 function guidedTourSyncText(){
@@ -5800,6 +5887,10 @@ function guidedTourSyncText(){
   const skip=$('guideTourSkip'); if(skip) skip.textContent=g.skip;
   const prev=$('guideTourPrev'); if(prev) prev.textContent=g.prev;
   guideTourRender();
+}
+
+function escapeHtml(value){
+  return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[ch]));
 }
 function guideTourElements(){
   return {
@@ -5965,7 +6056,7 @@ function guideTourRender(){
   if(!els.root||!els.svg||!els.highlights||!els.bubble) return;
   const g=guideTourLang();
   const step=GUIDE_TOUR_STEPS[guideTourStep];
-  const copy=g.steps[guideTourStep]||GUIDE_TOUR_I18N.fr.steps[guideTourStep];
+  const copy=guideTourCopyAt(guideTourStep);
   const rects=guideTourRects(step);
   if(!rects.length){guideTourStep=Math.min(guideTourStep+1,GUIDE_TOUR_STEPS.length-1);return;}
   els.svg.setAttribute('viewBox',`0 0 ${innerWidth} ${innerHeight}`);
@@ -5975,7 +6066,7 @@ function guideTourRender(){
   (step.emphasis||[]).forEach(sel=>{const el=document.querySelector(sel); if(el) el.classList.add('guide-spotlit-fav-io');});
   els.highlights.innerHTML=rects.map(r=>`<div class="guide-highlight${r.sel===step.dot?' guide-target-dot':''}${emphasis.has(r.sel)?' guide-fav-io':''}" style="left:${Math.round(r.left)}px;top:${Math.round(r.top)}px;width:${Math.round(r.width)}px;height:${Math.round(r.height)}px"></div>`).join('');
   if(els.title) els.title.textContent=copy.title;
-  if(els.text) els.text.textContent=copy.text;
+  if(els.text) els.text.innerHTML=copy.html||escapeHtml(copy.text);
   if(els.count) els.count.textContent=(typeof g.stepLabel==='function')?g.stepLabel(guideTourStep+1,GUIDE_TOUR_STEPS.length):`${guideTourStep+1}/${GUIDE_TOUR_STEPS.length}`;
   if(els.prev){els.prev.textContent=g.prev;els.prev.disabled=guideTourStep===0;}
   if(els.next) els.next.textContent=guideTourStep===GUIDE_TOUR_STEPS.length-1?g.finish:g.next;
@@ -7833,8 +7924,8 @@ function _init3d(){
   _ssInitFromProfile(); // calibrer le SS pour cette session // déjà initialisé
   gl3canvas=document.getElementById('glc3d');
   wrap3d=document.getElementById('canvasWrap')||document.getElementById('canvasWrap');
-  gl3=gl3canvas.getContext('webgl2',{antialias:false,powerPreference:'high-performance'})
-       || gl3canvas.getContext('webgl',{antialias:false,powerPreference:'high-performance'});
+  gl3=gl3canvas.getContext('webgl2',{antialias:false,powerPreference:'high-performance',preserveDrawingBuffer:true})
+       || gl3canvas.getContext('webgl',{antialias:false,powerPreference:'high-performance',preserveDrawingBuffer:true});
   gl3._isWebGL2 = !!(gl3 && typeof WebGL2RenderingContext!=='undefined' && gl3 instanceof WebGL2RenderingContext);
   // Vérifier support highp
   if(gl3){
