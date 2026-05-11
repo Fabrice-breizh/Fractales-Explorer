@@ -14,18 +14,15 @@ Tools like Fractint, XaoS, Ultra Fractal, and Electric Sheep helped define that 
 
 ## Vibe coded, human designed
 
-This project is “vibe coded”: a significant part of the code was written with the help of AI tools.
+This project is vibe coded: a significant part of the code was written with the help of AI tools.
 
-But it is not “designed by AI”.
+But it is not designed by AI.
 
-The direction, ergonomics, pacing, visual style, content, priorities, and user experience are human choices. This project is a dialogue between a personal impulse, visual memories, experiments, mistakes, adjustments, and generated code that has been reviewed, corrected, and guided.
-
-AI was an accelerator.  
-The perspective, taste, and decisions remain human.
+The direction, ergonomics, pacing, visual style, content, priorities, and user experience are human choices.
 
 ## Features
 
-- Interactive exploration of many 2D fractals
+- Interactive exploration of 35 2D fractals
 - 3D fractals such as Mandelbulb, Mandelbox, Menger Sponge, and Quaternion Julia
 - Zoom, pan, double-click, keyboard shortcuts
 - Color palettes and visual effects
@@ -33,11 +30,11 @@ The perspective, taste, and decisions remain human.
 - Local favorites with import/export
 - Home page with animated preview
 - Offline use through a standalone HTML file
-- Interface available in French and English
+- Interface available in most spoken languages (coming soon !)
 
 ## Running the project
 
-The project is designed to embed all in a single monolythic file. Just open fractales.html in a modern browser.
+Download, open, enjoy ! All is included in this single fractales.html file
 
 ## Support the project
 
