@@ -1,6 +1,7 @@
 # Fractal Explorer
 
 A free, standalone, interactive fractal explorer that runs directly in the browser.
+You can now put entire worlds on a floppy disk...
 
 Fractal Explorer lets you explore 2D and 3D fractals, zoom in, play with color palettes, export images, save favorite views, and rediscover that very simple pleasure: pointing somewhere into infinity and seeing what it hides.
 
