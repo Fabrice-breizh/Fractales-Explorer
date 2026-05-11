@@ -70,6 +70,8 @@ body.at-home .top-fractal-name{display:none!important}
 .btn.ghost{background:transparent}
 .btn.sm{padding:5px 9px;font-size:11px}
 .btn.danger{border-color:rgba(255,124,144,.22);color:#ffd2d9}
+.share-icon{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;flex:0 0 auto}
+.share-icon svg{width:14px;height:14px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .iconbtn{width:34px;height:34px;justify-content:center;padding:0;border-radius:8px}
 .metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
 .metric{padding:9px 11px;border-radius:5px;background:rgba(255,255,255,.03);border:1px solid var(--line)}
@@ -103,9 +105,16 @@ input[type="range"]{width:100%;accent-color:var(--accent)}
 .preset{text-align:left;padding:9px 11px;border-radius:5px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));color:var(--text)}
 .preset b{display:block;margin-bottom:3px;font-size:12px}.preset span{font-size:11px;color:var(--text2)}
 .saved-list{display:grid;gap:8px;max-height:300px;overflow:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.16) transparent}
-.saved-item{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:9px 11px;border-radius:5px;border:1px solid var(--line);background:rgba(255,255,255,.02)}
-.saved-item small{display:block;color:var(--muted);font-size:11px}
+.saved-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 11px;border-radius:5px;border:1px solid var(--line);background:rgba(255,255,255,.02)}
+.saved-main{display:grid;grid-template-columns:72px minmax(0,1fr);gap:10px;align-items:center;min-width:0}
+.saved-thumb{width:72px;height:46px;border-radius:6px;overflow:hidden;border:1px solid rgba(255,255,255,.10);background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.03));box-shadow:inset 0 0 0 1px rgba(255,255,255,.03);display:block}
+img.saved-thumb{object-fit:cover}
+.saved-thumb.placeholder{display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.saved-meta{min-width:0}
+.saved-meta strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.saved-item small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
 .saved-actions{display:flex;gap:6px}
+@media(max-width:720px){.saved-item{grid-template-columns:1fr}.saved-actions{justify-content:flex-end}.saved-main{grid-template-columns:64px minmax(0,1fr)}.saved-thumb{width:64px;height:42px}}
 .canvas-wrap{position:relative;background:var(--canvas);flex:1;min-height:0;overflow:hidden;cursor:crosshair}
 canvas{display:block;width:100%;height:100%}
 #cpuCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none;z-index:1}
@@ -165,6 +174,33 @@ body.ui-overlay-open .canvas-wrap{background:var(--canvas)!important}
 .tour-banner .tour-controls .tour-resume{background:linear-gradient(180deg,#8a7cff,#7260f6);border-color:#8474ff;color:#fff}
 .tour-banner .tour-pause-msg{font-size:11px;color:var(--warn);margin-top:6px;display:none}
 .tour-banner.paused .tour-pause-msg{display:block}
+
+
+/* Interface guided tour: spotlight bubbles attached to real UI elements */
+.guide-tour{position:fixed;inset:0;z-index:15000;display:none;pointer-events:auto;font:13px/1.4 Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.guide-tour.active{display:block}
+.guide-tour svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.guide-tour .guide-arrows{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+.guide-tour .guide-highlight{position:fixed;pointer-events:none;z-index:2;border:2px solid rgba(124,108,248,.95);border-radius:14px;box-shadow:0 0 0 1px rgba(255,255,255,.22),0 0 24px rgba(124,108,248,.55);animation:guidePulse 1.8s ease-in-out infinite;background:rgba(124,108,248,.05)}
+.guide-tour .guide-highlight.guide-target-dot{border-color:rgba(255,95,95,.98);box-shadow:0 0 0 1px rgba(255,255,255,.22),0 0 24px rgba(255,95,95,.58)}
+.guide-tour .guide-highlight.guide-fav-io{border-color:rgba(255,196,95,.98);box-shadow:0 0 0 1px rgba(255,255,255,.24),0 0 28px rgba(255,196,95,.62);background:rgba(255,196,95,.09)}
+.guide-spotlit-fav-io{position:relative!important;z-index:15001!important;background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.12))!important;border-color:rgba(255,216,145,.65)!important;box-shadow:0 0 0 1px rgba(255,255,255,.20),0 0 22px rgba(255,196,95,.45)!important;color:#fff!important}
+@keyframes guidePulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.035);opacity:.82}}
+.guide-bubble{position:fixed;z-index:3;width:min(360px,calc(100vw - 28px));padding:15px 16px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:linear-gradient(180deg,rgba(34,41,56,.98),rgba(24,29,40,.98));box-shadow:0 22px 70px rgba(0,0,0,.48);backdrop-filter:blur(14px);color:var(--text)}
+.guide-bubble h2{margin:2px 28px 8px 0;font-size:15px;line-height:1.25;color:#fff}
+.guide-bubble p{margin:0;color:var(--text2);font-size:12px;line-height:1.55}
+.guide-step-count{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#bdb6ff;margin-bottom:4px;font-weight:700}
+.guide-close{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:9px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);color:var(--text);cursor:pointer}
+.guide-close:hover{background:rgba(255,255,255,.14)}
+.guide-actions{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:13px}
+.guide-actions .guide-left,.guide-actions .guide-right{display:flex;gap:8px;align-items:center}
+.guide-actions button{appearance:none;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);color:var(--text);border-radius:10px;padding:7px 10px;font-size:12px;cursor:pointer;white-space:nowrap}
+.guide-actions button:hover{background:rgba(255,255,255,.14)}
+.guide-actions .guide-next{background:linear-gradient(180deg,#8a7cff,#6f60f0);border-color:#8f82ff;color:#fff}
+.guide-actions .guide-prev[disabled]{opacity:.4;cursor:not-allowed}
+.help-tour-row{display:flex;justify-content:flex-start;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.help-tour-row .btn{justify-content:center}
+@media(max-width:720px){.guide-bubble{left:14px!important;right:14px!important;top:auto!important;bottom:14px!important;width:auto}.guide-actions{align-items:stretch;flex-direction:column}.guide-actions .guide-left,.guide-actions .guide-right{width:100%;justify-content:space-between}.guide-actions button{flex:1}.guide-tour .guide-highlight{animation:none}}
 .tour-banner.paused .tour-desc{opacity:.6}
 .modal-backdrop{isolation:isolate;position:fixed;inset:54px 0 0 0;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);display:none;align-items:flex-start;justify-content:center;z-index:9000;padding:20px 20px 10px;overflow:hidden}
 .modal-backdrop.open{display:flex}
@@ -1001,7 +1037,7 @@ body.mode3d .zoom-btns{display:flex}
       <div class="actions">
         <button class="btn sm" id="undoBtn" title="Annuler" style="">↩<span class="toolbar-label undo-label"> Annuler</span></button>
         <button class="btn sm" id="topSaveFavBtn" title="Ajouter aux favoris" aria-label="Ajouter aux favoris">+<span class="toolbar-label topfav-label"> Favoris</span> ★</button>
-        <button class="btn sm" id="shareBtn" title="Copier lien">🔗<span class="toolbar-label share-label"> Copier lien</span></button>
+        <button class="btn sm" id="shareBtn" title="Partager"><span class="share-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="M8.2 11l7.6-4.2"></path><path d="M8.2 13l7.6 4.2"></path></svg></span><span class="toolbar-label share-label"> Partager</span></button>
         <button class="btn sm" id="aideBtn" title="Aide rapide">?</button>
         <button class="btn sm primary" id="exportBtn" title="Export PNG">⬇<span class="toolbar-label export-label">Export PNG</span></button>
         <button class="btn sm iconbtn" id="langToggle" title="Switch to English" aria-label="Switch to English"><span class="lang-flag fr" aria-hidden="true"></span></button>
@@ -1056,6 +1092,29 @@ body.mode3d .zoom-btns{display:flex}
 </div>
 <div class="tour-banner" id="tourBanner"><div class="tour-title" id="tourBannerTitle"></div><div class="tour-desc" id="tourBannerDesc"></div><div class="tour-pause-msg">Visite en pause — explorez librement</div><div class="tour-controls"><button id="tourPrevBtn" title="Étape précédente">◀</button><button id="tourResumeBtn" class="tour-resume">▶ Continuer</button><button id="tourNextBtn" title="Étape suivante">▶</button><button id="tourCloseBtn" title="Arrêter la visite">✕</button></div></div>
 
+
+
+<div class="guide-tour" id="guideTour" aria-hidden="true">
+  <svg id="guideTourSvg" aria-hidden="true" focusable="false"></svg>
+  <canvas class="guide-arrows" id="guideTourArrows" aria-hidden="true"></canvas>
+  <div id="guideTourHighlights"></div>
+  <section class="guide-bubble" id="guideTourBubble" role="dialog" aria-modal="true" aria-labelledby="guideTourTitle" aria-describedby="guideTourText">
+    <button class="guide-close" id="guideTourClose" type="button" aria-label="Fermer">×</button>
+    <div class="guide-step-count" id="guideTourStepCount">1/4</div>
+    <h2 id="guideTourTitle"></h2>
+    <p id="guideTourText"></p>
+    <div class="guide-actions">
+      <div class="guide-left">
+        <button class="guide-skip" id="guideTourSkip" type="button">Passer</button>
+      </div>
+      <div class="guide-right">
+        <button class="guide-prev" id="guideTourPrev" type="button">Précédent</button>
+        <button class="guide-next" id="guideTourNext" type="button">Suivant</button>
+      </div>
+    </div>
+  </section>
+</div>
+
 <div class="modal-backdrop" id="exportModal" data-bound-backdrop="1">
   <div class="modal">
     <h2>Export PNG</h2>
@@ -1107,6 +1166,9 @@ body.mode3d .zoom-btns{display:flex}
         <div><span class="kbd">Accueil</span> Accueil : vue par défaut</div>
         <div><span class="kbd">Tab</span> Tab panneau · H aide</div>
       </div></div>
+    </div>
+    <div class="help-tour-row">
+      <button class="btn" id="replayGuideTourBtn" type="button">Revoir la visite guidée</button>
     </div>
     <div style="display:flex;justify-content:flex-end;margin-top:12px">
       <button class="btn primary" id="closeHelpBtn">Fermer</button>
@@ -3509,7 +3571,6 @@ function snapshot(){
     doDE:state.doDE,deThick:state.deThick,doTrap:state.doTrap,trapType:state.trapType,trapInt:state.trapInt,trapRad:state.trapRad,
     doStripe:state.doStripe,stripeF:state.stripeF,stripeM:state.stripeM,
     jre:state.jre,jim:state.jim,phoenixP:state.phoenixP,fracExp:state.fracExp,newtonDegree:state.newtonDegree};
-  // Inclure l'état 3D si on est sur une fractale 3D
   if(isFractal3D(state.ftype)){
     base.s3d={
       fractal:state3d.fractal,
@@ -3525,6 +3586,74 @@ function snapshot(){
   }
   return base;
 }
+const URL_STATE_DEFAULTS=snapshot();
+const URL_ALIAS_TO_KEY={
+  v:'version',f:'ftype',x:'cx',y:'cy',z:'scale',i:'maxIter',p:'palette',h:'palShift',c:'palCycles',q:'quality',
+  cp:'customPalette',pp:'customPalPos',n:'doNormal',nh:'nHeight',na:'nAngle',ne:'nElev',ns:'nSpec',
+  d:'doDE',dt:'deThick',ot:'doTrap',tt:'trapType',ti:'trapInt',tr:'trapRad',s:'doStripe',sf:'stripeF',sm:'stripeM',
+  jr:'jre',ji:'jim',pm:'phoenixP',e:'fracExp',nd:'newtonDegree',m:'s3d'
+};
+const URL_KEY_TO_ALIAS=Object.fromEntries(Object.entries(URL_ALIAS_TO_KEY).map(([a,k])=>[k,a]));
+const URL_BOOL_KEYS=new Set(['doNormal','doDE','doTrap','doStripe']);
+const URL_JSON_KEYS=new Set(['customPalette','customPalPos','s3d']);
+const URL_ALWAYS_KEYS=new Set(['ftype','cx','cy','scale','maxIter','palette','palShift','palCycles','quality']);
+function compactDecimalString(value){
+  const s=String(value);
+  if(/[eE]/.test(s)) return s.replace(/\.0+(?=e)/i,'');
+  return s.replace(/(\.\d*?[1-9])0+$/,'$1').replace(/\.0+$/,'').replace(/^-0$/,'0');
+}
+function encodeUrlValue(key,value){
+  if(URL_JSON_KEYS.has(key)) return JSON.stringify(value);
+  if(URL_BOOL_KEYS.has(key)) return value?'1':'0';
+  if(key==='cx'||key==='cy'||key==='scale'||typeof value==='number') return compactDecimalString(value);
+  return String(value);
+}
+function valuesEqual(a,b){
+  if(Array.isArray(a)||Array.isArray(b)||(a&&typeof a==='object')||(b&&typeof b==='object')){
+    try{return JSON.stringify(a)===JSON.stringify(b);}catch(e){return false;}
+  }
+  return String(a)===String(b);
+}
+function shouldIncludeUrlState(key,value){
+  if(value===null||value===undefined) return false;
+  if(URL_ALWAYS_KEYS.has(key)) return true;
+  return !valuesEqual(value,URL_STATE_DEFAULTS[key]);
+}
+function buildCompactHash(){
+  const s=snapshot();
+  const params=new URLSearchParams();
+  params.set('v','2');
+  Object.entries(s).forEach(([key,value])=>{
+    if(!shouldIncludeUrlState(key,value)) return;
+    const alias=URL_KEY_TO_ALIAS[key]||key;
+    params.set(alias,encodeUrlValue(key,value));
+  });
+  return params.toString();
+}
+function decodeUrlValue(key,value){
+  if(URL_JSON_KEYS.has(key)){
+    try{return JSON.parse(value);}catch(e){return undefined;}
+  }
+  if(URL_BOOL_KEYS.has(key)) return value==='1'||value==='true';
+  if(key==='cx'||key==='cy'||key==='quality') return value;
+  if(['ftype','maxIter','palette','trapType','newtonDegree'].includes(key)) return +value;
+  return isNaN(+value)?value:+value;
+}
+function parseHashState(hash){
+  if(!hash||!hash.startsWith('#')) return null;
+  const raw=hash.slice(1);
+  if(!raw) return null;
+  const params=new URLSearchParams(raw);
+  if(!params.size) return null;
+  const next={};
+  params.forEach((value,paramKey)=>{
+    const key=URL_ALIAS_TO_KEY[paramKey]||paramKey;
+    if(key==='version') return;
+    const decoded=decodeUrlValue(key,value);
+    if(decoded!==undefined) next[key]=decoded;
+  });
+  return next;
+}
 function applyState(next,{push=false,renderNow=true}={}){
   if(push)historyStack.push(snapshot());
   state={...state,...next};
@@ -3532,12 +3661,9 @@ function applyState(next,{push=false,renderNow=true}={}){
   if(next.cy!==undefined)state.cy=next.cy instanceof D?next.cy:new D(next.cy);
   if(historyStack.length>80)historyStack.shift();
   if(next.scale!==undefined||next.ftype!==undefined||next.fracExp!==undefined){perturb.invalidate();}
-  // Restaurer state3d depuis un favori/URL
   if(next.s3d){
     const s=next.s3d;
     if(s.fractal!==undefined) state3d.fractal=s.fractal;
-    if(s.trapType!==undefined) state3d.trapType=s.trapType;
-    if(s.trapScale!==undefined) state3d.trapScale=s.trapScale;
     if(s.trapType!==undefined) state3d.trapType=s.trapType;
     if(s.trapScale!==undefined) state3d.trapScale=s.trapScale;
     if(s.yaw!==undefined) state3d.yaw=s.yaw;
@@ -3555,7 +3681,6 @@ function applyState(next,{push=false,renderNow=true}={}){
     if(s.shadows!==undefined) state3d.shadows=!!s.shadows;
     if(s.ao!==undefined) state3d.ao=!!s.ao;
   }
-  // Déclencher le mode 3D si nécessaire
   if(next.ftype!==undefined && isFractal3D(next.ftype) && renderNow){
     const idx3d=next.ftype-FRACTAL_3D_BASE;
     if(!document.body.classList.contains('mode3d')) enterMode3D(idx3d);
@@ -3566,55 +3691,12 @@ function applyState(next,{push=false,renderNow=true}={}){
   if(renderNow)requestRender();
 }
 function syncURL(){
-  const p=new URLSearchParams();
-  const s=snapshot();
-  Object.entries(s).forEach(([k,v])=>{
-    if(v===null||v===undefined) return;
-    if(k==='customPalette'||k==='customPalPos') p.set(k,JSON.stringify(v));
-    else if(k==='s3d') p.set('s3d',JSON.stringify(v));
-    else p.set(k,String(v));
-  });
-  history.replaceState(null,'',location.pathname+'#'+p.toString());
+  history.replaceState(null,'',location.pathname+location.search+'#'+buildCompactHash());
 }
 function loadURLState(){
-  if(!location.hash.startsWith('#'))return;
-  const p=new URLSearchParams(location.hash.slice(1));
-  if(!p.size)return;
-  const next={};
-  p.forEach((v,k)=>{
-    if(['cx','cy'].includes(k)) next[k]=v;
-    else if(['quality'].includes(k)) next[k]=v;
-    else if(['customPalette','customPalPos'].includes(k)){
-      try{ next[k]=JSON.parse(v); }catch(e){}
-    }
-    else if(k==='s3d'){
-      try{ next.s3d=JSON.parse(v); }catch(e){}
-    }
-    else if(['doNormal','doDE','doTrap','doStripe'].includes(k)) next[k]=v==='true';
-    else if(['ftype','maxIter','palette','trapType'].includes(k)) next[k]=+v;
-    else next[k]=isNaN(+v)?v:+v;
-  });
-  // Appliquer l'état 3D si présent
-  if(next.s3d){
-    const s=next.s3d;
-    if(s.fractal!==undefined) state3d.fractal=s.fractal;
-    if(s.yaw!==undefined) state3d.yaw=s.yaw;
-    if(s.pitch!==undefined) state3d.pitch=s.pitch;
-    if(s.distance!==undefined) state3d.distance=s.distance;
-    if(s.target) state3d.target=s.target;
-    if(s.fov!==undefined) state3d.fov=s.fov;
-    if(s.power!==undefined) state3d.power=s.power;
-    if(s.bailout!==undefined) state3d.bailout=s.bailout;
-    if(s.epsilon!==undefined) state3d.epsilon=s.epsilon;
-    if(s.maxSteps!==undefined) state3d.maxSteps=s.maxSteps;
-    if(s.palette3d!==undefined) state3d.palette=s.palette3d;
-    if(s.exposure!==undefined) state3d.exposure=s.exposure;
-    if(s.glow!==undefined) state3d.glow=s.glow;
-    if(s.shadows!==undefined) state3d.shadows=!!s.shadows;
-    if(s.ao!==undefined) state3d.ao=!!s.ao;
-  }
+  const next=parseHashState(location.hash);
+  if(!next) return;
   applyState(next,{renderNow:false});
-  // Si l'URL pointe vers une fractale 3D, déclencher le mode 3D
   if(next.ftype!==undefined && isFractal3D(next.ftype)){
     const idx3d=next.ftype-FRACTAL_3D_BASE;
     globalThis.__pendingEnterMode3D=idx3d;
@@ -4591,12 +4673,31 @@ async function exportPNG(outW=1920,outH=1080,withCoords=false){
   }
 }
 
-// Copy current URL (state encoded in hash) to clipboard
-function copyShare(){
-  const url=location.href;
-  navigator.clipboard?.writeText(url)
-    .then(()=>toast(t('ui.linkCopied'),t('ui.linkCopiedDesc')))
-    .catch(()=>{const u=prompt('Copier ce lien :',url);});
+// Share current URL (compact state encoded in hash), with clipboard fallback
+function buildShareUrl(){
+  const url=new URL(location.href);
+  url.hash=buildCompactHash();
+  return url.toString();
+}
+async function copyShare(){
+  const url=buildShareUrl();
+  const shareData={title:'Fractal Explorer',text:fractMeta(state.ftype).name,url};
+  if(navigator.share){
+    try{
+      await navigator.share(shareData);
+      return;
+    }catch(err){
+      if(err&&err.name==='AbortError') return;
+    }
+  }
+  try{
+    if(navigator.clipboard?.writeText){
+      await navigator.clipboard.writeText(url);
+      toast(t('ui.linkCopied'),t('ui.linkCopiedDesc'));
+      return;
+    }
+  }catch(err){}
+  prompt(t('ui.shareCopy'),url);
 }
 
 
@@ -4688,17 +4789,54 @@ function sanitizeFavoriteName(value,fallback=''){
   const cleaned=raw.replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim();
   return (cleaned||fallback||fractMeta(state.ftype).name).slice(0,120);
 }
+function favoritePreviewSource(){
+  if(document.body.classList.contains('mode3d') && $('glc3d')?.width) return $('glc3d');
+  const transition=$('transitionCanvas');
+  if(transition && transition.style.display!=='none' && transition.width && transition.height) return transition;
+  const main=$('glc');
+  if(main?.width) return main;
+  const cpu=$('cpuCanvas');
+  return cpu?.width?cpu:null;
+}
+function captureFavoriteThumbnail(){
+  try{
+    const src=favoritePreviewSource();
+    if(!src||!src.width||!src.height) return '';
+    const thumb=document.createElement('canvas');
+    thumb.width=176; thumb.height=110;
+    const ctx=thumb.getContext('2d',{alpha:false});
+    if(!ctx) return '';
+    ctx.fillStyle='#000';
+    ctx.fillRect(0,0,thumb.width,thumb.height);
+    const ratio=Math.max(thumb.width/src.width, thumb.height/src.height);
+    const dw=src.width*ratio, dh=src.height*ratio;
+    const dx=(thumb.width-dw)/2, dy=(thumb.height-dh)/2;
+    ctx.imageSmoothingEnabled=true;
+    ctx.imageSmoothingQuality='high';
+    ctx.drawImage(src,dx,dy,dw,dh);
+    return thumb.toDataURL('image/webp',0.82);
+  }catch(e){return '';}
+}
 function normalizeFavoriteEntry(fav){
   if(!fav||typeof fav!=='object'||!fav.state||typeof fav.state!=='object') return null;
   const ftype=Number.isFinite(+fav.state.ftype)?+fav.state.ftype:state.ftype;
   const zoom=Number.isFinite(+fav.state.scale)&&+fav.state.scale!==0?fmtZoom(BASE/(+fav.state.scale)):'';
   const fallback=(fractMeta(ftype).name+(zoom?' '+zoom:''));
-  return Object.assign({},fav,{name:sanitizeFavoriteName(fav.name,fallback),date:fav.date||new Date().toISOString()});
+  return Object.assign({},fav,{
+    name:sanitizeFavoriteName(fav.name,fallback),
+    date:fav.date||new Date().toISOString(),
+    thumbnail:(typeof fav.thumbnail==='string'&&fav.thumbnail.startsWith('data:image/'))?fav.thumbnail:''
+  });
 }
 function saveFavorites(name){
   const favs=loadFavorites();
   const fallback=fractMeta(state.ftype).name+' '+fmtZoom(BASE/state.scale);
-  favs.unshift({name:sanitizeFavoriteName(name,fallback),date:new Date().toISOString(),state:snapshot()});
+  favs.unshift({
+    name:sanitizeFavoriteName(name,fallback),
+    date:new Date().toISOString(),
+    state:snapshot(),
+    thumbnail:captureFavoriteThumbnail()
+  });
   storageSet(APP_KEYS.favorites,JSON.stringify(favs));
   renderSaved();toast(t('ui.favoriteSaved'),t('ui.favoriteSavedDesc'));
 }
@@ -4725,7 +4863,18 @@ function renderSaved(){
     }
     favs.forEach((fav,idx)=>{
       const item=document.createElement('div');item.className='saved-item';
-      const details=document.createElement('div');
+      const main=document.createElement('div');main.className='saved-main';
+      const thumb=document.createElement(fav.thumbnail?'img':'div');
+      thumb.className='saved-thumb'+(fav.thumbnail?'':' placeholder');
+      if(fav.thumbnail){
+        thumb.src=fav.thumbnail;
+        thumb.alt='';
+        thumb.loading='lazy';
+        thumb.decoding='async';
+      }else{
+        thumb.textContent='Vue';
+      }
+      const details=document.createElement('div');details.className='saved-meta';
       const title=document.createElement('strong');
       title.style.fontSize='12px';
       title.textContent=sanitizeFavoriteName(fav.name,fractMeta(fav.state.ftype).name);
@@ -4734,13 +4883,14 @@ function renderSaved(){
       small.textContent=fractMeta(fav.state.ftype).name+' · '+zoom;
       details.appendChild(title);
       details.appendChild(small);
+      main.appendChild(thumb);main.appendChild(details);
       const actions=document.createElement('div');actions.className='saved-actions';
       const openBtn=document.createElement('button');openBtn.className='btn sm fav-open-btn';openBtn.type='button';openBtn.textContent=t('saved.open');
       const delBtn=document.createElement('button');delBtn.className='btn sm danger';delBtn.type='button';delBtn.textContent='✕';
       openBtn.onclick=()=>applyState(fav.state,{push:true,renderNow:true});
       delBtn.onclick=()=>{const next=loadFavorites();next.splice(idx,1);storageSet(APP_KEYS.favorites,JSON.stringify(next));renderSaved();};
       actions.appendChild(openBtn);actions.appendChild(delBtn);
-      item.appendChild(details);item.appendChild(actions);
+      item.appendChild(main);item.appendChild(actions);
       host.appendChild(item);
     });
   });
@@ -4749,7 +4899,7 @@ function renderSaved(){
 function exportFavorites(){
   const favs=loadFavorites();
   if(!favs.length){toast(t('ui.exportMenuNone'),t('ui.exportMenuNoneDesc'));return;}
-  const data=JSON.stringify({version:1,app:'Fractal Explorer',date:new Date().toISOString(),favorites:favs},null,2);
+  const data=JSON.stringify({version:2,app:'Fractal Explorer',date:new Date().toISOString(),favorites:favs},null,2);
   const blob=new Blob([data],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='fractales-favoris.json';a.click();
   URL.revokeObjectURL(a.href);try{localStorage.setItem('frac-favs-export-count',String(favs.length));}catch(e){} updateFavoritesExportHint(favs);toast(t('ui.exportMenuDone'),t('ui.exportMenuDoneDesc'));
@@ -5316,7 +5466,7 @@ function hideBuddhaProgress(){
 
 // ── i18n layer (FR / EN) ─────────────────────────────────────────
 const LOCALE_KEY='fractal-explorer-locale';
-const I18N={"fr":{"code":"FR","ui":{"exploreInfinity":"Explorez l'infini mathématique","hardwareDetection":"Détection matérielle","tourTitle":"▶ Visite guidée de Mandelbrot","allFractals":"Toutes les fractales","tabs":{"home":"Explorateur","settings":"Réglages","saved":"Favoris"},"info":"Infos","zoom":"Zoom","real":"Réel","imag":"Imag","engine":"Moteur","iterations":"Itérations","effects":"Effets","fractal":"Fractale","galleryButton":"Toutes les fractales…","realConstant":"Constante réelle","imagConstant":"Constante imaginaire","phoenixMemory":"Mémoire Phoenix","multibrotExponent":"Exposant","newtonDegree":"Degré Newton","multibrotHint":"Modifiez cet exposant pour transformer la fractale. Indépendant des cycles de couleurs. Disponible pour Multibrot, Multicorn, Burning Ship, Burning Ship Julia et Celtic.","addToFavorites":"Ajouter aux favoris","resetView":"Réinitialiser la vue","navigation":"Navigation","nav1":"déplacer · Shift+glisser : zoom rectangulaire","nav2":"zoom · Dbl-clic : zoom ×2","nav3":"zoom · ←→↑↓ déplacer · Accueil : réinitialiser","nav4":"Tab panneau · H aide","home":"Accueil","random":"Aléatoire","depth":"Profondeur","palette":"Palette","shift":"Décalage","cycles":"Cycles de couleurs","customPaletteHint":"5 couleurs clés — glisse les curseurs pour ajuster les positions","stop2":"Pos. stop 2","stop3":"Pos. stop 3","stop4":"Pos. stop 4","autoBalance":"Auto-équilibrage","autoBalanceTitle":"Ajuste automatiquement cycles et décalage","stylePresets":"Styles prêts à l’emploi","quickBeauty":"Beauté rapide","quality":"Qualité","progressive":"Progressif (recommandé)","full":"Toujours au maximum","fast":"Interaction rapide","visualEffects":"Effets visuels","relief":"Relief (normal map)","height":"Hauteur","lightAngle":"Angle lumière","elevation":"Élévation","specular":"Spéculaire","halo":"Halo contours (DE)","thickness":"Épaisseur","orbitTraps":"Pièges d’orbite","intensity":"Intensité","radius":"Rayon","orbitStripes":"Stries d’orbite","frequency":"Fréquence","mix":"Mix","favorites":"Favoris","viewNamePlaceholder":"Nom de la vue…","export":"Exporter","import":"Importer","close":"Fermer","exportRunning":"Export en cours","exportRunningDesc":"Patiente pendant la génération.","exportImpossible":"Export impossible","exportWebGLDesc":"WebGL en cours de restauration.","exportCanvas2DDesc":"Canvas 2D indisponible.","orbitUnavailable":"Orbite indisponible.","favoriteLoaded":"Favori chargé","favoriteDeleted":"Favori supprimé","linkCopied":"Lien copié !","share":"Partage","shareCopy":"Copie manuelle :","webglLost":"WebGL context perdu","webglLostDesc":"Récupération automatique en cours.","webglRecoveryFail":"Récupération incomplète","webglRecoveryFailDesc":"Rechargez la page si le rendu reste figé.","perturbUnavail":"Perturbation indisponible","perturbUnavailDesc":"Les textures flottantes ne sont pas disponibles sur cet appareil.","comfortMode":"Mode confort","comfortModeDesc":"Le rendu a été légèrement allégé pour garder une navigation fluide.","zoomLimit":"Limite de zoom","exportComplete":"Export terminé","exportAdapted":"Export adapté","exportAdaptedDesc":"Résolution réduite.","exportFailed":"Export échoué","exportFailedDesc":"Essayez une échelle inférieure.","exportNoWebGL":"Export impossible","exportNoWebGLDesc":"WebGL dédié indisponible.","exportFullscreenTip":"💡 Astuce : Passer en plein écran avant d’exporter améliore la résolution — l’image reflète la taille réelle du canvas.","exportWithCoords":"Ajouter un bandeau discret avec nom et coordonnées","recommendedProfile":"Profil recommandé","changeFractal":"Changer de fractale","history":"Historique","historyRestored":"Vue restaurée","nav3d":"Navigation 3D","restored":"Restauré","restoredDesc":"Vue restaurée depuis l’historique.","sceneLoaded":"Scène chargée","paletteNames":["Feu","Océan","Électrique","Aurora","Monochrome","Ultra Fractal","Pastel","Néon","✦ Personnalisée"],"exportNoFloat":"Export impossible","exportNoFloatDesc":"Textures flottantes indisponibles pour l'export en perturbation.","exportNo3D":"Export impossible","exportNo3DDesc":"Capture 3D indisponible sur ce navigateur.","exportOrbit":"Export impossible","exportOrbitDesc":"Orbite indisponible. Navigue d'abord en mode perturbation.","linkCopiedDesc":"Vue complète dans le presse-papier.","favoriteSaved":"Favori sauvé","favoriteSavedDesc":"Vue complète enregistrée.","exportMenuNone":"Export","exportMenuNoneDesc":"Aucun favori à exporter.","exportMenuDone":"Export","exportMenuDoneDesc":"Favoris exportés.","importError":"Erreur","importErrorDesc":"Format de fichier invalide.","importDone":"Import","importReadError":"Erreur","importReadErrorDesc":"Impossible de lire le fichier.","styleApplied":"Style appliqué","autoBalanceUnavail":"Auto-équilibrage","autoBalanceUnavailDesc":"Indisponible sur cette fractale.","autoBalanceDesc":"Cycles de couleurs et décalage ajustés automatiquement.","exportDisabled":"Export désactivé","exportDisabledDesc":"Le profil actuel privilégie la stabilité.","pointCentered":"Point centré","viewReset":"Vue réinitialisée","settingsApplied":"Paramètres appliqués","rotationRestarted":"Rotation relancée","orbitTrap":"Orbit Trap","trapType":"Type de piège","trapClassic":"Classique (origine)","trapSphere":"Sphère","trapPlane":"Plan XY","trapAxis":"Axe Z","trapCube":"Cube","trapScale":"Échelle","accumulate":"Accumulation progressive","qualityProfile":"Profil qualité","qualityMax":"Résolution max","comfort":"Confort","qualityMode":"Qualité","undo":"← Annuler","copyLink":"Copier lien","fullscreen":"Plein écran","exportPng":"Export PNG","randomTitle":"Vue aléatoire","helpTitle":"Aide rapide","computing":"⟳ Calcul en cours…","pausedTour":"Visite en pause — explorez librement","prevStep":"Étape précédente","continue":"▶ Continuer","pause":"⏸ Pause","nextStep":"Étape suivante","stopTour":"Arrêter la visite","exportModalTitle":"Export PNG","exportModalDesc":"Rendu par tuiles — fonctionne même aux très grandes résolutions.","screenSize":"taille écran","highResolution":"haute résolution","largeFormat":"grand format","posterSlow":"poster (lent)","helpNav":"Navigation","helpShortcuts":"Raccourcis","helpNav1":"déplacer la vue","helpNav2":"zoom vers le curseur","helpNav3":"zoom par rectangle","helpNav4":"zoom ×2 vers le point","helpShort1":"+ / − zoom clavier","helpShort2":"←→↑↓ pan","helpShort3":"Accueil : vue par défaut","helpShort4":"Tab panneau · H aide"},"palettes":["Feu","Océan","Électrique","Aurore","Monochrome","Ultra Fractal","Pastel","Néon","✦ Personnalisée"],"traps":["Cercle","Croix","Point","Carré"],"groups":{"3D":"3D","Classiques":"Classiques","Anguleuses":"Anguleuses","Organiques":"Organiques","Algébriques / attracteurs":"Algébriques / attracteurs","Géométriques":"Géométriques","Spéciales":"Spéciales","Créations":"Créations"},"groupDescriptions":{"3D":"Volumes et structures navigables en trois dimensions.","Classiques":"Les ensembles fondamentaux pour explorer les formes fractales.","Anguleuses":"Abs(), bifurcations et arêtes nettes.","Organiques":"Orbites avec mémoire, filaments et structures vivantes.","Algébriques / attracteurs":"Bassins d’attraction et fonctions transcendantes.","Géométriques":"Calcul direct et structures répétitives.","Spéciales":"Moteurs CPU, trajectoires et rendus uniques.","Créations":"Fractales originales sélectionnées pour leur singularité visuelle et mathématique."},"cpPresets":["🌊 Océan","🔥 Plasma","🌿 Forêt","✨ Galaxie"],"stylePresets":{"cinema":["Cinéma","Contraste profond"],"glacier":["Glacier","Bleus lumineux"],"velours":["Velours","Pastel doux"],"noir":["N&B Relief","Graphique net"],"volcan":["Volcan","Chaud et sculpté"],"cristal":["Cristal","Net et lumineux"]},"juliaPresets":[["Spirale","Classique dense"],["Lapin","Formes organiques"],["Île","Archipel fin"],["Dragon","Structure nerveuse"]],"profileTitles":{"legacy":"Legacy","safe":"Safe","balanced":"Balanced","ultra":"Ultra"},"runtime":{"legacy":["Mode legacy : WebGL indisponible sur cet appareil. Exploration possible en mode CPU simplifié.","Rendu dégradé. Pour davantage de profondeur et de fluidité, ouvrir la page sur une machine plus puissante."],"safe":["Mode safe : rendu GPU allégé pour limiter les plantages et préserver la stabilité.","Certains effets et une partie du deep zoom sont volontairement réduits. Une machine plus puissante pourra aller plus loin."],"balanced":["Mode balanced : compromis entre fluidité, stabilité et profondeur.","Le moteur adapte automatiquement la qualité pour garder une navigation confortable."],"ultra":["Mode ultra : capacités élevées détectées, rendu complet activé.","Perturbation, effets et profondeur maximale restent disponibles."]},"effects":{"normal":"Relief","distance":"Distance","orbitTrap":"Piège d’orbite","stripe":"Stries","expShort":"Exp.","deepZoom":"Zoom profond","degree":"Degré","abSequence":"Séquence AB","fixedC":"c fixe"},"saved":{"empty":"Aucun favori enregistré.","open":"Ouvrir"},"status":{"ready":"Prêt"},"genericMap":{"WebGL context lost":"Contexte WebGL perdu","Automatic recovery in progress.":"Récupération automatique en cours.","WebGL restored":"WebGL restauré","Restored":"Restauré","The rendering engine has been reset.":"Le moteur de rendu a été réinitialisé.","Recovery incomplete":"Récupération incomplète","Reload the page if rendering stays frozen.":"Recharge la page si le rendu reste figé.","Perturbation indisponible":"Perturbation indisponible","Les textures flottantes ne sont pas disponibles sur cet appareil.":"Les textures flottantes ne sont pas disponibles sur cet appareil.","Mode confort":"Mode confort","Le rendu a été légèrement allégé pour garder une navigation fluide.":"Le rendu a été légèrement allégé pour garder une navigation fluide.","Random view":"Vue aléatoire","Limite de zoom":"Limite de zoom","History":"Historique","Previous view restored.":"Vue précédente restaurée.","Scene loaded":"Scène chargée","Export en cours":"Export en cours","Patiente pendant la génération de l’image.":"Patiente pendant la génération de l’image.","Export impossible":"Export impossible","WebGL en cours de restauration.":"WebGL en cours de restauration.","Export adapté":"Export adapté","Canvas 2D indisponible.":"Canvas 2D indisponible.","Export complete":"Export terminé","Export failed":"Échec de l’export","Try a lower scale.":"Essaie une échelle plus faible.","Orbite indisponible. Navigue d’abord en mode perturbation.":"Orbite indisponible. Navigue d’abord en mode perturbation.","Textures flottantes indisponibles pour l'export en perturbation.":"Textures flottantes indisponibles pour l’export en perturbation.","Lien copié":"Lien copié","Vue complète dans le presse-papier.":"Vue complète dans le presse-papier.","Favori sauvé":"Favori sauvé","Vue complète enregistrée.":"Vue complète enregistrée.","Export":"Export","Favoris exportés.":"Favoris exportés.","Erreur":"Erreur","Format de fichier invalide.":"Format de fichier invalide.","Impossible de lire le fichier.":"Impossible de lire le fichier.","Style appliqué":"Style appliqué","Auto-équilibrage":"Auto-équilibrage","Indisponible sur cette fractale.":"Indisponible sur cette fractale.","Cycles et décalage ajustés automatiquement.":"Cycles et décalage ajustés automatiquement.","Export désactivé":"Export désactivé","Le profil actuel privilégie la stabilité. Utilisez une machine plus puissante pour les exports lourds.":"Le profil actuel privilégie la stabilité. Utilisez une machine plus puissante pour les exports lourds.","Open":"Ouvrir","Ready":"Prêt"},"fractals":{"0":["Mandelbrot","L’ensemble classique avec le chemin de zoom le plus profond et le plus stable.","Classiques"],"1":["Julia","Constante c fixée : exposant 2 pour la forme classique, ajustable pour explorer d’autres formes.","Classiques"],"2":["Burning Ship","Navire brûlant à puissance variable — bords très denses, excellent rendu de relief.","Anguleuses"],"3":["Multicorn","Version conjuguée du Mandelbrot, à symétrie inversée.","Anguleuses"],"4":["Newton","Bassins de Newton paramétrables pour z^n−1.","Algébriques / attracteurs"],"5":["Magnet I","Bulles et structures fermées.","Algébriques / attracteurs"],"6":["Buffalo","Variante abs() bicubique — structures angulaires très distinctes.","Anguleuses"],"7":["Phoenix","Mémoire d’orbite — structures tourbillonnantes.","Organiques"],"8":["Celtic","Motifs anguleux et entrelacs géométriques, modulables par puissance.","Anguleuses"],"9":["Cosinus","Ondulations de cosinus complexe.","Algébriques / attracteurs"],"10":["Multibrot","Exposant libre d pour faire varier la topologie.","Classiques"],"11":["Perpendicular Mandelbrot","abs() variant — crystalline feathers and spirals in deep zoom.","Anguleuses"],"12":["Feather","Feather-shaped filaments — keep iterations below 3000 to avoid GPU overload.","Anguleuses"],"13":["Lambda","Logistique complexe — très sensible à c.","Algébriques / attracteurs"],"18":["Sinus","Plumes et rubans complexes.","Algébriques / attracteurs"],"21":["Nova","Newton décalé par c — très graphique.","Organiques"],"22":["Glynn","Puissance fractionnaire — motifs organiques.","Organiques"],"23":["Lyapunov","Carte de stabilité de l’équation logistique, riche en bandes et structures fines.","Spéciales"],"24":["Buddhabrot","Rendu par densité d’orbites des points qui s’échappent, affiné progressivement.","Spéciales"],"29":["Bitwise AND","Triangle de Sierpiński via AND binaire. Pas d’itération — coloration directe.","Géométriques"],"30":["Bitwise XOR","Damier fractal récursif via XOR binaire. Motifs géométriques infinis.","Géométriques"],"31":["Mandelbox 2D","Box-fold + inversion sphérique — structures répétitives cubiques tressées.","Géométriques"],"32":["Burning Ship Julia","Mode Julia de Burning Ship avec puissance variable — formes asymétriques très marquées.","Anguleuses"],"34":["Collatz","Conjecture de Collatz dans ℂ — filaments organiques très caractéristiques.","Organiques"],"35":["Barnsley 2","Formule de Barnsley (1988) — Julia cristallines très distinctes.","Anguleuses"],"36":["Barnsley 3","Variante cubique de Barnsley — structures géométriques uniques.","Anguleuses"],"37":["Manowar","z = z² + c + z_préc — toile d’araignée fractale, cousin de Phoenix.","Organiques"],"38":["Spider","z = z² + c, c = c/2 + z — spirales en toile caractéristiques.","Organiques"],"46":["Fougère de Barnsley","IFS classique — 4 transformations affines, rendu par accumulation de points.","Spéciales"],"47":["Attracteur de Lorenz","Système chaotique de Lorenz — trajectoire en papillon intégrée par RK4.","Spéciales"],"45":["Apollonian Gasket","Cercles tangents imbriqués à l'infini — distance estimation directe.","Géométriques"],"40":["Mandelbulb 3D","Généralisation 3D de Mandelbrot.","3D"],"41":["Mandelbox 3D","Fractale architecturale 3D.","3D"],"42":["Éponge de Menger","IFS 3D classique.","3D"],"43":["Tétraèdre de Sierpiński","IFS tétraèdre 3D.","3D"],"44":["Julia quaternion 3D","Julia en espace quaternion.","3D"]},"tour":[]},"en":{"code":"EN","ui":{"exploreInfinity":"Explore the mathematical infinite","hardwareDetection":"Hardware detection","tourTitle":"▶ Mandelbrot guided tour","allFractals":"All fractals","tabs":{"home":"Explorer","settings":"Settings","saved":"Favorites"},"info":"Info","zoom":"Zoom","real":"Real","imag":"Imag","engine":"Engine","iterations":"Iterations","effects":"Effects","fractal":"Fractal","galleryButton":"All fractals…","realConstant":"Real constant","imagConstant":"Imaginary constant","phoenixMemory":"Phoenix memory","multibrotExponent":"Exponent","newtonDegree":"Newton degree","multibrotHint":"Change this exponent to transform the fractal. Independent from color cycles. Available for Multibrot, Multicorn, Burning Ship, Burning Ship Julia and Celtic.","addToFavorites":"Add to favorites","resetView":"Reset view","navigation":"Navigation","nav1":"move · Shift+drag: box zoom","nav2":"zoom · Double-click: ×2 zoom","nav3":"zoom · ←→↑↓ pan · Home: reset","nav4":"Tab panel · H help","home":"Home","random":"Random","depth":"Depth","palette":"Palette","shift":"Shift","cycles":"Color cycles","customPaletteHint":"5 key colors — drag the sliders to adjust stop positions","stop2":"Stop 2 pos.","stop3":"Stop 3 pos.","stop4":"Stop 4 pos.","autoBalance":"Auto-balance","autoBalanceTitle":"Automatically adjusts cycles and shift","stylePresets":"Style presets","quickBeauty":"Quick polish","quality":"Quality","progressive":"Progressive (recommended)","full":"Always maximum","fast":"Fast interaction","visualEffects":"Visual effects","relief":"Relief (normal map)","height":"Height","lightAngle":"Light angle","elevation":"Elevation","specular":"Specular","halo":"Contour halo (DE)","thickness":"Thickness","orbitTraps":"Orbit traps","intensity":"Intensity","radius":"Radius","orbitStripes":"Orbit stripes","frequency":"Frequency","mix":"Mix","favorites":"Favorites","viewNamePlaceholder":"View name…","export":"Export","import":"Import","close":"Close","exportRunning":"Export running","exportRunningDesc":"Please wait.","exportImpossible":"Export failed","exportWebGLDesc":"WebGL is being restored.","exportCanvas2DDesc":"2D canvas unavailable.","orbitUnavailable":"Orbit unavailable.","favoriteLoaded":"Favorite loaded","favoriteDeleted":"Favorite deleted","linkCopied":"Link copied!","share":"Share","shareCopy":"Manual copy:","webglLost":"WebGL context lost","webglLostDesc":"Automatic recovery in progress.","webglRecoveryFail":"Recovery incomplete","webglRecoveryFailDesc":"Reload the page if rendering stays frozen.","perturbUnavail":"Perturbation unavailable","perturbUnavailDesc":"Floating-point textures are not available on this device.","comfortMode":"Comfort mode","comfortModeDesc":"Rendering has been lightened to keep navigation smooth.","zoomLimit":"Zoom limit","exportComplete":"Export complete","exportAdapted":"Export adapted","exportAdaptedDesc":"Resolution reduced.","exportFailed":"Export failed","exportFailedDesc":"Try a lower scale.","exportNoWebGL":"Export failed","exportNoWebGLDesc":"Dedicated WebGL unavailable.","exportFullscreenTip":"💡 Tip: Going fullscreen before exporting improves resolution — the image reflects the real canvas size.","exportWithCoords":"Add a discreet strip with name and coordinates","recommendedProfile":"Recommended profile","changeFractal":"Change fractal","history":"History","historyRestored":"View restored","nav3d":"3D Navigation","restored":"Restored","restoredDesc":"View restored from history.","sceneLoaded":"Scene loaded","paletteNames":["Fire","Ocean","Electric","Aurora","Monochrome","Ultra Fractal","Pastel","Neon","✦ Custom"],"exportNoFloat":"Export failed","exportNoFloatDesc":"Floating textures unavailable for perturbation export.","exportNo3D":"Export failed","exportNo3DDesc":"3D capture unavailable in this browser.","exportOrbit":"Export failed","exportOrbitDesc":"Orbit unavailable. Navigate in perturbation mode first.","linkCopiedDesc":"Full view copied to clipboard.","favoriteSaved":"Favorite saved","favoriteSavedDesc":"Full view saved.","exportMenuNone":"Export","exportMenuNoneDesc":"No favorites to export.","exportMenuDone":"Export","exportMenuDoneDesc":"Favorites exported.","importError":"Error","importErrorDesc":"Invalid file format.","importDone":"Import","importReadError":"Error","importReadErrorDesc":"Cannot read file.","styleApplied":"Style applied","autoBalanceUnavail":"Auto-balance","autoBalanceUnavailDesc":"Unavailable for this fractal.","autoBalanceDesc":"Color cycles and shift adjusted automatically.","exportDisabled":"Export disabled","exportDisabledDesc":"Current profile prioritizes stability.","pointCentered":"Point centered","viewReset":"View reset","settingsApplied":"Settings applied","rotationRestarted":"Rotation restarted","orbitTrap":"Orbit Trap","trapType":"Trap type","trapClassic":"Classic (origin)","trapSphere":"Sphere","trapPlane":"XY plane","trapAxis":"Z axis","trapCube":"Cube","trapScale":"Scale","accumulate":"Progressive accumulation","qualityProfile":"Quality profile","qualityMax":"Max resolution","comfort":"Comfort","qualityMode":"Quality","undo":"← Undo","copyLink":"Copy link","fullscreen":"Fullscreen","exportPng":"Export PNG","randomTitle":"Random view","helpTitle":"Quick help","computing":"⟳ Computing...","pausedTour":"Tour paused — explore freely","prevStep":"Previous step","continue":"▶ Continue","pause":"⏸ Pause","nextStep":"Next step","stopTour":"Stop tour","exportModalTitle":"PNG export","exportModalDesc":"Tile-based rendering — works even at very high resolutions.","screenSize":"screen size","highResolution":"high resolution","largeFormat":"large format","posterSlow":"poster (slow)","helpNav":"Navigation","helpShortcuts":"Shortcuts","helpNav1":"move the view","helpNav2":"zoom toward the cursor","helpNav3":"box zoom","helpNav4":"zoom ×2 toward the point","helpShort1":"+ / − keyboard zoom","helpShort2":"←→↑↓ pan","helpShort3":"Home default view","helpShort4":"Tab panel · H help"},"palettes":["Fire","Ocean","Electric","Aurora","Monochrome","Ultra Fractal","Pastel","Neon","✦ Custom"],"traps":["Circle","Cross","Point","Square"],"groups":{"3D":"3D","Classiques":"Classics","Anguleuses":"Angular","Organiques":"Organic","Algébriques / attracteurs":"Algebraic / attractors","Géométriques":"Geometric","Spéciales":"Special","Créations":"Creations"},"groupDescriptions":{"3D":"Navigable volumes and structures in three dimensions.","Classiques":"The foundational sets for exploring fractal forms.","Anguleuses":"Abs(), bifurcations and sharp edges.","Organiques":"Orbit memory, filaments and living structures.","Algébriques / attracteurs":"Attractor basins and transcendental functions.","Géométriques":"Direct computation and repeating structures.","Spéciales":"CPU engines, trajectories and unique renderers.","Créations":"Original fractals selected for their visual and mathematical singularity."},"cpPresets":["🌊 Ocean","🔥 Plasma","🌿 Forest","✨ Galaxy"],"stylePresets":{"cinema":["Cinema","Deep contrast"],"glacier":["Glacier","Bright blues"],"velours":["Velvet","Soft pastel"],"noir":["B&W Relief","Sharp graphics"],"volcan":["Volcano","Hot and sculpted"],"cristal":["Crystal","Sharp and bright"]},"juliaPresets":[["Spiral","Dense classic"],["Rabbit","Organic shapes"],["Island","Fine archipelago"],["Dragon","Nervous structure"]],"profileTitles":{"legacy":"Legacy","safe":"Safe","balanced":"Balanced","ultra":"Ultra"},"runtime":{"legacy":["Legacy mode: WebGL is unavailable on this device. Exploration remains possible in simplified CPU mode.","Degraded rendering. For more depth and smoothness, open the page on a more powerful machine."],"safe":["Safe mode: lighter GPU rendering to reduce crashes and preserve stability.","Some effects and part of deep zoom are intentionally reduced. A more powerful machine can go further."],"balanced":["Balanced mode: compromise between smoothness, stability and depth.","The engine adapts quality automatically to keep navigation comfortable."],"ultra":["Ultra mode: high capabilities detected, full rendering enabled.","Perturbation, effects and maximum depth remain available."]},"effects":{"normal":"Normal map","distance":"Distance","orbitTrap":"Orbit trap","stripe":"Stripe","expShort":"Exp.","deepZoom":"Deep zoom","degree":"Degree","abSequence":"AB sequence","fixedC":"fixed c"},"saved":{"empty":"No favorites saved yet.","open":"Open"},"status":{"ready":"Ready"},"genericMap":{"WebGL context lost":"WebGL context lost","Automatic recovery in progress.":"Automatic recovery in progress.","WebGL restored":"WebGL restored","Restored":"Restored","The rendering engine has been reset.":"The rendering engine has been reset.","Recovery incomplete":"Recovery incomplete","Reload the page if rendering stays frozen.":"Reload the page if rendering stays frozen.","Perturbation indisponible":"Perturbation unavailable","Les textures flottantes ne sont pas disponibles sur cet appareil.":"Floating-point textures are not available on this device.","Mode confort":"Comfort mode","Le rendu a été légèrement allégé pour garder une navigation fluide.":"Rendering was slightly reduced to keep navigation smooth.","Random view":"Random view","Limite de zoom":"Zoom limit","History":"History","Previous view restored.":"Previous view restored.","Scene loaded":"Scene loaded","Export en cours":"Export in progress","Patiente pendant la génération de l’image.":"Please wait while the image is being generated.","Export impossible":"Export unavailable","WebGL en cours de restauration.":"WebGL is currently being restored.","Export adapté":"Export adjusted","Canvas 2D indisponible.":"2D canvas unavailable.","Export complete":"Export complete","Export failed":"Export failed","Try a lower scale.":"Try a lower scale.","Orbite indisponible. Navigue d’abord en mode perturbation.":"Orbit data unavailable. First navigate in perturbation mode.","Textures flottantes indisponibles pour l'export en perturbation.":"Floating-point textures are unavailable for perturbation export.","Lien copié":"Link copied","Vue complète dans le presse-papier.":"Full view copied to the clipboard.","Favori sauvé":"Favorite saved","Vue complète enregistrée.":"Full view saved.","Export":"Export","Favoris exportés.":"Favorites exported.","Erreur":"Error","Format de fichier invalide.":"Invalid file format.","Impossible de lire le fichier.":"Unable to read the file.","Style appliqué":"Style applied","Auto-équilibrage":"Auto-balance","Indisponible sur cette fractale.":"Unavailable for this fractal.","Cycles et décalage ajustés automatiquement.":"Cycles and shift adjusted automatically.","Export désactivé":"Export disabled","Le profil actuel privilégie la stabilité. Utilisez une machine plus puissante pour les exports lourds.":"The current profile prioritizes stability. Use a more powerful machine for heavy exports.","Open":"Open","Ready":"Ready"},"fractals":{"0":["Mandelbrot","The classic set with the deepest and most stable zoom path.","Classiques"],"1":["Julia","Fixed c constant: exponent 2 keeps the classic shape; adjust it to explore new forms.","Classiques"],"2":["Burning Ship","Variable-power burning ship with dense edges and excellent relief rendering.","Anguleuses"],"3":["Multicorn","Variable-power conjugate variant: the angular counterpart to Multibrot.","Anguleuses"],"4":["Newton","Configurable Newton basins for z^n−1.","Algébriques / attracteurs"],"5":["Magnet I","Bubbles and enclosed structures.","Algébriques / attracteurs"],"6":["Buffalo","Bicubic abs() variant with highly distinctive angular structures.","Anguleuses"],"7":["Phoenix","Orbit memory creates swirling structures.","Organiques"],"8":["Celtic","Angular motifs and geometric interlacing, now adjustable by power.","Anguleuses"],"9":["Cosine","Complex cosine waves and ripples.","Algébriques / attracteurs"],"10":["Multibrot","Free exponent d to vary the topology.","Classiques"],"13":["Lambda","Complex logistic map — highly sensitive to c.","Algébriques / attracteurs"],"18":["Sine","Feather-like plumes and complex ribbons.","Algébriques / attracteurs"],"21":["Nova","Newton shifted by c — very graphic.","Organiques"],"22":["Glynn","Fractional power with organic motifs.","Organiques"],"23":["Lyapunov","Stability map of the logistic equation with rich striped structures.","Spéciales"],"24":["Buddhabrot","Orbit-density rendering of escaping points, progressively refined.","Spéciales"],"29":["Bitwise AND","Sierpiński triangle via binary AND. No iteration — direct coloring.","Géométriques"],"30":["Bitwise XOR","Recursive fractal checkerboard via binary XOR.","Géométriques"],"31":["Mandelbox 2D","Box-fold plus spherical inversion with braided cubic repetitions.","Géométriques"],"32":["Burning Ship Julia","Burning Ship in Julia mode with variable power and strongly asymmetric shapes.","Anguleuses"],"34":["Collatz","Collatz conjecture in ℂ with very characteristic organic filaments.","Organiques"],"35":["Barnsley 2","Barnsley formula (1988) with very distinctive crystalline Julias.","Anguleuses"],"36":["Barnsley 3","Cubic Barnsley variant with unique geometric structures.","Anguleuses"],"37":["Manowar","z = z² + c + previous z — spiderweb-like cousin of Phoenix.","Organiques"],"38":["Spider","z = z² + c, c = c/2 + z — characteristic web-like spirals.","Organiques"],"46":["Barnsley Fern","Classic IFS — 4 affine transforms, rendered by point accumulation.","Spéciales"],"47":["Lorenz Attractor","Lorenz chaotic system — butterfly trajectory integrated with RK4.","Spéciales"],"45":["Apollonian Gasket","Infinitely nested tangent circles — direct distance estimation.","Géométriques"],"48":["Phi Spiral","Golden-ratio phase feedback — spirals that refuse to close.","Créations"],"52":["Sinh","Hyperbolic sine — asymmetric flames and non-periodic growth.","Créations"],"53":["Exponential","Fatou-Bieberbach family — infinite spiders, c exp(z)-1.","Créations"],"77":["Star Skin","Granular stellar membrane with rays, folds and pulses.","Créations"],"40":["Mandelbulb 3D","3D generalization of Mandelbrot.","3D"],"41":["Mandelbox 3D","Architectural 3D fractal.","3D"],"42":["Menger Sponge","Classic 3D IFS.","3D"],"43":["Sierpiński Tetrahedron","3D tetrahedron IFS.","3D"],"44":["Quaternion Julia 3D","Julia set in quaternion space.","3D"]},"tour":[]}};
+const I18N={"fr":{"code":"FR","ui":{"exploreInfinity":"Explorez l'infini mathématique","hardwareDetection":"Détection matérielle","tourTitle":"▶ Visite guidée de Mandelbrot","allFractals":"Toutes les fractales","tabs":{"home":"Explorateur","settings":"Réglages","saved":"Favoris"},"info":"Infos","zoom":"Zoom","real":"Réel","imag":"Imag","engine":"Moteur","iterations":"Itérations","effects":"Effets","fractal":"Fractale","galleryButton":"Toutes les fractales…","realConstant":"Constante réelle","imagConstant":"Constante imaginaire","phoenixMemory":"Mémoire Phoenix","multibrotExponent":"Exposant","newtonDegree":"Degré Newton","multibrotHint":"Modifiez cet exposant pour transformer la fractale. Indépendant des cycles de couleurs. Disponible pour Multibrot, Multicorn, Burning Ship, Burning Ship Julia et Celtic.","addToFavorites":"Ajouter aux favoris","resetView":"Réinitialiser la vue","navigation":"Navigation","nav1":"déplacer · Shift+glisser : zoom rectangulaire","nav2":"zoom · Dbl-clic : zoom ×2","nav3":"zoom · ←→↑↓ déplacer · Accueil : réinitialiser","nav4":"Tab panneau · H aide","home":"Accueil","random":"Aléatoire","depth":"Profondeur","palette":"Palette","shift":"Décalage","cycles":"Cycles de couleurs","customPaletteHint":"5 couleurs clés — glisse les curseurs pour ajuster les positions","stop2":"Pos. stop 2","stop3":"Pos. stop 3","stop4":"Pos. stop 4","autoBalance":"Auto-équilibrage","autoBalanceTitle":"Ajuste automatiquement cycles et décalage","stylePresets":"Styles prêts à l’emploi","quickBeauty":"Beauté rapide","quality":"Qualité","progressive":"Progressif (recommandé)","full":"Toujours au maximum","fast":"Interaction rapide","visualEffects":"Effets visuels","relief":"Relief (normal map)","height":"Hauteur","lightAngle":"Angle lumière","elevation":"Élévation","specular":"Spéculaire","halo":"Halo contours (DE)","thickness":"Épaisseur","orbitTraps":"Pièges d’orbite","intensity":"Intensité","radius":"Rayon","orbitStripes":"Stries d’orbite","frequency":"Fréquence","mix":"Mix","favorites":"Favoris","viewNamePlaceholder":"Nom de la vue…","export":"Exporter","import":"Importer","close":"Fermer","exportRunning":"Export en cours","exportRunningDesc":"Patiente pendant la génération.","exportImpossible":"Export impossible","exportWebGLDesc":"WebGL en cours de restauration.","exportCanvas2DDesc":"Canvas 2D indisponible.","orbitUnavailable":"Orbite indisponible.","favoriteLoaded":"Favori chargé","favoriteDeleted":"Favori supprimé","linkCopied":"Lien copié !","share":"Partage","shareCopy":"Partager non disponible ici. Copiez ce lien :","webglLost":"WebGL context perdu","webglLostDesc":"Récupération automatique en cours.","webglRecoveryFail":"Récupération incomplète","webglRecoveryFailDesc":"Rechargez la page si le rendu reste figé.","perturbUnavail":"Perturbation indisponible","perturbUnavailDesc":"Les textures flottantes ne sont pas disponibles sur cet appareil.","comfortMode":"Mode confort","comfortModeDesc":"Le rendu a été légèrement allégé pour garder une navigation fluide.","zoomLimit":"Limite de zoom","exportComplete":"Export terminé","exportAdapted":"Export adapté","exportAdaptedDesc":"Résolution réduite.","exportFailed":"Export échoué","exportFailedDesc":"Essayez une échelle inférieure.","exportNoWebGL":"Export impossible","exportNoWebGLDesc":"WebGL dédié indisponible.","exportFullscreenTip":"💡 Astuce : Passer en plein écran avant d’exporter améliore la résolution — l’image reflète la taille réelle du canvas.","exportWithCoords":"Ajouter un bandeau discret avec nom et coordonnées","recommendedProfile":"Profil recommandé","changeFractal":"Changer de fractale","history":"Historique","historyRestored":"Vue restaurée","nav3d":"Navigation 3D","restored":"Restauré","restoredDesc":"Vue restaurée depuis l’historique.","sceneLoaded":"Scène chargée","paletteNames":["Feu","Océan","Électrique","Aurora","Monochrome","Ultra Fractal","Pastel","Néon","✦ Personnalisée"],"exportNoFloat":"Export impossible","exportNoFloatDesc":"Textures flottantes indisponibles pour l'export en perturbation.","exportNo3D":"Export impossible","exportNo3DDesc":"Capture 3D indisponible sur ce navigateur.","exportOrbit":"Export impossible","exportOrbitDesc":"Orbite indisponible. Navigue d'abord en mode perturbation.","linkCopiedDesc":"Vue complète dans le presse-papier.","favoriteSaved":"Favori sauvé","favoriteSavedDesc":"Vue complète enregistrée.","exportMenuNone":"Export","exportMenuNoneDesc":"Aucun favori à exporter.","exportMenuDone":"Export","exportMenuDoneDesc":"Favoris exportés.","importError":"Erreur","importErrorDesc":"Format de fichier invalide.","importDone":"Import","importReadError":"Erreur","importReadErrorDesc":"Impossible de lire le fichier.","styleApplied":"Style appliqué","autoBalanceUnavail":"Auto-équilibrage","autoBalanceUnavailDesc":"Indisponible sur cette fractale.","autoBalanceDesc":"Cycles de couleurs et décalage ajustés automatiquement.","exportDisabled":"Export désactivé","exportDisabledDesc":"Le profil actuel privilégie la stabilité.","pointCentered":"Point centré","viewReset":"Vue réinitialisée","settingsApplied":"Paramètres appliqués","rotationRestarted":"Rotation relancée","orbitTrap":"Orbit Trap","trapType":"Type de piège","trapClassic":"Classique (origine)","trapSphere":"Sphère","trapPlane":"Plan XY","trapAxis":"Axe Z","trapCube":"Cube","trapScale":"Échelle","accumulate":"Accumulation progressive","qualityProfile":"Profil qualité","qualityMax":"Résolution max","comfort":"Confort","qualityMode":"Qualité","undo":"← Annuler","copyLink":"Partager","fullscreen":"Plein écran","exportPng":"Export PNG","randomTitle":"Vue aléatoire","helpTitle":"Aide rapide","computing":"⟳ Calcul en cours…","pausedTour":"Visite en pause — explorez librement","prevStep":"Étape précédente","continue":"▶ Continuer","pause":"⏸ Pause","nextStep":"Étape suivante","stopTour":"Arrêter la visite","exportModalTitle":"Export PNG","exportModalDesc":"Rendu par tuiles — fonctionne même aux très grandes résolutions.","screenSize":"taille écran","highResolution":"haute résolution","largeFormat":"grand format","posterSlow":"poster (lent)","helpNav":"Navigation","helpShortcuts":"Raccourcis","helpNav1":"déplacer la vue","helpNav2":"zoom vers le curseur","helpNav3":"zoom par rectangle","helpNav4":"zoom ×2 vers le point","helpShort1":"+ / − zoom clavier","helpShort2":"←→↑↓ pan","helpShort3":"Accueil : vue par défaut","helpShort4":"Tab panneau · H aide"},"palettes":["Feu","Océan","Électrique","Aurore","Monochrome","Ultra Fractal","Pastel","Néon","✦ Personnalisée"],"traps":["Cercle","Croix","Point","Carré"],"groups":{"3D":"3D","Classiques":"Classiques","Anguleuses":"Anguleuses","Organiques":"Organiques","Algébriques / attracteurs":"Algébriques / attracteurs","Géométriques":"Géométriques","Spéciales":"Spéciales","Créations":"Créations"},"groupDescriptions":{"3D":"Volumes et structures navigables en trois dimensions.","Classiques":"Les ensembles fondamentaux pour explorer les formes fractales.","Anguleuses":"Abs(), bifurcations et arêtes nettes.","Organiques":"Orbites avec mémoire, filaments et structures vivantes.","Algébriques / attracteurs":"Bassins d’attraction et fonctions transcendantes.","Géométriques":"Calcul direct et structures répétitives.","Spéciales":"Moteurs CPU, trajectoires et rendus uniques.","Créations":"Fractales originales sélectionnées pour leur singularité visuelle et mathématique."},"cpPresets":["🌊 Océan","🔥 Plasma","🌿 Forêt","✨ Galaxie"],"stylePresets":{"cinema":["Cinéma","Contraste profond"],"glacier":["Glacier","Bleus lumineux"],"velours":["Velours","Pastel doux"],"noir":["N&B Relief","Graphique net"],"volcan":["Volcan","Chaud et sculpté"],"cristal":["Cristal","Net et lumineux"]},"juliaPresets":[["Spirale","Classique dense"],["Lapin","Formes organiques"],["Île","Archipel fin"],["Dragon","Structure nerveuse"]],"profileTitles":{"legacy":"Legacy","safe":"Safe","balanced":"Balanced","ultra":"Ultra"},"runtime":{"legacy":["Mode legacy : WebGL indisponible sur cet appareil. Exploration possible en mode CPU simplifié.","Rendu dégradé. Pour davantage de profondeur et de fluidité, ouvrir la page sur une machine plus puissante."],"safe":["Mode safe : rendu GPU allégé pour limiter les plantages et préserver la stabilité.","Certains effets et une partie du deep zoom sont volontairement réduits. Une machine plus puissante pourra aller plus loin."],"balanced":["Mode balanced : compromis entre fluidité, stabilité et profondeur.","Le moteur adapte automatiquement la qualité pour garder une navigation confortable."],"ultra":["Mode ultra : capacités élevées détectées, rendu complet activé.","Perturbation, effets et profondeur maximale restent disponibles."]},"effects":{"normal":"Relief","distance":"Distance","orbitTrap":"Piège d’orbite","stripe":"Stries","expShort":"Exp.","deepZoom":"Zoom profond","degree":"Degré","abSequence":"Séquence AB","fixedC":"c fixe"},"saved":{"empty":"Aucun favori enregistré.","open":"Ouvrir"},"status":{"ready":"Prêt"},"genericMap":{"WebGL context lost":"Contexte WebGL perdu","Automatic recovery in progress.":"Récupération automatique en cours.","WebGL restored":"WebGL restauré","Restored":"Restauré","The rendering engine has been reset.":"Le moteur de rendu a été réinitialisé.","Recovery incomplete":"Récupération incomplète","Reload the page if rendering stays frozen.":"Recharge la page si le rendu reste figé.","Perturbation indisponible":"Perturbation indisponible","Les textures flottantes ne sont pas disponibles sur cet appareil.":"Les textures flottantes ne sont pas disponibles sur cet appareil.","Mode confort":"Mode confort","Le rendu a été légèrement allégé pour garder une navigation fluide.":"Le rendu a été légèrement allégé pour garder une navigation fluide.","Random view":"Vue aléatoire","Limite de zoom":"Limite de zoom","History":"Historique","Previous view restored.":"Vue précédente restaurée.","Scene loaded":"Scène chargée","Export en cours":"Export en cours","Patiente pendant la génération de l’image.":"Patiente pendant la génération de l’image.","Export impossible":"Export impossible","WebGL en cours de restauration.":"WebGL en cours de restauration.","Export adapté":"Export adapté","Canvas 2D indisponible.":"Canvas 2D indisponible.","Export complete":"Export terminé","Export failed":"Échec de l’export","Try a lower scale.":"Essaie une échelle plus faible.","Orbite indisponible. Navigue d’abord en mode perturbation.":"Orbite indisponible. Navigue d’abord en mode perturbation.","Textures flottantes indisponibles pour l'export en perturbation.":"Textures flottantes indisponibles pour l’export en perturbation.","Lien copié":"Lien copié","Vue complète dans le presse-papier.":"Vue complète dans le presse-papier.","Favori sauvé":"Favori sauvé","Vue complète enregistrée.":"Vue complète enregistrée.","Export":"Export","Favoris exportés.":"Favoris exportés.","Erreur":"Erreur","Format de fichier invalide.":"Format de fichier invalide.","Impossible de lire le fichier.":"Impossible de lire le fichier.","Style appliqué":"Style appliqué","Auto-équilibrage":"Auto-équilibrage","Indisponible sur cette fractale.":"Indisponible sur cette fractale.","Cycles et décalage ajustés automatiquement.":"Cycles et décalage ajustés automatiquement.","Export désactivé":"Export désactivé","Le profil actuel privilégie la stabilité. Utilisez une machine plus puissante pour les exports lourds.":"Le profil actuel privilégie la stabilité. Utilisez une machine plus puissante pour les exports lourds.","Open":"Ouvrir","Ready":"Prêt"},"fractals":{"0":["Mandelbrot","L’ensemble classique avec le chemin de zoom le plus profond et le plus stable.","Classiques"],"1":["Julia","Constante c fixée : exposant 2 pour la forme classique, ajustable pour explorer d’autres formes.","Classiques"],"2":["Burning Ship","Navire brûlant à puissance variable — bords très denses, excellent rendu de relief.","Anguleuses"],"3":["Multicorn","Version conjuguée du Mandelbrot, à symétrie inversée.","Anguleuses"],"4":["Newton","Bassins de Newton paramétrables pour z^n−1.","Algébriques / attracteurs"],"5":["Magnet I","Bulles et structures fermées.","Algébriques / attracteurs"],"6":["Buffalo","Variante abs() bicubique — structures angulaires très distinctes.","Anguleuses"],"7":["Phoenix","Mémoire d’orbite — structures tourbillonnantes.","Organiques"],"8":["Celtic","Motifs anguleux et entrelacs géométriques, modulables par puissance.","Anguleuses"],"9":["Cosinus","Ondulations de cosinus complexe.","Algébriques / attracteurs"],"10":["Multibrot","Exposant libre d pour faire varier la topologie.","Classiques"],"11":["Perpendicular Mandelbrot","abs() variant — crystalline feathers and spirals in deep zoom.","Anguleuses"],"12":["Feather","Feather-shaped filaments — keep iterations below 3000 to avoid GPU overload.","Anguleuses"],"13":["Lambda","Logistique complexe — très sensible à c.","Algébriques / attracteurs"],"18":["Sinus","Plumes et rubans complexes.","Algébriques / attracteurs"],"21":["Nova","Newton décalé par c — très graphique.","Organiques"],"22":["Glynn","Puissance fractionnaire — motifs organiques.","Organiques"],"23":["Lyapunov","Carte de stabilité de l’équation logistique, riche en bandes et structures fines.","Spéciales"],"24":["Buddhabrot","Rendu par densité d’orbites des points qui s’échappent, affiné progressivement.","Spéciales"],"29":["Bitwise AND","Triangle de Sierpiński via AND binaire. Pas d’itération — coloration directe.","Géométriques"],"30":["Bitwise XOR","Damier fractal récursif via XOR binaire. Motifs géométriques infinis.","Géométriques"],"31":["Mandelbox 2D","Box-fold + inversion sphérique — structures répétitives cubiques tressées.","Géométriques"],"32":["Burning Ship Julia","Mode Julia de Burning Ship avec puissance variable — formes asymétriques très marquées.","Anguleuses"],"34":["Collatz","Conjecture de Collatz dans ℂ — filaments organiques très caractéristiques.","Organiques"],"35":["Barnsley 2","Formule de Barnsley (1988) — Julia cristallines très distinctes.","Anguleuses"],"36":["Barnsley 3","Variante cubique de Barnsley — structures géométriques uniques.","Anguleuses"],"37":["Manowar","z = z² + c + z_préc — toile d’araignée fractale, cousin de Phoenix.","Organiques"],"38":["Spider","z = z² + c, c = c/2 + z — spirales en toile caractéristiques.","Organiques"],"46":["Fougère de Barnsley","IFS classique — 4 transformations affines, rendu par accumulation de points.","Spéciales"],"47":["Attracteur de Lorenz","Système chaotique de Lorenz — trajectoire en papillon intégrée par RK4.","Spéciales"],"45":["Apollonian Gasket","Cercles tangents imbriqués à l'infini — distance estimation directe.","Géométriques"],"40":["Mandelbulb 3D","Généralisation 3D de Mandelbrot.","3D"],"41":["Mandelbox 3D","Fractale architecturale 3D.","3D"],"42":["Éponge de Menger","IFS 3D classique.","3D"],"43":["Tétraèdre de Sierpiński","IFS tétraèdre 3D.","3D"],"44":["Julia quaternion 3D","Julia en espace quaternion.","3D"]},"tour":[]},"en":{"code":"EN","ui":{"exploreInfinity":"Explore the mathematical infinite","hardwareDetection":"Hardware detection","tourTitle":"▶ Mandelbrot guided tour","allFractals":"All fractals","tabs":{"home":"Explorer","settings":"Settings","saved":"Favorites"},"info":"Info","zoom":"Zoom","real":"Real","imag":"Imag","engine":"Engine","iterations":"Iterations","effects":"Effects","fractal":"Fractal","galleryButton":"All fractals…","realConstant":"Real constant","imagConstant":"Imaginary constant","phoenixMemory":"Phoenix memory","multibrotExponent":"Exponent","newtonDegree":"Newton degree","multibrotHint":"Change this exponent to transform the fractal. Independent from color cycles. Available for Multibrot, Multicorn, Burning Ship, Burning Ship Julia and Celtic.","addToFavorites":"Add to favorites","resetView":"Reset view","navigation":"Navigation","nav1":"move · Shift+drag: box zoom","nav2":"zoom · Double-click: ×2 zoom","nav3":"zoom · ←→↑↓ pan · Home: reset","nav4":"Tab panel · H help","home":"Home","random":"Random","depth":"Depth","palette":"Palette","shift":"Shift","cycles":"Color cycles","customPaletteHint":"5 key colors — drag the sliders to adjust stop positions","stop2":"Stop 2 pos.","stop3":"Stop 3 pos.","stop4":"Stop 4 pos.","autoBalance":"Auto-balance","autoBalanceTitle":"Automatically adjusts cycles and shift","stylePresets":"Style presets","quickBeauty":"Quick polish","quality":"Quality","progressive":"Progressive (recommended)","full":"Always maximum","fast":"Fast interaction","visualEffects":"Visual effects","relief":"Relief (normal map)","height":"Height","lightAngle":"Light angle","elevation":"Elevation","specular":"Specular","halo":"Contour halo (DE)","thickness":"Thickness","orbitTraps":"Orbit traps","intensity":"Intensity","radius":"Radius","orbitStripes":"Orbit stripes","frequency":"Frequency","mix":"Mix","favorites":"Favorites","viewNamePlaceholder":"View name…","export":"Export","import":"Import","close":"Close","exportRunning":"Export running","exportRunningDesc":"Please wait.","exportImpossible":"Export failed","exportWebGLDesc":"WebGL is being restored.","exportCanvas2DDesc":"2D canvas unavailable.","orbitUnavailable":"Orbit unavailable.","favoriteLoaded":"Favorite loaded","favoriteDeleted":"Favorite deleted","linkCopied":"Link copied!","share":"Share","shareCopy":"Sharing is not available here. Copy this link:","webglLost":"WebGL context lost","webglLostDesc":"Automatic recovery in progress.","webglRecoveryFail":"Recovery incomplete","webglRecoveryFailDesc":"Reload the page if rendering stays frozen.","perturbUnavail":"Perturbation unavailable","perturbUnavailDesc":"Floating-point textures are not available on this device.","comfortMode":"Comfort mode","comfortModeDesc":"Rendering has been lightened to keep navigation smooth.","zoomLimit":"Zoom limit","exportComplete":"Export complete","exportAdapted":"Export adapted","exportAdaptedDesc":"Resolution reduced.","exportFailed":"Export failed","exportFailedDesc":"Try a lower scale.","exportNoWebGL":"Export failed","exportNoWebGLDesc":"Dedicated WebGL unavailable.","exportFullscreenTip":"💡 Tip: Going fullscreen before exporting improves resolution — the image reflects the real canvas size.","exportWithCoords":"Add a discreet strip with name and coordinates","recommendedProfile":"Recommended profile","changeFractal":"Change fractal","history":"History","historyRestored":"View restored","nav3d":"3D Navigation","restored":"Restored","restoredDesc":"View restored from history.","sceneLoaded":"Scene loaded","paletteNames":["Fire","Ocean","Electric","Aurora","Monochrome","Ultra Fractal","Pastel","Neon","✦ Custom"],"exportNoFloat":"Export failed","exportNoFloatDesc":"Floating textures unavailable for perturbation export.","exportNo3D":"Export failed","exportNo3DDesc":"3D capture unavailable in this browser.","exportOrbit":"Export failed","exportOrbitDesc":"Orbit unavailable. Navigate in perturbation mode first.","linkCopiedDesc":"Full view copied to clipboard.","favoriteSaved":"Favorite saved","favoriteSavedDesc":"Full view saved.","exportMenuNone":"Export","exportMenuNoneDesc":"No favorites to export.","exportMenuDone":"Export","exportMenuDoneDesc":"Favorites exported.","importError":"Error","importErrorDesc":"Invalid file format.","importDone":"Import","importReadError":"Error","importReadErrorDesc":"Cannot read file.","styleApplied":"Style applied","autoBalanceUnavail":"Auto-balance","autoBalanceUnavailDesc":"Unavailable for this fractal.","autoBalanceDesc":"Color cycles and shift adjusted automatically.","exportDisabled":"Export disabled","exportDisabledDesc":"Current profile prioritizes stability.","pointCentered":"Point centered","viewReset":"View reset","settingsApplied":"Settings applied","rotationRestarted":"Rotation restarted","orbitTrap":"Orbit Trap","trapType":"Trap type","trapClassic":"Classic (origin)","trapSphere":"Sphere","trapPlane":"XY plane","trapAxis":"Z axis","trapCube":"Cube","trapScale":"Scale","accumulate":"Progressive accumulation","qualityProfile":"Quality profile","qualityMax":"Max resolution","comfort":"Comfort","qualityMode":"Quality","undo":"← Undo","copyLink":"Share","fullscreen":"Fullscreen","exportPng":"Export PNG","randomTitle":"Random view","helpTitle":"Quick help","computing":"⟳ Computing...","pausedTour":"Tour paused — explore freely","prevStep":"Previous step","continue":"▶ Continue","pause":"⏸ Pause","nextStep":"Next step","stopTour":"Stop tour","exportModalTitle":"PNG export","exportModalDesc":"Tile-based rendering — works even at very high resolutions.","screenSize":"screen size","highResolution":"high resolution","largeFormat":"large format","posterSlow":"poster (slow)","helpNav":"Navigation","helpShortcuts":"Shortcuts","helpNav1":"move the view","helpNav2":"zoom toward the cursor","helpNav3":"box zoom","helpNav4":"zoom ×2 toward the point","helpShort1":"+ / − keyboard zoom","helpShort2":"←→↑↓ pan","helpShort3":"Home default view","helpShort4":"Tab panel · H help"},"palettes":["Fire","Ocean","Electric","Aurora","Monochrome","Ultra Fractal","Pastel","Neon","✦ Custom"],"traps":["Circle","Cross","Point","Square"],"groups":{"3D":"3D","Classiques":"Classics","Anguleuses":"Angular","Organiques":"Organic","Algébriques / attracteurs":"Algebraic / attractors","Géométriques":"Geometric","Spéciales":"Special","Créations":"Creations"},"groupDescriptions":{"3D":"Navigable volumes and structures in three dimensions.","Classiques":"The foundational sets for exploring fractal forms.","Anguleuses":"Abs(), bifurcations and sharp edges.","Organiques":"Orbit memory, filaments and living structures.","Algébriques / attracteurs":"Attractor basins and transcendental functions.","Géométriques":"Direct computation and repeating structures.","Spéciales":"CPU engines, trajectories and unique renderers.","Créations":"Original fractals selected for their visual and mathematical singularity."},"cpPresets":["🌊 Ocean","🔥 Plasma","🌿 Forest","✨ Galaxy"],"stylePresets":{"cinema":["Cinema","Deep contrast"],"glacier":["Glacier","Bright blues"],"velours":["Velvet","Soft pastel"],"noir":["B&W Relief","Sharp graphics"],"volcan":["Volcano","Hot and sculpted"],"cristal":["Crystal","Sharp and bright"]},"juliaPresets":[["Spiral","Dense classic"],["Rabbit","Organic shapes"],["Island","Fine archipelago"],["Dragon","Nervous structure"]],"profileTitles":{"legacy":"Legacy","safe":"Safe","balanced":"Balanced","ultra":"Ultra"},"runtime":{"legacy":["Legacy mode: WebGL is unavailable on this device. Exploration remains possible in simplified CPU mode.","Degraded rendering. For more depth and smoothness, open the page on a more powerful machine."],"safe":["Safe mode: lighter GPU rendering to reduce crashes and preserve stability.","Some effects and part of deep zoom are intentionally reduced. A more powerful machine can go further."],"balanced":["Balanced mode: compromise between smoothness, stability and depth.","The engine adapts quality automatically to keep navigation comfortable."],"ultra":["Ultra mode: high capabilities detected, full rendering enabled.","Perturbation, effects and maximum depth remain available."]},"effects":{"normal":"Normal map","distance":"Distance","orbitTrap":"Orbit trap","stripe":"Stripe","expShort":"Exp.","deepZoom":"Deep zoom","degree":"Degree","abSequence":"AB sequence","fixedC":"fixed c"},"saved":{"empty":"No favorites saved yet.","open":"Open"},"status":{"ready":"Ready"},"genericMap":{"WebGL context lost":"WebGL context lost","Automatic recovery in progress.":"Automatic recovery in progress.","WebGL restored":"WebGL restored","Restored":"Restored","The rendering engine has been reset.":"The rendering engine has been reset.","Recovery incomplete":"Recovery incomplete","Reload the page if rendering stays frozen.":"Reload the page if rendering stays frozen.","Perturbation indisponible":"Perturbation unavailable","Les textures flottantes ne sont pas disponibles sur cet appareil.":"Floating-point textures are not available on this device.","Mode confort":"Comfort mode","Le rendu a été légèrement allégé pour garder une navigation fluide.":"Rendering was slightly reduced to keep navigation smooth.","Random view":"Random view","Limite de zoom":"Zoom limit","History":"History","Previous view restored.":"Previous view restored.","Scene loaded":"Scene loaded","Export en cours":"Export in progress","Patiente pendant la génération de l’image.":"Please wait while the image is being generated.","Export impossible":"Export unavailable","WebGL en cours de restauration.":"WebGL is currently being restored.","Export adapté":"Export adjusted","Canvas 2D indisponible.":"2D canvas unavailable.","Export complete":"Export complete","Export failed":"Export failed","Try a lower scale.":"Try a lower scale.","Orbite indisponible. Navigue d’abord en mode perturbation.":"Orbit data unavailable. First navigate in perturbation mode.","Textures flottantes indisponibles pour l'export en perturbation.":"Floating-point textures are unavailable for perturbation export.","Lien copié":"Link copied","Vue complète dans le presse-papier.":"Full view copied to the clipboard.","Favori sauvé":"Favorite saved","Vue complète enregistrée.":"Full view saved.","Export":"Export","Favoris exportés.":"Favorites exported.","Erreur":"Error","Format de fichier invalide.":"Invalid file format.","Impossible de lire le fichier.":"Unable to read the file.","Style appliqué":"Style applied","Auto-équilibrage":"Auto-balance","Indisponible sur cette fractale.":"Unavailable for this fractal.","Cycles et décalage ajustés automatiquement.":"Cycles and shift adjusted automatically.","Export désactivé":"Export disabled","Le profil actuel privilégie la stabilité. Utilisez une machine plus puissante pour les exports lourds.":"The current profile prioritizes stability. Use a more powerful machine for heavy exports.","Open":"Open","Ready":"Ready"},"fractals":{"0":["Mandelbrot","The classic set with the deepest and most stable zoom path.","Classiques"],"1":["Julia","Fixed c constant: exponent 2 keeps the classic shape; adjust it to explore new forms.","Classiques"],"2":["Burning Ship","Variable-power burning ship with dense edges and excellent relief rendering.","Anguleuses"],"3":["Multicorn","Variable-power conjugate variant: the angular counterpart to Multibrot.","Anguleuses"],"4":["Newton","Configurable Newton basins for z^n−1.","Algébriques / attracteurs"],"5":["Magnet I","Bubbles and enclosed structures.","Algébriques / attracteurs"],"6":["Buffalo","Bicubic abs() variant with highly distinctive angular structures.","Anguleuses"],"7":["Phoenix","Orbit memory creates swirling structures.","Organiques"],"8":["Celtic","Angular motifs and geometric interlacing, now adjustable by power.","Anguleuses"],"9":["Cosine","Complex cosine waves and ripples.","Algébriques / attracteurs"],"10":["Multibrot","Free exponent d to vary the topology.","Classiques"],"13":["Lambda","Complex logistic map — highly sensitive to c.","Algébriques / attracteurs"],"18":["Sine","Feather-like plumes and complex ribbons.","Algébriques / attracteurs"],"21":["Nova","Newton shifted by c — very graphic.","Organiques"],"22":["Glynn","Fractional power with organic motifs.","Organiques"],"23":["Lyapunov","Stability map of the logistic equation with rich striped structures.","Spéciales"],"24":["Buddhabrot","Orbit-density rendering of escaping points, progressively refined.","Spéciales"],"29":["Bitwise AND","Sierpiński triangle via binary AND. No iteration — direct coloring.","Géométriques"],"30":["Bitwise XOR","Recursive fractal checkerboard via binary XOR.","Géométriques"],"31":["Mandelbox 2D","Box-fold plus spherical inversion with braided cubic repetitions.","Géométriques"],"32":["Burning Ship Julia","Burning Ship in Julia mode with variable power and strongly asymmetric shapes.","Anguleuses"],"34":["Collatz","Collatz conjecture in ℂ with very characteristic organic filaments.","Organiques"],"35":["Barnsley 2","Barnsley formula (1988) with very distinctive crystalline Julias.","Anguleuses"],"36":["Barnsley 3","Cubic Barnsley variant with unique geometric structures.","Anguleuses"],"37":["Manowar","z = z² + c + previous z — spiderweb-like cousin of Phoenix.","Organiques"],"38":["Spider","z = z² + c, c = c/2 + z — characteristic web-like spirals.","Organiques"],"46":["Barnsley Fern","Classic IFS — 4 affine transforms, rendered by point accumulation.","Spéciales"],"47":["Lorenz Attractor","Lorenz chaotic system — butterfly trajectory integrated with RK4.","Spéciales"],"45":["Apollonian Gasket","Infinitely nested tangent circles — direct distance estimation.","Géométriques"],"48":["Phi Spiral","Golden-ratio phase feedback — spirals that refuse to close.","Créations"],"52":["Sinh","Hyperbolic sine — asymmetric flames and non-periodic growth.","Créations"],"53":["Exponential","Fatou-Bieberbach family — infinite spiders, c exp(z)-1.","Créations"],"77":["Star Skin","Granular stellar membrane with rays, folds and pulses.","Créations"],"40":["Mandelbulb 3D","3D generalization of Mandelbrot.","3D"],"41":["Mandelbox 3D","Architectural 3D fractal.","3D"],"42":["Menger Sponge","Classic 3D IFS.","3D"],"43":["Sierpiński Tetrahedron","3D tetrahedron IFS.","3D"],"44":["Quaternion Julia 3D","Julia set in quaternion space.","3D"]},"tour":[]}};
 let currentLocale='fr';
 const FRACTAL_BASE=JSON.parse(JSON.stringify(FRACTALS));
 const PALETTES_BASE=[...PALETTES];
@@ -5595,12 +5745,277 @@ $('qualityMode').options[0].textContent=ui.progressive; $('qualityMode').options
     : ['Drag','Wheel','Shift+drag','Double-click','+ / −','←→↑↓','Home','Tab'];
   const helpTexts=[ui.helpNav1,ui.helpNav2,ui.helpNav3,ui.helpNav4,ui.helpShort1,ui.helpShort2,ui.helpShort3,ui.helpShort4];
   helpLists.forEach((el,idx)=>{ if(el) el.innerHTML=`<span class="kbd">${helpPrefixes[idx]}</span> ${helpTexts[idx]}`; });
-  $('closeHelpBtn').textContent=ui.close; $('galleryModal').querySelector('h2').textContent=ui.allFractals; $('closeGalleryBtn').textContent=ui.close;
+  $('closeHelpBtn').textContent=ui.close; if($('replayGuideTourBtn')) $('replayGuideTourBtn').textContent=guideTourLang().replay; $('galleryModal').querySelector('h2').textContent=ui.allFractals; $('closeGalleryBtn').textContent=ui.close;
   const jp=document.querySelectorAll('#juliaPresetGrid .preset'); jp.forEach((el,idx)=>{const pair=I18N[currentLocale].juliaPresets[idx]; if(pair){el.querySelector('b').textContent=pair[0]; el.querySelector('span').textContent=pair[1];}});
   $('buddhaProgress').querySelector('.bp-label').textContent=fractMeta(24).name;
   updateDynamicFractalCopy();
   const fixedChip=$('#activeEffects .chip.compact'); if(fixedChip && fixedChip.textContent.trim().toLowerCase().includes('c')) fixedChip.textContent=t('effects.fixedC');
   applyDeclarativeI18n();
+}
+
+
+// ── Visite guidée de l'interface ─────────────────────────────────
+const GUIDE_TOUR_KEY='fractal-interface-tour-seen-v1';
+const GUIDE_TOUR_I18N={
+  fr:{
+    replay:'Revoir la visite guidée',
+    skip:'Passer', prev:'Précédent', next:'Suivant', finish:'Terminer', close:'Fermer',
+    stepLabel:(i,n)=>`Étape ${i}/${n}`,
+    steps:[
+      {title:'Cible rouge et zoom', text:'Cliquez sur la fractale pour placer la cible rouge, puis utilisez + ou − pour zoomer autour d’elle.'},
+      {title:'Favoris', text:'Gardez une belle vue avec “+ Favoris”. Dans le volet gauche, Importer / Exporter permet de sauvegarder vos favoris ou de les partager.'},
+      {title:'Exporter une image', text:'Utilisez Export PNG pour enregistrer la vue actuelle en image, avec plusieurs tailles possibles.'},
+      {title:'Plein écran', text:'Le plein écran rend l’exploration plus immersive, surtout sur les vues très détaillées.'}
+    ]
+  },
+  en:{
+    replay:'Replay guided tour',
+    skip:'Skip', prev:'Previous', next:'Next', finish:'Finish', close:'Close',
+    stepLabel:(i,n)=>`Step ${i}/${n}`,
+    steps:[
+      {title:'Red target and zoom', text:'Click the fractal to place the red target, then use + or − to zoom around it.'},
+      {title:'Favorites', text:'Save a beautiful view with “+ Favorites”. In the left panel, Import / Export lets you back up your favorites or share them.'},
+      {title:'Export an image', text:'Use Export PNG to save the current view as an image, with several size options.'},
+      {title:'Fullscreen', text:'Fullscreen makes exploration more immersive, especially on highly detailed views.'}
+    ]
+  }
+};
+const GUIDE_TOUR_STEPS=[
+  {targets:['#zoomInBtn','#zoomTarget','#zoomOutBtn'], prefer:'left', dot:'#zoomTarget', links:true},
+  {targets:['#topSaveFavBtn','#desktopExportFavsBtn','#desktopImportFavsBtn'], anchorTargets:['#topSaveFavBtn'], prefer:'bottom', links:true, emphasis:['#desktopExportFavsBtn','#desktopImportFavsBtn']},
+  {targets:['#exportBtn'], prefer:'bottom'},
+  {targets:['#fullscreenBtn'], prefer:'bottom'}
+];
+let guideTourActive=false;
+let guideTourStep=0;
+let guideTourResizeBound=false;
+let guideTourAutoTimer=null;
+function guideTourLang(){return GUIDE_TOUR_I18N[currentLocale]||GUIDE_TOUR_I18N.en||GUIDE_TOUR_I18N.fr;}
+function guidedTourSeen(){return storageGet(GUIDE_TOUR_KEY,'')==='1';}
+function setGuidedTourSeen(){storageSet(GUIDE_TOUR_KEY,'1');}
+function guidedTourSyncText(){
+  const g=guideTourLang();
+  const replay=$('replayGuideTourBtn'); if(replay) replay.textContent=g.replay;
+  const close=$('guideTourClose'); if(close) close.setAttribute('aria-label',g.close);
+  const skip=$('guideTourSkip'); if(skip) skip.textContent=g.skip;
+  const prev=$('guideTourPrev'); if(prev) prev.textContent=g.prev;
+  guideTourRender();
+}
+function guideTourElements(){
+  return {
+    root:$('guideTour'),svg:$('guideTourSvg'),arrows:$('guideTourArrows'),highlights:$('guideTourHighlights'),bubble:$('guideTourBubble'),
+    title:$('guideTourTitle'),text:$('guideTourText'),count:$('guideTourStepCount'),prev:$('guideTourPrev'),next:$('guideTourNext')
+  };
+}
+function guideTourRects(step){
+  const pad=8;
+  const rects=[];
+  (step.targets||[]).forEach(sel=>{
+    const el=document.querySelector(sel);
+    if(!el) return;
+    const r=el.getBoundingClientRect();
+    if(!r.width||!r.height) return;
+    rects.push({sel,left:Math.max(4,r.left-pad),top:Math.max(4,r.top-pad),right:Math.min(innerWidth-4,r.right+pad),bottom:Math.min(innerHeight-4,r.bottom+pad),width:r.width+pad*2,height:r.height+pad*2});
+  });
+  return rects.map(r=>({...r,width:r.right-r.left,height:r.bottom-r.top}));
+}
+function guideTourUnion(rects){
+  const left=Math.min(...rects.map(r=>r.left)),top=Math.min(...rects.map(r=>r.top)),right=Math.max(...rects.map(r=>r.right)),bottom=Math.max(...rects.map(r=>r.bottom));
+  return {left,top,right,bottom,width:right-left,height:bottom-top};
+}
+function guideTourClearLiveSpotlights(){
+  document.querySelectorAll('.guide-spotlit-fav-io').forEach(el=>el.classList.remove('guide-spotlit-fav-io'));
+}
+function guideTourAnchorRect(step,rects){
+  if(step&&step.anchorTargets&&step.anchorTargets.length){
+    const anchorRects=guideTourRects({targets:step.anchorTargets});
+    if(anchorRects.length) return guideTourUnion(anchorRects);
+  }
+  return guideTourUnion(rects);
+}
+function guideTourPlaceBubble(bubble,anchor,prefer){
+  const margin=14;
+  bubble.style.visibility='hidden';
+  bubble.style.left='0px';bubble.style.top='0px';
+  const br=bubble.getBoundingClientRect();
+  const bw=br.width||360,bh=br.height||220;
+  const candidates=[];
+  const push=(name,left,top)=>candidates.push({name,left,top,score:0});
+  push('right',anchor.right+margin,anchor.top+(anchor.height-bh)/2);
+  push('left',anchor.left-bw-margin,anchor.top+(anchor.height-bh)/2);
+  push('bottom',anchor.left+(anchor.width-bw)/2,anchor.bottom+margin);
+  push('top',anchor.left+(anchor.width-bw)/2,anchor.top-bh-margin);
+  candidates.forEach(c=>{
+    if(c.name===prefer)c.score+=100;
+    if(c.left>=margin&&c.top>=margin&&c.left+bw<=innerWidth-margin&&c.top+bh<=innerHeight-margin)c.score+=50;
+    c.left=Math.max(margin,Math.min(innerWidth-bw-margin,c.left));
+    c.top=Math.max(margin,Math.min(innerHeight-bh-margin,c.top));
+    const cx=c.left+bw/2,cy=c.top+bh/2,ax=anchor.left+anchor.width/2,ay=anchor.top+anchor.height/2;
+    c.score-=Math.hypot(cx-ax,cy-ay)/1000;
+  });
+  candidates.sort((a,b)=>b.score-a.score);
+  const best=candidates[0];
+  bubble.style.left=Math.round(best.left)+'px';
+  bubble.style.top=Math.round(best.top)+'px';
+  bubble.style.visibility='visible';
+}
+function guideTourTargetEdgePoint(targetRect,bubbleRect){
+  const tcx=targetRect.left+targetRect.width/2,tcy=targetRect.top+targetRect.height/2;
+  const bcx=bubbleRect.left+bubbleRect.width/2,bcy=bubbleRect.top+bubbleRect.height/2;
+  const dx=tcx-bcx,dy=tcy-bcy,pad=10;
+  if(Math.abs(dx)>=Math.abs(dy)){
+    return dx>=0
+      ? {x:targetRect.left-pad,y:Math.max(targetRect.top+12,Math.min(targetRect.bottom-12,tcy))}
+      : {x:targetRect.right+pad,y:Math.max(targetRect.top+12,Math.min(targetRect.bottom-12,tcy))};
+  }
+  return dy>=0
+    ? {x:Math.max(targetRect.left+12,Math.min(targetRect.right-12,tcx)),y:targetRect.top-pad}
+    : {x:Math.max(targetRect.left+12,Math.min(targetRect.right-12,tcx)),y:targetRect.bottom+pad};
+}
+function guideTourBubbleEdgePoint(bubbleRect,targetRect){
+  const tcx=targetRect.left+targetRect.width/2,tcy=targetRect.top+targetRect.height/2;
+  const bcx=bubbleRect.left+bubbleRect.width/2,bcy=bubbleRect.top+bubbleRect.height/2;
+  const dx=tcx-bcx,dy=tcy-bcy,pad=6;
+  if(Math.abs(dx)>=Math.abs(dy)){
+    return dx>=0
+      ? {x:bubbleRect.right-pad,y:Math.max(bubbleRect.top+22,Math.min(bubbleRect.bottom-22,tcy))}
+      : {x:bubbleRect.left+pad,y:Math.max(bubbleRect.top+22,Math.min(bubbleRect.bottom-22,tcy))};
+  }
+  return dy>=0
+    ? {x:Math.max(bubbleRect.left+22,Math.min(bubbleRect.right-22,tcx)),y:bubbleRect.bottom-pad}
+    : {x:Math.max(bubbleRect.left+22,Math.min(bubbleRect.right-22,tcx)),y:bubbleRect.top+pad};
+}
+function guideTourArrowPath(start,end){
+  const dx=end.x-start.x,dy=end.y-start.y;
+  if(Math.abs(dx)>=Math.abs(dy)){
+    const c1x=start.x+dx*0.35,c1y=start.y;
+    const c2x=end.x-dx*0.25,c2y=end.y;
+    return `M ${start.x} ${start.y} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${end.x} ${end.y}`;
+  }
+  const c1x=start.x,c1y=start.y+dy*0.35;
+  const c2x=end.x,c2y=end.y-dy*0.25;
+  return `M ${start.x} ${start.y} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${end.x} ${end.y}`;
+}
+function guideTourBuildSvg(rects){
+  const uid='guideMask';
+  const holes=rects.map(r=>`<rect x="${Math.round(r.left)}" y="${Math.round(r.top)}" width="${Math.round(r.width)}" height="${Math.round(r.height)}" rx="14" ry="14" fill="black"/>`).join('');
+  return `<defs><mask id="${uid}"><rect x="0" y="0" width="${innerWidth}" height="${innerHeight}" fill="white"/>${holes}</mask></defs><rect x="0" y="0" width="${innerWidth}" height="${innerHeight}" fill="rgba(0,0,0,.58)" mask="url(#${uid})"/>`;
+}
+function guideTourDrawArrow(ctx,start,end){
+  const dx=end.x-start.x,dy=end.y-start.y;
+  ctx.beginPath();
+  ctx.moveTo(start.x,start.y);
+  if(Math.abs(dx)>=Math.abs(dy)){
+    ctx.bezierCurveTo(start.x+dx*.35,start.y,end.x-dx*.25,end.y,end.x,end.y);
+  }else{
+    ctx.bezierCurveTo(start.x,start.y+dy*.35,end.x,end.y-dy*.25,end.x,end.y);
+  }
+  ctx.stroke();
+
+  const angle=Math.atan2(dy,dx);
+  const size=10;
+  ctx.beginPath();
+  ctx.moveTo(end.x,end.y);
+  ctx.lineTo(end.x-Math.cos(angle-Math.PI/6)*size,end.y-Math.sin(angle-Math.PI/6)*size);
+  ctx.lineTo(end.x-Math.cos(angle+Math.PI/6)*size,end.y-Math.sin(angle+Math.PI/6)*size);
+  ctx.closePath();
+  ctx.fill();
+}
+function guideTourDrawArrows(canvas,rects,bubbleRect,step){
+  if(!canvas) return;
+  const dpr=Math.max(1,window.devicePixelRatio||1);
+  const w=Math.max(1,Math.round(innerWidth*dpr)),h=Math.max(1,Math.round(innerHeight*dpr));
+  if(canvas.width!==w) canvas.width=w;
+  if(canvas.height!==h) canvas.height=h;
+  canvas.style.width=innerWidth+'px';
+  canvas.style.height=innerHeight+'px';
+  const ctx=canvas.getContext('2d');
+  if(!ctx) return;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,innerWidth,innerHeight);
+  if(!step||!step.links||!bubbleRect||!rects.length) return;
+
+  ctx.save();
+  ctx.lineWidth=6;
+  ctx.strokeStyle='rgba(124,108,248,.25)';
+  ctx.fillStyle='rgba(124,108,248,.25)';
+  ctx.lineCap='round';
+  ctx.lineJoin='round';
+  rects.forEach(r=>{
+    guideTourDrawArrow(ctx,guideTourBubbleEdgePoint(bubbleRect,r),guideTourTargetEdgePoint(r,bubbleRect));
+  });
+  ctx.restore();
+
+  ctx.save();
+  ctx.lineWidth=2.5;
+  ctx.strokeStyle='rgba(255,255,255,.96)';
+  ctx.fillStyle='rgba(255,255,255,.96)';
+  ctx.shadowColor='rgba(124,108,248,.7)';
+  ctx.shadowBlur=8;
+  ctx.lineCap='round';
+  ctx.lineJoin='round';
+  rects.forEach(r=>{
+    guideTourDrawArrow(ctx,guideTourBubbleEdgePoint(bubbleRect,r),guideTourTargetEdgePoint(r,bubbleRect));
+  });
+  ctx.restore();
+}
+function guideTourRender(){
+  if(!guideTourActive) return;
+  const els=guideTourElements();
+  if(!els.root||!els.svg||!els.highlights||!els.bubble) return;
+  const g=guideTourLang();
+  const step=GUIDE_TOUR_STEPS[guideTourStep];
+  const copy=g.steps[guideTourStep]||GUIDE_TOUR_I18N.fr.steps[guideTourStep];
+  const rects=guideTourRects(step);
+  if(!rects.length){guideTourStep=Math.min(guideTourStep+1,GUIDE_TOUR_STEPS.length-1);return;}
+  els.svg.setAttribute('viewBox',`0 0 ${innerWidth} ${innerHeight}`);
+  els.svg.innerHTML=guideTourBuildSvg(rects);
+  guideTourClearLiveSpotlights();
+  const emphasis=new Set(step.emphasis||[]);
+  (step.emphasis||[]).forEach(sel=>{const el=document.querySelector(sel); if(el) el.classList.add('guide-spotlit-fav-io');});
+  els.highlights.innerHTML=rects.map(r=>`<div class="guide-highlight${r.sel===step.dot?' guide-target-dot':''}${emphasis.has(r.sel)?' guide-fav-io':''}" style="left:${Math.round(r.left)}px;top:${Math.round(r.top)}px;width:${Math.round(r.width)}px;height:${Math.round(r.height)}px"></div>`).join('');
+  if(els.title) els.title.textContent=copy.title;
+  if(els.text) els.text.textContent=copy.text;
+  if(els.count) els.count.textContent=(typeof g.stepLabel==='function')?g.stepLabel(guideTourStep+1,GUIDE_TOUR_STEPS.length):`${guideTourStep+1}/${GUIDE_TOUR_STEPS.length}`;
+  if(els.prev){els.prev.textContent=g.prev;els.prev.disabled=guideTourStep===0;}
+  if(els.next) els.next.textContent=guideTourStep===GUIDE_TOUR_STEPS.length-1?g.finish:g.next;
+  if($('guideTourSkip')) $('guideTourSkip').textContent=g.skip;
+  guideTourPlaceBubble(els.bubble,guideTourAnchorRect(step,rects),step.prefer);
+  const bubbleRect=els.bubble.getBoundingClientRect();
+  guideTourDrawArrows(els.arrows,rects,bubbleRect,step);
+}
+function guideTourStart({manual=false}={}){
+  if(document.body.classList.contains('at-home')) return;
+  if(tourActive) tourStop();
+  openModal('aideModal',false);
+  document.querySelectorAll('.modal-backdrop.open').forEach(m=>m.classList.remove('open'));
+  guideTourActive=true;guideTourStep=0;
+  const root=$('guideTour'); if(root){root.classList.add('active');root.setAttribute('aria-hidden','false');}
+  if(!guideTourResizeBound){guideTourResizeBound=true;window.addEventListener('resize',()=>{if(guideTourActive)requestAnimationFrame(guideTourRender);});window.addEventListener('scroll',()=>{if(guideTourActive)requestAnimationFrame(guideTourRender);},{passive:true});}
+  guidedTourSyncText();
+  requestAnimationFrame(()=>{guideTourRender();requestAnimationFrame(guideTourRender);});
+  setTimeout(()=>{if(guideTourActive)guideTourRender();},120);
+}
+function guideTourStop({seen=true}={}){
+  guideTourActive=false;
+  guideTourClearLiveSpotlights();
+  if(seen)setGuidedTourSeen();
+  const root=$('guideTour'); if(root){root.classList.remove('active');root.setAttribute('aria-hidden','true');}
+  const c=$('guideTourArrows'); if(c){const ctx=c.getContext('2d'); if(ctx) ctx.clearRect(0,0,c.width,c.height);}
+}
+function guideTourNext(){
+  if(guideTourStep>=GUIDE_TOUR_STEPS.length-1){guideTourStop({seen:true});return;}
+  guideTourStep++;guideTourRender();requestAnimationFrame(guideTourRender);
+}
+function guideTourPrev(){guideTourStep=Math.max(0,guideTourStep-1);guideTourRender();requestAnimationFrame(guideTourRender);}
+function scheduleGuidedTourAuto(){
+  clearTimeout(guideTourAutoTimer);
+  if(guidedTourSeen()) return;
+  guideTourAutoTimer=setTimeout(()=>{
+    if(guidedTourSeen()||document.body.classList.contains('at-home')||tourActive) return;
+    if(document.querySelector('.modal-backdrop.open')) return;
+    guideTourStart({manual:false});
+  },700);
 }
 function setLocale(locale,{persist=true}={}){
   currentLocale=(locale==='en')?'en':'fr';
@@ -5617,6 +6032,7 @@ function setLocale(locale,{persist=true}={}){
   updateEffectsChips();
   updateUI();
   tourUpdateBanner?.();
+  guidedTourSyncText?.();
 }
 function cycleLocale(){ setLocale(currentLocale==='fr'?'en':'fr'); }
 
@@ -5791,6 +6207,11 @@ function setupBindings(){
   document.querySelectorAll('[data-style-preset]').forEach(btn=>btn.onclick=()=>applyStylePreset(btn.dataset.stylePreset));
   $('shareBtn').onclick=copyShare;
   $('aideBtn').onclick=()=>openModal('aideModal',true);
+  if($('replayGuideTourBtn')) $('replayGuideTourBtn').onclick=()=>{openModal('aideModal',false);setTimeout(()=>guideTourStart({manual:true}),80);};
+  if($('guideTourPrev')) $('guideTourPrev').onclick=guideTourPrev;
+  if($('guideTourNext')) $('guideTourNext').onclick=guideTourNext;
+  if($('guideTourSkip')) $('guideTourSkip').onclick=()=>guideTourStop({seen:true});
+  if($('guideTourClose')) $('guideTourClose').onclick=()=>guideTourStop({seen:true});
   // Fullscreen
   $('fullscreenBtn').onclick=()=>{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();};
   $('saveFavBtn').onclick=()=>saveFavorites($('saveName').value.trim());
@@ -6060,6 +6481,7 @@ $('zoomOutBtn').addEventListener('touchend',e=>{
     if(typeof BENCH2D!=='undefined' && !BENCH2D.done && !BENCH2D.running){
       setTimeout(()=>_runBench2d(),180);
     }
+    scheduleGuidedTourAuto();
   }
   $('homeBtn').onclick=()=>{
     if(document.body.classList.contains('mode3d')) exitMode3D();
@@ -6271,6 +6693,7 @@ $('zoomOutBtn').addEventListener('touchend',e=>{
 }
 
 function openModal(id,open){
+  if(open && guideTourActive) guideTourStop({seen:false});
   const modal=$(id);
   if(!modal)return;
   modal.classList.toggle('open',open);
