@@ -5,30 +5,30 @@
 <h1 align="center">Fractal Explorer</h1>
 
 <p align="center">
-  A free, standalone, browser-based fractal explorer — no installation required.
+  Un explorateur de fractales gratuit, standalone, qui tourne directement dans le navigateur — sans installation.
   <br>
-  <em>You can now put entire worlds on a floppy disk...</em>
+  <em>On peut maintenant mettre des mondes entiers sur une disquette...</em>
 </p>
 
 <p align="center">
-  <a href="https://fabzh.eu/fractales.html"><strong>🚀 Try it live</strong></a>
+  <a href="https://fabzh.eu/fractales.html"><strong>🚀 Essayer en ligne</strong></a>
   &nbsp;·&nbsp;
-  <a href="https://github.com/Fabrice-breizh/Fractales-Explorer/raw/main/fractales.html">⬇️ Download</a>
+  <a href="https://github.com/Fabrice-breizh/Fractales-Explorer/raw/main/fractales.html">⬇️ Télécharger</a>
   &nbsp;·&nbsp;
-  <a href="README.fr.md">🇫🇷 Lire en français</a>
+  <a href="README.md">🇬🇧 Read in English</a>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License">
-  <img src="https://img.shields.io/badge/WebGL2-powered-orange" alt="WebGL2">
-  <img src="https://img.shields.io/badge/install-none-brightgreen" alt="No install">
-  <img src="https://img.shields.io/badge/fractals-39-purple" alt="39 fractals">
-  <img src="https://img.shields.io/badge/languages-6-red" alt="6 languages">
+  <img src="https://img.shields.io/badge/Licence-MIT-blue.svg" alt="Licence MIT">
+  <img src="https://img.shields.io/badge/WebGL2-propulsé-orange" alt="WebGL2">
+  <img src="https://img.shields.io/badge/installation-aucune-brightgreen" alt="Sans installation">
+  <img src="https://img.shields.io/badge/fractales-39-purple" alt="39 fractales">
+  <img src="https://img.shields.io/badge/langues-6-red" alt="6 langues">
 </p>
 
 ---
 
-## Screenshots
+## Captures d'écran
 
 | Mandelbrot | Mandelbulb 3D |
 |:---:|:---:|
@@ -36,99 +36,99 @@
 
 ---
 
-## Features
+## Fonctionnalités
 
-### 🔢 35 interactive 2D fractals
-Mandelbrot, Julia sets, Burning Ship, Newton, Tricorn, Lyapunov, Sierpinski, and many more.
+### 🔢 35 fractales 2D interactives
+Mandelbrot, ensembles de Julia, Burning Ship, Newton, Tricorn, Lyapunov, Sierpinski, et bien d'autres.
 
-### 🌐 4 real-time 3D fractals
-Mandelbulb, Mandelbox, Menger Sponge, Quaternion Julia — rendered in WebGL2.
+### 🌐 4 fractales 3D en temps réel
+Mandelbulb, Mandelbox, Éponge de Menger, Julia Quaternion — rendues en WebGL2.
 
-### 🎨 Visual controls
-- Color palettes and cycling effects
-- Zoom, pan, double-click to explore
-- Keyboard shortcuts for fast navigation
+### 🎨 Contrôles visuels
+- Palettes de couleurs et effets de cycle
+- Zoom, déplacement, double-clic pour explorer
+- Raccourcis clavier pour une navigation rapide
 
-### 📸 Export & save
-- High-resolution PNG export
-- Save and restore favorite views locally
-- Import / export favorites
+### 📸 Export et sauvegarde
+- Export PNG en haute résolution
+- Sauvegarde et restauration de vues favorites en local
+- Import / export des favoris
 
-### 🌍 Multilingual interface
-🇸🇦 Arabic · 🇨🇳 Chinese · 🇬🇧 English · 🇫🇷 French · 🇮🇳 Hindi · 🇪🇸 Spanish
-*(more languages coming soon)*
+### 🌍 Interface multilingue
+🇸🇦 Arabe · 🇨🇳 Chinois · 🇬🇧 Anglais · 🇫🇷 Français · 🇮🇳 Hindi · 🇪🇸 Espagnol
+*(d'autres langues à venir)*
 
-### 📦 Truly standalone
-Everything is bundled in a **single HTML file** — works offline, no server needed, no dependencies.
+### 📦 Vraiment standalone
+Tout est contenu dans **un seul fichier HTML** — fonctionne hors ligne, sans serveur, sans dépendances.
 
 ---
 
 ## Navigation
 
-**With the mouse**
+**À la souris**
 
-| Action | Effect |
+| Action | Effet |
+|--------|-------|
+| `Glisser` | Déplacer la vue |
+| `Molette` | Zoomer vers le curseur |
+| `Shift` + `Glisser` | Sélectionner une zone à zoomer |
+| `Double-clic` | Zoom ×2 sur le point sélectionné |
+
+**Au clavier**
+
+| Touche | Action |
 |--------|--------|
-| `Drag` | Move the view |
-| `Wheel` | Zoom toward the cursor |
-| `Shift` + `Drag` | Select an area to zoom into |
-| `Double-click` | Zoom ×2 on the selected point |
-
-**With the keyboard**
-
-| Key | Action |
-|-----|--------|
-| `+` / `-` | Zoom in and out |
-| `←` `→` `↑` `↓` | Move the view |
-| `Home` | Reset the view |
-| `Tab` | Open or close the panel |
-| `H` | Open help |
-| `G` | Open the gallery |
-| `T` | Launch the Mandelbrot guided tour |
-| `Esc` | Close windows / return home in 3D |
+| `+` / `-` | Zoomer / dézoomer |
+| `←` `→` `↑` `↓` | Déplacer la vue |
+| `Home` | Réinitialiser la vue |
+| `Tab` | Ouvrir ou fermer le panneau |
+| `H` | Ouvrir l'aide |
+| `G` | Ouvrir la galerie |
+| `T` | Lancer la visite guidée Mandelbrot |
+| `Esc` | Fermer les fenêtres / retour accueil en 3D |
 
 ---
 
-## Getting started
+## Pour commencer
 
-1. **Download** [`fractales.html`](https://github.com/Fabrice-breizh/Fractales-Explorer/raw/main/fractales.html)
-2. **Open** it in any modern browser (Chrome, Firefox, Edge, Safari)
-3. **Explore** — that's it
+1. **Télécharger** [`fractales.html`](https://github.com/Fabrice-breizh/Fractales-Explorer/raw/main/fractales.html)
+2. **Ouvrir** dans n'importe quel navigateur moderne (Chrome, Firefox, Edge, Safari)
+3. **Explorer** — c'est tout
 
-Or just [try it online](https://fabzh.eu/fractales.html) without downloading anything.
+Ou simplement [essayer en ligne](https://fabzh.eu/fractales.html) sans rien télécharger.
 
-> **Requirements:** A browser with WebGL2 support (all modern browsers qualify).
+> **Prérequis :** Un navigateur avec support WebGL2 (tous les navigateurs modernes).
 
 ---
 
-## Why this project exists
+## Pourquoi ce projet existe
 
-I discovered fractals in the 1990s.
+J'ai découvert les fractales dans les années 1990.
 
-Back then, there was something almost magical about these images: mathematical shapes, computed by relatively modest machines, that somehow seemed to contain entire worlds. Mandelbrot, Julia, cycling palettes, slow zooms, renders that required patience… all of it had a very particular charm.
+À l'époque, il y avait quelque chose de presque magique dans ces images : des formes mathématiques, calculées par des machines relativement modestes, qui semblaient pourtant contenir des mondes entiers. Mandelbrot, Julia, les palettes cycliques, les zooms lents, les rendus qui demandaient de la patience… tout cela avait un charme très particulier.
 
-Tools like Fractint, XaoS, Ultra Fractal, and Electric Sheep helped define that era and its visual culture. This project was born from that memory: the desire to recapture that feeling of exploration, but in a modern browser, without complicated installation, and with a more immediate interface.
+Des outils comme Fractint, XaoS, Ultra Fractal, et Electric Sheep ont contribué à définir cette époque et sa culture visuelle. Ce projet est né de ce souvenir : l'envie de retrouver ce sentiment d'exploration, mais dans un navigateur moderne, sans installation compliquée, et avec une interface plus immédiate.
 
 ## Vibe coded, human designed
 
-This project is **vibe coded**: a significant part of the code was written with the help of AI tools.
+Ce projet est **vibe coded** : une partie significative du code a été écrite avec l'aide d'outils IA.
 
-But it is **not designed by AI**.
+Mais il n'est **pas conçu par une IA**.
 
-The direction, ergonomics, pacing, visual style, content, priorities, and user experience are human choices.
-
----
-
-## Support the project
-
-Fractal Explorer is free and open source.
-
-If you enjoy it, you can help keep it alive:
-
-☕ [Buy me a coffee](https://buymeacoffee.com/fabricebreizh)
+La direction, l'ergonomie, le rythme, le style visuel, le contenu, les priorités et l'expérience utilisateur sont des choix humains.
 
 ---
 
-## License
+## Soutenir le projet
+
+Fractal Explorer est gratuit et open source.
+
+Si tu l'apprécies, tu peux aider à le faire vivre :
+
+☕ [M'offrir un café](https://buymeacoffee.com/fabricebreizh)
+
+---
+
+## Licence
 
 [MIT](LICENSE) © Fabrice-breizh
