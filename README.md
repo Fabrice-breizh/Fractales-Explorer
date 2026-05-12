@@ -34,7 +34,7 @@
  
 ## Features
  
-### 🔢 35 interactive 2D fractals
+### 🔢 36 interactive 2D fractals
 Mandelbrot, Julia sets, Burning Ship, Newton, Tricorn, Lyapunov, Sierpinski, and many more.
  
 ### 🌐 4 real-time 3D fractals
