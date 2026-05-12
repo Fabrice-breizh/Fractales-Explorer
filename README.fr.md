@@ -38,7 +38,7 @@
 
 ## Fonctionnalités
 
-### 🔢 35 fractales 2D interactives
+### 🔢 36 fractales 2D interactives
 Mandelbrot, ensembles de Julia, Burning Ship, Newton, Tricorn, Lyapunov, Sierpinski, et bien d'autres.
 
 ### 🌐 4 fractales 3D en temps réel
