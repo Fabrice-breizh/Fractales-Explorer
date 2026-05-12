@@ -2642,6 +2642,8 @@ const FRACTALS=[
   {id:30,name:'Bitwise XOR',group:'Géométriques',desc:'Recursive fractal checkerboard via binary XOR.'},
   {id:31,name:'Mandelbox 2D',group:'Géométriques',desc:'Box fold plus spherical inversion with braided cubic repetitions.'},
   {id:45,name:'Apollonian Gasket',group:'Géométriques',desc:'Infinitely nested tangent circles, direct distance estimation.'},
+  {id:11,name:'Perpendicular Mandelbrot',group:'Anguleuses',desc:'abs() variant on the imaginary axis with crystalline feathers and spirals.'},
+  {id:12,name:'Feather',group:'Anguleuses',desc:'Norm-division formula with organic feather-like filaments.'},
   {id:46,name:'Barnsley Fern',group:'Spéciales',desc:'Classic IFS: 4 affine transforms, rendered by CPU point accumulation.',renderer:'cpu'},
   {id:47,name:'Lorenz Attractor',group:'Spéciales',desc:'Chaotic system σ=10 ρ=28 β=8/3, the butterfly of chaos.',renderer:'cpu'},
   {id:48,name:'Phi Spiral',group:'Créations',desc:'Golden-ratio phase feedback, spirals that refuse to close.'},
@@ -5986,6 +5988,39 @@ const EXTRA_LOCALE_PACKS={
 for(const [locale,pack] of Object.entries(EXTRA_LOCALE_PACKS)){
   I18N_EXTRA[locale]=Object.assign(I18N_EXTRA[locale]||{},pack);
   if(I18N[locale]?.saved) I18N[locale].saved.viewThumbnail=pack.viewThumbnail;
+}
+
+// Restore fractals that are supported by the rendering engine and must stay present after i18n rebuilds.
+const RESTORED_FRACTAL_TRANSLATIONS={
+  en:{
+    11:['Perpendicular Mandelbrot','abs() variant on the imaginary axis with crystalline feathers and spirals.','Anguleuses'],
+    12:['Feather','Norm-division formula with organic feather-like filaments.','Anguleuses']
+  },
+  zh:{
+    11:['垂直 Mandelbrot','沿虚轴使用 abs() 的变体，带有晶体状羽毛和螺旋。','Anguleuses'],
+    12:['羽毛','按范数除法的公式，生成有机羽毛状丝线。','Anguleuses']
+  },
+  hi:{
+    11:['Perpendicular Mandelbrot','काल्पनिक अक्ष पर abs() variant, crystalline feathers और spirals के साथ.','Anguleuses'],
+    12:['Feather','Norm-division formula, organic feather-like filaments के साथ.','Anguleuses']
+  },
+  ar:{
+    11:['Mandelbrot العمودي','متغيّر abs() على المحور التخيلي مع ريش بلوري ولوالب.','Anguleuses'],
+    12:['ريشة','صيغة قسمة بالمعيار تنتج خيوطاً عضوية شبيهة بالريش.','Anguleuses']
+  },
+  es:{
+    11:['Mandelbrot perpendicular','Variante abs() en el eje imaginario, con plumas cristalinas y espirales.','Anguleuses'],
+    12:['Pluma','Fórmula con división por la norma y filamentos orgánicos en forma de pluma.','Anguleuses']
+  },
+  fr:{
+    11:['Perpendicular Mandelbrot','Variante abs() sur l’axe imaginaire, avec plumes et spirales cristallines.','Anguleuses'],
+    12:['Feather','Formule avec division par la norme, donnant des filaments organiques en plumes.','Anguleuses']
+  }
+};
+for(const [locale,items] of Object.entries(RESTORED_FRACTAL_TRANSLATIONS)){
+  if(!I18N[locale]) I18N[locale]=deepCloneLocale(I18N.en);
+  I18N[locale].fractals=I18N[locale].fractals||{};
+  Object.assign(I18N[locale].fractals,items);
 }
 
 // Localized copy for the Mandelbrot guided tour. English is provided by TOUR_STEPS.
