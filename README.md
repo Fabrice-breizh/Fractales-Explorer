@@ -1,16 +1,94 @@
-# Fractal Explorer
+<p align="center">
+  <img src="assets/mandelbrot.png" width="800" alt="Fractal Explorer">
+</p>
 
-A free, standalone, interactive fractal explorer that runs directly in the browser.
-You can now put entire worlds on a floppy disk...
+<h1 align="center">Fractal Explorer</h1>
 
-Fractal Explorer lets you explore 2D and 3D fractals, zoom in, play with color palettes, export images, save favorite views, and rediscover that very simple pleasure: pointing somewhere into infinity and seeing what it hides.
+<p align="center">
+  A free, standalone, browser-based fractal explorer — no installation required.
+  <br>
+  <em>You can now put entire worlds on a floppy disk...</em>
+</p>
+
+<p align="center">
+  <a href="https://fabzh.eu/fractales.html"><strong>🚀 Try it live</strong></a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/Fabrice-breizh/Fractales-Explorer/raw/main/fractales.html">⬇️ Download</a>
+  &nbsp;·&nbsp;
+  <a href="README.fr.md">🇫🇷 Lire en français</a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License">
+  <img src="https://img.shields.io/badge/WebGL2-powered-orange" alt="WebGL2">
+  <img src="https://img.shields.io/badge/install-none-brightgreen" alt="No install">
+  <img src="https://img.shields.io/badge/fractals-39-purple" alt="39 fractals">
+  <img src="https://img.shields.io/badge/languages-6-red" alt="6 languages">
+</p>
+
+---
 
 ## Screenshots
-
 
 | Mandelbrot | Mandelbulb 3D |
 |:---:|:---:|
 | ![Mandelbrot](assets/mandelbrot.png) | ![Mandelbulb 3D](assets/mandelbulb.png) |
+
+---
+
+## Features
+
+### 🔢 35 interactive 2D fractals
+Mandelbrot, Julia sets, Burning Ship, Newton, Tricorn, Lyapunov, Sierpinski, and many more.
+
+### 🌐 4 real-time 3D fractals
+Mandelbulb, Mandelbox, Menger Sponge, Quaternion Julia — rendered in WebGL2.
+
+### 🎨 Visual controls
+- Color palettes and cycling effects
+- Zoom, pan, double-click to explore
+- Keyboard shortcuts for fast navigation
+
+### 📸 Export & save
+- High-resolution PNG export
+- Save and restore favorite views locally
+- Import / export favorites
+
+### 🌍 Multilingual interface
+🇸🇦 Arabic · 🇨🇳 Chinese · 🇬🇧 English · 🇫🇷 French · 🇮🇳 Hindi · 🇪🇸 Spanish
+*(more languages coming soon)*
+
+### 📦 Truly standalone
+Everything is bundled in a **single HTML file** — works offline, no server needed, no dependencies.
+
+---
+
+## Keyboard shortcuts
+
+| Key | Action |
+|-----|--------|
+| `Arrow keys` | Pan |
+| `+` / `-` | Zoom in / out |
+| `R` | Reset view |
+| `S` | Save current view as favorite |
+| `E` | Export as PNG |
+| `F` | Toggle fullscreen |
+
+*(shortcuts may vary depending on the selected fractal)*
+
+---
+
+## Getting started
+
+1. **Download** [`fractales.html`](https://github.com/Fabrice-breizh/Fractales-Explorer/raw/main/fractales.html)
+2. **Open** it in any modern browser (Chrome, Firefox, Edge, Safari)
+3. **Explore** — that's it
+
+Or just [try it online](https://fabzh.eu/fractales.html) without downloading anything.
+
+> **Requirements:** A browser with WebGL2 support (all modern browsers qualify).
+
+---
 
 ## Why this project exists
 
@@ -22,30 +100,24 @@ Tools like Fractint, XaoS, Ultra Fractal, and Electric Sheep helped define that 
 
 ## Vibe coded, human designed
 
-This project is vibe coded: a significant part of the code was written with the help of AI tools.
+This project is **vibe coded**: a significant part of the code was written with the help of AI tools.
 
-But it is not designed by AI.
+But it is **not designed by AI**.
 
 The direction, ergonomics, pacing, visual style, content, priorities, and user experience are human choices.
 
-## Features
-
-- Interactive exploration of 35 2D fractals
-- 3D fractals such as Mandelbulb, Mandelbox, Menger Sponge, and Quaternion Julia
-- Zoom, pan, double-click, keyboard shortcuts
-- Color palettes and visual effects
-- High-resolution PNG export
-- Local favorites with import/export
-- Home page with animated preview
-- Offline use through a standalone HTML file
-- Interface available in most spoken languages (coming soon !)
-
-## Running the project
-
-Download, open, enjoy ! All is included in this single fractales.html file
+---
 
 ## Support the project
 
 Fractal Explorer is free and open source.
 
-If you enjoy the project, you can help it grow by keeping me awake... ☕ [Buy me a cofee !](https://buymeacoffee.com/fabricebreizh) ☕
+If you enjoy it, you can help keep it alive:
+
+☕ [Buy me a coffee](https://buymeacoffee.com/fabricebreizh)
+
+---
+
+## License
+
+[MIT](LICENSE) © Fabrice-breizh
