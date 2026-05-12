@@ -22,8 +22,8 @@
   <img src="https://img.shields.io/badge/fractals-39-purple" alt="40 fractals">
   <img src="https://img.shields.io/badge/languages-6-red" alt="6 languages">
 </p>
+
 ---
- 
 ## Screenshots
  
 | Mandelbrot | Mandelbulb 3D |
