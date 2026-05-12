@@ -50,7 +50,7 @@ Mandelbulb, Mandelbox, Menger Sponge, Quaternion Julia — rendered in WebGL2.
 - Import / export favorites
 ### 🌍 Multilingual interface
 🇸🇦 Arabic · 🇨🇳 Chinese · 🇬🇧 English · 🇫🇷 French · 🇮🇳 Hindi · 🇪🇸 Spanish
-*(more languages coming soon)*
+
  
 ### 📦 Truly standalone
 Everything is bundled in a **single HTML file** — works offline, no server needed, no dependencies.
