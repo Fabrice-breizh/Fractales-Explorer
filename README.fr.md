@@ -11,9 +11,9 @@
 </p>
 
 <p align="center">
-  <a href="https://fabzh.eu/fractales.html"><strong>🚀 Essayer en ligne</strong></a>
+  <a href="https://fabzh.eu/fractales.html"><strong>Essayer en ligne</strong></a>
   &nbsp;·&nbsp;
-  <a href="https://github.com/Fabrice-breizh/Fractales-Explorer/raw/main/fractales.html">⬇️ Télécharger</a>
+  <a href="https://github.com/Fabrice-breizh/Fractales-Explorer/raw/main/fractales.html">Télécharger</a>
   &nbsp;·&nbsp;
   <a href="README.md">🇬🇧 Read in English</a>
 </p>
@@ -38,27 +38,27 @@
 
 ## Fonctionnalités
 
-### 🔢 36 fractales 2D interactives
+### 36 fractales 2D interactives
 Mandelbrot, ensembles de Julia, Burning Ship, Newton, Tricorn, Lyapunov, Sierpinski, et bien d'autres.
 
-### 🌐 4 fractales 3D en temps réel
+### 4 fractales 3D en temps réel
 Mandelbulb, Mandelbox, Éponge de Menger, Julia Quaternion — rendues en WebGL2.
 
-### 🎨 Contrôles visuels
+### Contrôles visuels
 - Palettes de couleurs et effets de cycle
 - Zoom, déplacement, double-clic pour explorer
 - Raccourcis clavier pour une navigation rapide
 
-### 📸 Export et sauvegarde
+### Export et sauvegarde
 - Export PNG en haute résolution
 - Sauvegarde et restauration de vues favorites en local
 - Import / export des favoris
 
-### 🌍 Interface multilingue
+### Interface multilingue
 🇸🇦 Arabe · 🇨🇳 Chinois · 🇬🇧 Anglais · 🇫🇷 Français · 🇮🇳 Hindi · 🇪🇸 Espagnol
 *(d'autres langues à venir)*
 
-### 📦 Vraiment standalone
+### Vraiment standalone
 Tout est contenu dans **un seul fichier HTML** — fonctionne hors ligne, sans serveur, sans dépendances.
 
 ---
