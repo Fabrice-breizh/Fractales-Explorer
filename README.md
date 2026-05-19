@@ -19,7 +19,7 @@
   <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/WebGL2-powered-orange" alt="WebGL2">
   <img src="https://img.shields.io/badge/install-none-brightgreen" alt="No install">
-  <img src="https://img.shields.io/badge/fractals-39-purple" alt="40 fractals">
+  <img src="https://img.shields.io/badge/fractals-40-purple" alt="40 fractals">
   <img src="https://img.shields.io/badge/languages-6-red" alt="6 languages">
 </p>
 
