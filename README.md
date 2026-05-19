@@ -34,25 +34,25 @@
  
 ## Features
  
-### 🔢 36 interactive 2D fractals
+### 36 interactive 2D fractals
 Mandelbrot, Julia sets, Burning Ship, Newton, Tricorn, Lyapunov, Sierpinski, and many more.
  
-### 🌐 4 real-time 3D fractals
+### 4 real-time 3D fractals
 Mandelbulb, Mandelbox, Menger Sponge, Quaternion Julia — rendered in WebGL2.
  
-### 🎨 Visual controls
+### Visual controls
 - Color palettes and cycling effects
 - Zoom, pan, double-click to explore
 - Keyboard shortcuts for fast navigation
-### 📸 Export & save
+### Export & save
 - High-resolution PNG export
 - Save and restore favorite views locally
 - Import / export favorites
-### 🌍 Multilingual interface
+### Multilingual interface
 🇸🇦 Arabic · 🇨🇳 Chinese · 🇬🇧 English · 🇫🇷 French · 🇮🇳 Hindi · 🇪🇸 Spanish
 
  
-### 📦 Truly standalone
+### Truly standalone
 Everything is bundled in a **single HTML file** — works offline, no server needed, no dependencies.
  
 ---
