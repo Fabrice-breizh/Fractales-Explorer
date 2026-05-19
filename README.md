@@ -9,9 +9,9 @@
   <em>You can now put entire worlds on a floppy disk...</em>
 </p>
 <p align="center">
-  <a href="https://fabzh.eu/fractales.html"><strong>🚀 Try it live</strong></a>
+  <a href="https://fabzh.eu/fractales.html"><strong>Try it live</strong></a>
   &nbsp;·&nbsp;
-  <a href="https://github.com/Fabrice-breizh/Fractales-Explorer/raw/main/fractales.html">⬇️ Download</a>
+  <a href="https://github.com/Fabrice-breizh/Fractales-Explorer/raw/main/fractales.html">Download</a>
   &nbsp;·&nbsp;
   <a href="README.fr.md">🇫🇷 Lire en français</a>
 </p>
