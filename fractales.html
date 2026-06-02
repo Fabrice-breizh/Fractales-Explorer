@@ -147,9 +147,10 @@ body.ui-overlay-open .canvas-wrap{background:var(--canvas)!important}
 .zoom-bar-wrap{position:fixed;bottom:0;left:0;right:0;z-index:30;
   pointer-events:none;transition:opacity .4s ease;opacity:0;}
 .zoom-bar-wrap.visible{opacity:1;}
-.zoom-bar-track{height:4px;background:rgba(255,255,255,.08);position:relative;}
+.zoom-bar-track{height:8px;background:rgba(255,255,255,.08);position:relative;}
 .zoom-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));
-  transition:width .15s ease;border-radius:0 2px 2px 0;}
+  transition:width .15s ease;border-radius:0 3px 3px 0;}
+@media(max-width:720px){.zoom-bar-track{height:4px;}.zoom-bar-fill{border-radius:0 2px 2px 0;}}
 .zoom-bar-label{position:absolute;right:10px;bottom:8px;
   font:600 10px/1 ui-monospace,monospace;color:var(--accent2);
   background:rgba(8,12,18,.75);padding:2px 6px;border-radius:999px;
@@ -359,7 +360,7 @@ body.at-home .app{visibility:hidden;pointer-events:none}
 .profile-badge.safe{border-color:rgba(255,204,102,.28);background:rgba(255,204,102,.10);color:#ffe3a1}
 .profile-badge.legacy{border-color:rgba(255,124,144,.28);background:rgba(255,124,144,.10);color:#ffd2d9}
 .profile-badge.ultra{border-color:rgba(86,208,142,.25);background:rgba(86,208,142,.1);color:#bfead0}
-.profile-btn-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.profile-btn-bar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 
 /* Home mini-canvas */
 .mini-canvas-wrap{position:relative;width:100%;border-radius:14px;overflow:hidden;margin:10px 0 8px;background:#000;aspect-ratio:16/9;border:1.5px solid rgba(124,108,248,.35);box-shadow:0 0 20px rgba(124,108,248,.12),0 4px 24px rgba(0,0,0,.4)}
@@ -367,13 +368,13 @@ body.at-home .app{visibility:hidden;pointer-events:none}
 .mini-canvas-label{position:absolute;bottom:6px;right:10px;font-size:10px;color:rgba(255,255,255,.35);pointer-events:none;letter-spacing:.04em}
 
 /* Enhanced profile buttons */
-.prof-btn{padding:9px 6px;border-radius:10px;border:1.5px solid var(--line);background:var(--panel2);color:var(--muted);font-size:12px;cursor:pointer;transition:all .18s;font-weight:500;letter-spacing:.01em;text-align:center;width:100%}
+.prof-btn{padding:9px 6px;border-radius:10px;border:1.5px solid var(--line);background:var(--panel2);color:var(--muted);font-size:12px;cursor:pointer;transition:all .18s;font-weight:500;letter-spacing:.01em;text-align:center;width:100%;min-height:52px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px}
 .prof-btn:hover{border-color:rgba(124,208,120,.4);color:var(--fg);background:var(--panel3)}
 .prof-btn.active{border-color:rgba(80,200,80,.7);background:rgba(60,160,60,.18);color:#7ede7e;font-weight:700;box-shadow:inset 0 1px 4px rgba(0,0,0,.3),0 0 8px rgba(80,200,80,.12)}
 .prof-btn.rec::after{content:'★';margin-left:4px;font-size:10px;opacity:.7}
 @media(max-width:1080px){.splash-top-row{grid-template-columns:1fr}.profile-banner{max-width:none}.splash-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.trust-row{grid-template-columns:1fr}.trust-item+.trust-item{border-left:none;border-top:1px solid rgba(255,255,255,.08)}}
 @media(min-width:900px){.mini-canvas-wrap{max-height:400px}}
-@media(max-width:700px){.splash{padding:14px 10px 16px;align-items:flex-start}.splash-box{padding:12px 14px 14px;border-radius:0;max-height:none}.splash-top-row{gap:12px;margin-bottom:10px}.splash-box h1{font-size:clamp(1.9rem,11vw,3rem)}.splash-box .sub{font-size:clamp(1rem,4.8vw,1.3rem)}.hero-lead{font-size:14px;line-height:1.35}.splash-cards{grid-template-columns:1fr 1fr;gap:10px}.splash-card{min-height:120px;padding:10px}.card-visual{width:46px;height:46px;margin:0 auto 8px}.card-visual .icon{width:32px;height:32px}.card-title{font-size:1.3rem}.card-desc{font-size:11px;line-height:1.32}.card-tag{margin-top:10px;min-height:38px;padding:0 12px;font-size:11px}.profile-banner{padding:12px 14px;border-radius:18px}.profile-btn-bar{grid-template-columns:1fr}.profile-note{font-size:11px}}
+@media(max-width:700px){.splash{padding:14px 10px 16px;align-items:flex-start}.splash-box{padding:12px 14px 14px;border-radius:0;max-height:none}.splash-top-row{gap:12px;margin-bottom:10px}.splash-box h1{font-size:clamp(1.9rem,11vw,3rem)}.splash-box .sub{font-size:clamp(1rem,4.8vw,1.3rem)}.hero-lead{font-size:14px;line-height:1.35}.splash-cards{grid-template-columns:1fr 1fr;gap:10px}.splash-card{min-height:120px;padding:10px}.card-visual{width:46px;height:46px;margin:0 auto 8px}.card-visual .icon{width:32px;height:32px}.card-title{font-size:1.3rem}.card-desc{font-size:11px;line-height:1.32}.card-tag{margin-top:10px;min-height:38px;padding:0 12px;font-size:11px}.profile-banner{padding:12px 14px;border-radius:18px}.profile-btn-bar{grid-template-columns:repeat(2,minmax(0,1fr))}.profile-note{font-size:11px}}
   .hero-cta-row{padding:0}
   .trust-row{grid-template-columns:1fr}
   .trust-item+.trust-item{border-left:none;border-top:1px solid rgba(255,255,255,.08)}
@@ -832,12 +833,12 @@ body[data-locale="ar"] .lang-menu{direction:ltr}
         <button class="btn" id="resetBtn">Reset view</button>
       </div>
       <div class="section">
-        <h3>Navigation</h3>
+        <h3 id="sidebarNavTitle">Navigation</h3>
         <div class="muted" style="display:grid;gap:7px;font-size:11px">
-          <div><span class="kbd">Drag</span> move · Shift+drag: box zoom</div>
-          <div><span class="kbd">Wheel</span> zoom · Double-click: zoom ×2</div>
-          <div><span class="kbd">+</span><span class="kbd">−</span> zoom · ←→↑↓ move · Home: reset</div>
-          <div><span class="kbd">Tab</span> panel · H help</div>
+          <div id="sidebarNavLine0"><span class="kbd">Drag</span> move · Shift+drag: box zoom</div>
+          <div id="sidebarNavLine1"><span class="kbd">Wheel</span> zoom · Double-click: zoom ×2</div>
+          <div id="sidebarNavLine2"><span class="kbd">+</span><span class="kbd">−</span> zoom · ←→↑↓ move · Home: reset</div>
+          <div id="sidebarNavLine3"><span class="kbd">Tab</span> panel · H help</div>
         </div>
       </div>
     </div>
@@ -1036,13 +1037,8 @@ body[data-locale="ar"] .lang-menu{direction:ltr}
       </div>
       <label class="switch"><span data-i18n-3d="adaptiveRes">Resolution adaptative</span><input type="checkbox" id="interactiveScale3d" checked=""></label>
       <div class="row" style="margin-top:6px">
-        <div class="label"><span data-i18n-3d="qualityProfile">Quality profile</span></div>
-        <select id="ssProfile3d">
-          <option value="comfort" data-i18n-3d="comfort">Confort</option>
-          <option value="balanced" selected="" data-i18n-3d="balanced">Balanced</option>
-          <option value="quality" data-i18n-3d="quality">Quality</option>
-
-        </select>
+        <div class="label" style="margin-bottom:6px"><span data-i18n-3d="qualityProfile">Quality profile</span></div>
+        <div id="profileBtnBar3d" class="profile-btn-bar"></div>
       </div>
 
       <label class="switch"><span data-i18n-3d="autoRotate">Rotation auto</span><input type="checkbox" id="autoRotate3d" checked=""></label>
@@ -2496,6 +2492,7 @@ function getPerfProfileMeta(locale=currentLocale){
   const local=normalizeLocale(locale);
   const x=I18N_EXTRA[local]||I18N_EXTRA.fr||I18N_EXTRA.en;
   return {
+    ultralight:{label:x.perfUltralightLabel||'Ultra-light',icon:'🐢',desc2d:x.perfUltralight2d||'Very limited GPU',desc3d:x.perfUltralight3d||'Very limited GPU — reduced 3D steps'},
     comfort:{label:x.perfComfortLabel,icon:'🌿',desc2d:x.perfComfort2d,desc3d:x.perfComfort3d},
     balanced:{label:x.perfBalancedLabel,icon:'⚖️',desc2d:x.perfBalanced2d,desc3d:x.perfBalanced3d},
     quality:{label:x.perfQualityLabel,icon:'✨',desc2d:x.perfQuality2d,desc3d:x.perfQuality3d}
@@ -2505,9 +2502,10 @@ function getPerfProfileMeta(locale=currentLocale){
 // ── Unified performance profiles ────────────────────────────
 // Same choices for 2D and 3D, calibrated separately
 const PERF_PROFILES={
-  comfort:  {icon:'🌿', dprCap:1.0, maxIter:2000, targetMs2d:50, targetMs3d:60, maxStep3d:0},
-  balanced: {icon:'⚖️', dprCap:1.5, maxIter:6000, targetMs2d:33, targetMs3d:33, maxStep3d:2},
-  quality:  {icon:'✨', dprCap:2.0, maxIter:12000, targetMs2d:20, targetMs3d:50, maxStep3d:4}
+  ultralight:{icon:'🐢', dprCap:0.6, maxIter:800,  targetMs2d:80, targetMs3d:100, maxStep3d:0, maxSteps3d:48},
+  comfort:   {icon:'🌿', dprCap:1.0, maxIter:2000, targetMs2d:50, targetMs3d:60,  maxStep3d:0},
+  balanced:  {icon:'⚖️', dprCap:1.5, maxIter:6000, targetMs2d:33, targetMs3d:33,  maxStep3d:2},
+  quality:   {icon:'✨', dprCap:2.0, maxIter:12000, targetMs2d:20, targetMs3d:50,  maxStep3d:4}
 };
 
 // Active global profile (2D + 3D)
@@ -2535,9 +2533,10 @@ function _runBench2d(){
     // Done
     BENCH2D.done=true; BENCH2D.running=false;
     const avgMs=BENCH2D.totalMs/BENCH2D.FRAMES;
-    if(avgMs>45)      recommendedPerfProfile='comfort';
-    else if(avgMs>20) recommendedPerfProfile='balanced';
-    else              recommendedPerfProfile='quality';
+    if(avgMs>80)       recommendedPerfProfile='ultralight';
+    else if(avgMs>45)  recommendedPerfProfile='comfort';
+    else if(avgMs>20)  recommendedPerfProfile='balanced';
+    else               recommendedPerfProfile='quality';
     let saved='';
     try{saved=localStorage.getItem('perf_profile')||'';}catch(e){}
     const toApply=(saved&&PERF_PROFILES[saved])?saved:recommendedPerfProfile;
@@ -2556,7 +2555,7 @@ function applyPerfProfile(key, showToast=true){
   runtimeProfile.dprCap=p.dprCap;
   runtimeProfile.maxIterCap=p.maxIter;
   // Map to existing runtimeProfile names (used by the rest of the code)
-  const nameMap={comfort:'safe',balanced:'balanced',quality:'ultra',manual:'ultra'};
+  const nameMap={ultralight:'safe',comfort:'safe',balanced:'balanced',quality:'ultra',manual:'ultra'};
   runtimeProfile.name=nameMap[key]||'balanced';
   // Apply to the 3D engine through SS_CTRL
   if(typeof SS_CTRL!=='undefined'){
@@ -2565,6 +2564,10 @@ function applyPerfProfile(key, showToast=true){
     SS_CTRL.slowCount=0; SS_CTRL.fastCount=0;
     // Also sync ssQualityProfile
     if(typeof ssQualityProfile!=='undefined') ssQualityProfile=key==='manual'?'manual':'balanced';
+    // For ultralight: also cap maxSteps in the 3D state immediately
+    if(key==='ultralight' && typeof state3d!=='undefined' && p.maxSteps3d){
+      state3d.maxSteps=Math.min(state3d.maxSteps, p.maxSteps3d);
+    }
   }
   try{localStorage.setItem('perf_profile',key);}catch(e){}
   if(showToast) toast(p.icon+' '+p.label, p.desc2d);
@@ -2962,6 +2965,38 @@ function initStartupUI(){
     if(saved&&PERF_PROFILES[saved]){
       activePerfProfile=saved;
       applyPerfProfile(saved,false);
+    } else {
+      // First visit: synchronous hardware pre-detection — no benchmark yet.
+      // Uses proxy signals available immediately in all browsers.
+      // Goal: avoid a first-visit freeze on very weak GPUs.
+      (function _preDetectProfile(){
+        try{
+          // 1. CPU cores — weak proxy but universal
+          const cores=navigator.hardwareConcurrency||4;
+          // 2. Device memory (Chrome/Edge/Android WebView only — undefined elsewhere)
+          const mem=navigator.deviceMemory; // GB, undefined if unsupported
+          // 3. WebGL renderer string — best GPU signal, available synchronously
+          let renderer='';
+          try{
+            const c=document.createElement('canvas');
+            const g=c.getContext('webgl')||c.getContext('experimental-webgl');
+            if(g){
+              const ext=g.getExtension('WEBGL_debug_renderer_info');
+              if(ext) renderer=(g.getParameter(ext.UNMASKED_RENDERER_WEBGL)||'').toLowerCase();
+            }
+          }catch(e){}
+          // Patterns typical of very weak mobile GPUs (Adreno 300/400, Mali-T6xx/T7xx, PowerVR G6xxx)
+          const weakGpuPatterns=/adreno\s*(3[0-9]{2}|4[0-9]{2})|mali-t[67][0-9]{2}|powervr\s*g6|sgx\s*5[0-9]{2}/i;
+          const isWeakGpu=weakGpuPatterns.test(renderer);
+          const isLowMem=mem!==undefined&&mem<=1;
+          const isLowCores=cores<=2;
+          if(isWeakGpu||(isLowMem&&isLowCores)){
+            activePerfProfile='ultralight';
+            applyPerfProfile('ultralight',false);
+            recommendedPerfProfile='ultralight';
+          }
+        }catch(e){}
+      })();
     }
   }catch(e){}
   // Start the 2D benchmark after the viewer is actually opened.
@@ -5785,6 +5820,7 @@ const I18N_TEXT={
     perfComfortLabel:'Confort', perfComfort2d:'Priorité fluidité — résolution et itérations réduites si nécessaire', perfComfort3d:'Priorité fluidité — résolution native maximum',
     perfBalancedLabel:'Balanced', perfBalanced2d:'Le moteur ajuste seul — recommandé pour la plupart des appareils', perfBalanced3d:'Le moteur ajuste seul — recommandé',
     perfQualityLabel:'Quality', perfQuality2d:'Priorité résolution — peut ralentir sur GPU modeste', perfQuality3d:"Priorité résolution — monte jusqu'à 2.5× de supersampling",
+    perfUltralightLabel:'Ultra-léger', perfUltralight2d:'GPU très limité — qualité minimale pour rester fluide', perfUltralight3d:'GPU très limité — nombre de pas 3D fortement réduit',
     navDrawer:'Menu', currentFractalPrefix:'Fractale actuelle : ', viewThumbnail:'View',
     fractalShapePowerHint:'Exposant 2 = forme classique. Les valeurs plus hautes modifient la géométrie.',
     tips2d:['Molette : zoom vers le curseur pour explorer les détails.','Drag : move.','Shift+glisser : zoom rectangle.','Double-clic : zoom ×2.','Home: default view.'],
@@ -5812,6 +5848,7 @@ const I18N_TEXT={
     perfComfortLabel:'Comfort', perfComfort2d:'Smoothness first — resolution and iterations reduced when needed', perfComfort3d:'Smoothness first — native-resolution cap',
     perfBalancedLabel:'Balanced', perfBalanced2d:'Engine self-adjusts — recommended for most devices', perfBalanced3d:'Engine self-adjusts — recommended',
     perfQualityLabel:'Quality', perfQuality2d:'Resolution first — may slow down on modest GPUs', perfQuality3d:'Resolution first — up to 2.5× supersampling',
+    perfUltralightLabel:'Ultra-light', perfUltralight2d:'Very limited GPU — minimum quality to stay smooth', perfUltralight3d:'Very limited GPU — 3D step count strongly reduced',
     navDrawer:'Menu', currentFractalPrefix:'Current fractal: ', viewThumbnail:'View',
     fractalShapePowerHint:'Exponent 2 = classic shape. Higher values modify the geometry.',
     tips2d:['Wheel: zoom toward the cursor to inspect details.','Drag: move.','Shift+drag: box zoom.','Double-click: ×2 zoom.','Home: default view.'],
@@ -6289,6 +6326,17 @@ function applyI18nTextRegistry(){
   if(navLines[1]) navLines[1].innerHTML=`<span class="kbd">${ux('mouseWheel')}</span> ${ux('navWheelText')}`;
   if(navLines[2]) navLines[2].innerHTML=`<span class="kbd">+</span><span class="kbd">−</span> ${ux('navKeyboardText')}`;
   if(navLines[3]) navLines[3].innerHTML=`<span class="kbd">Tab</span> ${ux('navTabText')}`;
+  // Also update the sidebar nav section (with explicit IDs)
+  const snl0=document.getElementById('sidebarNavLine0');
+  const snl1=document.getElementById('sidebarNavLine1');
+  const snl2=document.getElementById('sidebarNavLine2');
+  const snl3=document.getElementById('sidebarNavLine3');
+  const snTitle=document.getElementById('sidebarNavTitle');
+  if(snTitle) snTitle.textContent=t('ui.navigation');
+  if(snl0) snl0.innerHTML=`<span class="kbd">${ux('mouseDrag')}</span> ${ux('navDragText')}`;
+  if(snl1) snl1.innerHTML=`<span class="kbd">${ux('mouseWheel')}</span> ${ux('navWheelText')}`;
+  if(snl2) snl2.innerHTML=`<span class="kbd">+</span><span class="kbd">−</span> ${ux('navKeyboardText')}`;
+  if(snl3) snl3.innerHTML=`<span class="kbd">Tab</span> ${ux('navTabText')}`;
   const helpLists=document.querySelectorAll('#aideModal .section .muted div');
   const helpData=[['mouseDrag','helpNavMove'],['mouseWheel','helpNavWheel'],['shiftDrag','helpNavBox'],['doubleClick','helpNavDouble'],['+ / −','shortcutZoom'],['←→↑↓','shortcutPan'],['keyboardHome','shortcutHome'],['Tab','shortcutTab']];
   helpLists.forEach((el,idx)=>{const row=helpData[idx]; if(el&&row) el.innerHTML=`<span class="kbd">${row[0].includes(' ')||row[0].includes('/')||row[0].includes('←')?row[0]:ux(row[0])}</span> ${ux(row[1])}`;});
@@ -6488,8 +6536,8 @@ const _palNames=I18N[currentLocale]?.ui?.paletteNames||PALETTES;
 const _palSel=$('palette');
 if(_palSel) Array.from(_palSel.options).forEach((o,i)=>{if(_palNames[i]) o.textContent=_palNames[i];});
 $('qualityMode').options[0].textContent=ui.progressive; $('qualityMode').options[1].textContent=ui.full; $('qualityMode').options[2].textContent=ui.fast;
-  const ssProfile=document.getElementById('ssProfile3d'); if(ssProfile){ const meta=getPerfProfileMeta(); ssProfile.options[0].textContent=meta.comfort.label; ssProfile.options[1].textContent=meta.balanced.label; ssProfile.options[2].textContent=meta.quality.label; }
   if(document.getElementById('profileBanner')) updateProfileBanner();
+  if(typeof buildProfileBtns3d==='function') buildProfileBtns3d();
   const switches=document.querySelectorAll('.switch span'); if(switches[0]) switches[0].textContent=ui.relief; if(switches[1]) switches[1].textContent=ui.halo; if(switches[2]) switches[2].textContent=ui.orbitTraps; if(switches[3]) switches[3].textContent=ui.orbitStripes;
   const allLabels=document.querySelectorAll('.tabpanel[data-panel="settings"] .label span');
   const map=[ui.iterations,ui.shift,ui.cycles,ui.stop2,ui.stop3,ui.stop4,ui.stylePresets,ui.height,ui.lightAngle,ui.elevation,ui.specular,ui.thickness,ui.intensity,ui.radius,ui.frequency,ui.mix];
@@ -7815,6 +7863,7 @@ const SS_STEPS=[0.60,1.0,1.5,2.0,2.5];
 
 const SS_FRAMES_PER_STEP=16;
 const SS_QUALITY_PROFILES={
+  ultralight:{label:'Ultra-léger', targetMs:100, maxStep:0, desc:'GPU très limité — résolution et pas réduits au maximum'},
   comfort:  {label:'Confort',   targetMs:50, maxStep:1, desc:'Fluide partout, résolution native'},
   balanced: {label:'Balanced', targetMs:33, maxStep:2, desc:'Recommandé — qualité et fluidité'},
   quality:  {label:'Quality',   targetMs:50, maxStep:SS_STEPS.length-1, desc:'Resolution max, fluidité secondaire'},
@@ -8180,18 +8229,18 @@ const I18N_3D={
   fr:{
     fractal:'Fractale', params:'Parameters', render:'Render',
     camera:'Camera', actions:'Actions', nav:'Navigation',
-    orbitTrap:'Effets de couleur', trapType:'Mode', trapClassic:'Classique', trapSphere:'Sphere', trapPlane:'Plan XY', trapAxis:'Axe Z', trapCube:'Cube', trapScale:'Scale', accumulate:'Quality progressive', qualityProfile:'Quality profile',
-    palette:'Palette', exposure:'Exposition', brightness:'Brightness', glow:'Halo lumineux',
+    orbitTrap:'Effets de couleur', trapType:'Mode', trapClassic:'Classique', trapSphere:'Sphere', trapPlane:'Plan XY', trapAxis:'Axe Z', trapCube:'Cube', trapScale:'Scale', accumulate:'Quality progressive', qualityProfile:'Profil de qualité',
+    palette:'Palette', exposure:'Exposition', brightness:'Luminosité', glow:'Halo lumineux',
     softShadows:'Ombres douces', ao:'Occlusion ambiante', fog:'Brouillard',
-    fov:'Champ de vision', adaptiveRes:'Resolution adaptative', precision:'Precision', maxSteps:'Max steps',
-    autoRotate:'Rotation auto', rotSpeed:'Vitesse rotation', comfort:'Confort', balanced:'Balanced', quality:'Quality',
-    resetView:'⌂ Default view', applyPreset:'⚙ Recommended settings', restartRotate:'⟳ Relancer la rotation',
-    navHint:'Drag: orbit · Wheel: zoom<br>Shift+drag: pan<br>Double-click: center on this point',
-    ready:'Prêt', fps:'FPS', resolution:'Resolution',
-    viewReset:'View réinitialisée', presetApplied:'Parameters appliqués',
+    fov:'Champ de vision', adaptiveRes:'Résolution adaptative', precision:'Précision', maxSteps:'Pas max.',
+    autoRotate:'Rotation auto', rotSpeed:'Vitesse rotation', ultralight:'Ultra-léger 🐢', comfort:'Confort', balanced:'Équilibré', quality:'Qualité',
+    resetView:'⌂ Vue par défaut', applyPreset:'⚙ Paramètres recommandés', restartRotate:'⟳ Relancer la rotation',
+    navHint:'Glisser : orbite · Molette : zoom<br>Shift+glisser : panoramique<br>Double-clic : centrer sur ce point',
+    ready:'Prêt', fps:'FPS', resolution:'Résolution',
+    viewReset:'Vue réinitialisée', presetApplied:'Paramètres appliqués',
     pointCentered:'Point centré',
-    palettes:['Néon','Ocean','Fire','Mono','Iridescent'],
-    fractals:['Mandelbulb 3D','Mandelbox 3D','Menger Sponge','Sierpiński Tetrahedron','Julia quaternion 3D']
+    palettes:['Néon','Océan','Feu','Mono','Iridescent'],
+    fractals:['Mandelbulb 3D','Mandelbox 3D','Éponge de Menger','Tétraèdre de Sierpiński','Julia quaternion 3D']
   },
   en:{
     fractal:'Fractal', params:'Parameters', render:'Render',
@@ -8200,7 +8249,7 @@ const I18N_3D={
     palette:'Palette', exposure:'Exposure', brightness:'Brightness', glow:'Glow',
     softShadows:'Soft shadows', ao:'Ambient occlusion', fog:'Fog',
     fov:'Field of view', adaptiveRes:'Adaptive resolution', precision:'Precision', maxSteps:'Max steps',
-    autoRotate:'Auto rotate', rotSpeed:'Rotation speed', comfort:'Comfort', balanced:'Balanced', quality:'Quality',
+    autoRotate:'Auto rotate', rotSpeed:'Rotation speed', ultralight:'Ultra-light 🐢', comfort:'Comfort', balanced:'Balanced', quality:'Quality',
     resetView:'🏠 Default view', applyPreset:'⚙️ Recommended settings', restartRotate:'⟳ Restart rotation',
     navHint:'Drag: orbit · Wheel: zoom<br>Shift+drag: pan<br>Double-click: center on this point',
     ready:'Ready', fps:'FPS', resolution:'Resolution',
@@ -8212,10 +8261,10 @@ const I18N_3D={
 };
 
 Object.assign(I18N_3D,{
-  zh:{fractal:'分形',params:'参数',render:'渲染',camera:'相机',actions:'操作',nav:'导航',orbitTrap:'颜色效果',trapType:'模式',trapClassic:'经典',trapSphere:'球体',trapPlane:'XY 平面',trapAxis:'Z 轴',trapCube:'立方体',trapScale:'比例',accumulate:'渐进质量',qualityProfile:'质量配置',palette:'调色板',exposure:'曝光',brightness:'亮度',glow:'光晕',softShadows:'柔和阴影',ao:'环境光遮蔽',fog:'雾',fov:'视野',adaptiveRes:'自适应分辨率',precision:'精度',maxSteps:'最大步数',autoRotate:'自动旋转',rotSpeed:'旋转速度',comfort:'舒适',balanced:'平衡',quality:'质量',resetView:'⌂ 默认视图',applyPreset:'⚙ 推荐设置',restartRotate:'⟳ 重新开始旋转',navHint:'拖动：轨道 · 滚轮：缩放<br>Shift+拖动：平移<br>双击：居中到此点',ready:'就绪',fps:'FPS',resolution:'分辨率',viewReset:'视图已重置',presetApplied:'设置已应用',pointCentered:'点已居中',palettes:['霓虹','海洋','火焰','单色','虹彩'],fractals:['Mandelbulb 3D','Mandelbox 3D','Menger 海绵','Sierpiński 四面体','四元数 Julia 3D']},
-  hi:{fractal:'Fractal',params:'Parameters',render:'Render',camera:'Camera',actions:'Actions',nav:'Navigation',orbitTrap:'Color effects',trapType:'Mode',trapClassic:'Classic',trapSphere:'Sphere',trapPlane:'XY plane',trapAxis:'Z axis',trapCube:'Cube',trapScale:'Scale',accumulate:'Progressive quality',qualityProfile:'Quality profile',palette:'Palette',exposure:'Exposure',brightness:'Brightness',glow:'Glow',softShadows:'Soft shadows',ao:'Ambient occlusion',fog:'Fog',fov:'Field of view',adaptiveRes:'Adaptive resolution',precision:'Precision',maxSteps:'Max steps',autoRotate:'Auto rotate',rotSpeed:'Rotation speed',comfort:'Comfort',balanced:'Balanced',quality:'Quality',resetView:'⌂ Default view',applyPreset:'⚙ Recommended settings',restartRotate:'⟳ Restart rotation',navHint:'Drag: orbit · Wheel: zoom<br>Shift+drag: pan<br>Double-click: इस point पर center',ready:'Ready',fps:'FPS',resolution:'Resolution',viewReset:'View reset',presetApplied:'Settings applied',pointCentered:'Point centered',palettes:['Neon','Ocean','Fire','Mono','Iridescent'],fractals:['Mandelbulb 3D','Mandelbox 3D','Menger Sponge','Sierpiński Tetrahedron','Quaternion Julia 3D']},
-  ar:{fractal:'فركتل',params:'المعلمات',render:'العرض',camera:'الكاميرا',actions:'إجراءات',nav:'التنقل',orbitTrap:'مؤثرات اللون',trapType:'الوضع',trapClassic:'كلاسيكي',trapSphere:'كرة',trapPlane:'مستوى XY',trapAxis:'محور Z',trapCube:'مكعب',trapScale:'المقياس',accumulate:'جودة تدريجية',qualityProfile:'إعداد الجودة',palette:'لوحة الألوان',exposure:'التعريض',brightness:'السطوع',glow:'الوهج',softShadows:'ظلال ناعمة',ao:'إطباق محيطي',fog:'ضباب',fov:'مجال الرؤية',adaptiveRes:'دقة تكيفية',precision:'الدقة',maxSteps:'أقصى خطوات',autoRotate:'دوران تلقائي',rotSpeed:'سرعة الدوران',comfort:'راحة',balanced:'متوازن',quality:'جودة',resetView:'⌂ العرض الافتراضي',applyPreset:'⚙ الإعدادات الموصى بها',restartRotate:'⟳ إعادة تشغيل الدوران',navHint:'سحب: مدار · عجلة: تكبير<br>Shift+سحب: تحريك<br>نقرة مزدوجة: توسيط على هذه النقطة',ready:'جاهز',fps:'FPS',resolution:'الدقة',viewReset:'تمت إعادة ضبط العرض',presetApplied:'تم تطبيق الإعدادات',pointCentered:'تم توسيط النقطة',palettes:['نيون','محيط','نار','أحادي','قزحي'],fractals:['Mandelbulb 3D','Mandelbox 3D','إسفنجة Menger','رباعي Sierpiński','Julia كواترنيون 3D']},
-  es:{fractal:'Fractal',params:'Parámetros',render:'Render',camera:'Cámara',actions:'Acciones',nav:'Navegación',orbitTrap:'Efectos de color',trapType:'Modo',trapClassic:'Clásico',trapSphere:'Esfera',trapPlane:'Plano XY',trapAxis:'Eje Z',trapCube:'Cubo',trapScale:'Escala',accumulate:'Calidad progresiva',qualityProfile:'Perfil de calidad',palette:'Paleta',exposure:'Exposición',brightness:'Luminosidad',glow:'Halo luminoso',softShadows:'Sombras suaves',ao:'Oclusión ambiental',fog:'Niebla',fov:'Campo de visión',adaptiveRes:'Resolución adaptativa',precision:'Precisión',maxSteps:'Pasos máx.',autoRotate:'Rotación auto',rotSpeed:'Velocidad de rotación',comfort:'Confort',balanced:'Equilibrado',quality:'Calidad',resetView:'⌂ Vista por defecto',applyPreset:'⚙ Ajustes recomendados',restartRotate:'⟳ Reiniciar rotación',navHint:'Arrastrar: orbitar · Rueda: zoom<br>Shift+arrastrar: panorámica<br>Doble clic: centrar en este punto',ready:'Listo',fps:'FPS',resolution:'Resolución',viewReset:'Vista restablecida',presetApplied:'Ajustes aplicados',pointCentered:'Punto centrado',palettes:['Neón','Oceano','Fuego','Mono','Irisado'],fractals:['Mandelbulb 3D','Mandelbox 3D','Esponja de Menger','Tetraedro de Sierpiński','Julia cuaternión 3D']}
+  zh:{fractal:'分形',params:'参数',render:'渲染',camera:'相机',actions:'操作',nav:'导航',orbitTrap:'颜色效果',trapType:'模式',trapClassic:'经典',trapSphere:'球体',trapPlane:'XY 平面',trapAxis:'Z 轴',trapCube:'立方体',trapScale:'比例',accumulate:'渐进质量',qualityProfile:'质量配置',palette:'调色板',exposure:'曝光',brightness:'亮度',glow:'光晕',softShadows:'柔和阴影',ao:'环境光遮蔽',fog:'雾',fov:'视野',adaptiveRes:'自适应分辨率',precision:'精度',maxSteps:'最大步数',autoRotate:'自动旋转',rotSpeed:'旋转速度',ultralight:'超轻量 🐢',comfort:'舒适',balanced:'平衡',quality:'质量',resetView:'⌂ 默认视图',applyPreset:'⚙ 推荐设置',restartRotate:'⟳ 重新开始旋转',navHint:'拖动：轨道 · 滚轮：缩放<br>Shift+拖动：平移<br>双击：居中到此点',ready:'就绪',fps:'FPS',resolution:'分辨率',viewReset:'视图已重置',presetApplied:'设置已应用',pointCentered:'点已居中',palettes:['霓虹','海洋','火焰','单色','虹彩'],fractals:['Mandelbulb 3D','Mandelbox 3D','Menger 海绵','Sierpiński 四面体','四元数 Julia 3D']},
+  hi:{fractal:'Fractal',params:'Parameters',render:'Render',camera:'Camera',actions:'Actions',nav:'Navigation',orbitTrap:'Color effects',trapType:'Mode',trapClassic:'Classic',trapSphere:'Sphere',trapPlane:'XY plane',trapAxis:'Z axis',trapCube:'Cube',trapScale:'Scale',accumulate:'Progressive quality',qualityProfile:'Quality profile',palette:'Palette',exposure:'Exposure',brightness:'Brightness',glow:'Glow',softShadows:'Soft shadows',ao:'Ambient occlusion',fog:'Fog',fov:'Field of view',adaptiveRes:'Adaptive resolution',precision:'Precision',maxSteps:'Max steps',autoRotate:'Auto rotate',rotSpeed:'Rotation speed',ultralight:'अति-हल्का 🐢',comfort:'Comfort',balanced:'Balanced',quality:'Quality',resetView:'⌂ Default view',applyPreset:'⚙ Recommended settings',restartRotate:'⟳ Restart rotation',navHint:'Drag: orbit · Wheel: zoom<br>Shift+drag: pan<br>Double-click: इस point पर center',ready:'Ready',fps:'FPS',resolution:'Resolution',viewReset:'View reset',presetApplied:'Settings applied',pointCentered:'Point centered',palettes:['Neon','Ocean','Fire','Mono','Iridescent'],fractals:['Mandelbulb 3D','Mandelbox 3D','Menger Sponge','Sierpiński Tetrahedron','Quaternion Julia 3D']},
+  ar:{fractal:'فركتل',params:'المعلمات',render:'العرض',camera:'الكاميرا',actions:'إجراءات',nav:'التنقل',orbitTrap:'مؤثرات اللون',trapType:'الوضع',trapClassic:'كلاسيكي',trapSphere:'كرة',trapPlane:'مستوى XY',trapAxis:'محور Z',trapCube:'مكعب',trapScale:'المقياس',accumulate:'جودة تدريجية',qualityProfile:'إعداد الجودة',palette:'لوحة الألوان',exposure:'التعريض',brightness:'السطوع',glow:'الوهج',softShadows:'ظلال ناعمة',ao:'إطباق محيطي',fog:'ضباب',fov:'مجال الرؤية',adaptiveRes:'دقة تكيفية',precision:'الدقة',maxSteps:'أقصى خطوات',autoRotate:'دوران تلقائي',rotSpeed:'سرعة الدوران',ultralight:'فائق الخفة 🐢',comfort:'راحة',balanced:'متوازن',quality:'جودة',resetView:'⌂ العرض الافتراضي',applyPreset:'⚙ الإعدادات الموصى بها',restartRotate:'⟳ إعادة تشغيل الدوران',navHint:'سحب: مدار · عجلة: تكبير<br>Shift+سحب: تحريك<br>نقرة مزدوجة: توسيط على هذه النقطة',ready:'جاهز',fps:'FPS',resolution:'الدقة',viewReset:'تمت إعادة ضبط العرض',presetApplied:'تم تطبيق الإعدادات',pointCentered:'تم توسيط النقطة',palettes:['نيون','محيط','نار','أحادي','قزحي'],fractals:['Mandelbulb 3D','Mandelbox 3D','إسفنجة Menger','رباعي Sierpiński','Julia كواترنيون 3D']},
+  es:{fractal:'Fractal',params:'Parámetros',render:'Render',camera:'Cámara',actions:'Acciones',nav:'Navegación',orbitTrap:'Efectos de color',trapType:'Modo',trapClassic:'Clásico',trapSphere:'Esfera',trapPlane:'Plano XY',trapAxis:'Eje Z',trapCube:'Cubo',trapScale:'Escala',accumulate:'Calidad progresiva',qualityProfile:'Perfil de calidad',palette:'Paleta',exposure:'Exposición',brightness:'Luminosidad',glow:'Halo luminoso',softShadows:'Sombras suaves',ao:'Oclusión ambiental',fog:'Niebla',fov:'Campo de visión',adaptiveRes:'Resolución adaptativa',precision:'Precisión',maxSteps:'Pasos máx.',autoRotate:'Rotación auto',rotSpeed:'Velocidad de rotación',ultralight:'Ultra-ligero 🐢',comfort:'Confort',balanced:'Equilibrado',quality:'Calidad',resetView:'⌂ Vista por defecto',applyPreset:'⚙ Ajustes recomendados',restartRotate:'⟳ Reiniciar rotación',navHint:'Arrastrar: orbitar · Rueda: zoom<br>Shift+arrastrar: panorámica<br>Doble clic: centrar en este punto',ready:'Listo',fps:'FPS',resolution:'Resolución',viewReset:'Vista restablecida',presetApplied:'Ajustes aplicados',pointCentered:'Punto centrado',palettes:['Neón','Oceano','Fuego','Mono','Irisado'],fractals:['Mandelbulb 3D','Mandelbox 3D','Esponja de Menger','Tetraedro de Sierpiński','Julia cuaternión 3D']}
 });
 
 var locale3D=globalThis.__locale3DRequested || 'fr';
@@ -8230,35 +8279,45 @@ const FRACTAL_META={
     powerLabel:'Puissance',bailoutLabel:'Bailout',
     home:{yaw:0.9,pitch:0.28,distance:8.0,target:[0,0,0],fov:45},
     preset:{power:8.0,bailout:8.0,epsilon:0.00060,maxSteps:180,far:40,
-            palette:2,exposure:1.20,glow:0.40,shadows:true,ao:true,fog:false}
+            palette:2,exposure:1.20,glow:0.40,shadows:true,ao:true,fog:false},
+    presetUltralight:{power:8.0,bailout:8.0,epsilon:0.00080,maxSteps:48,far:28,
+            palette:2,exposure:1.20,glow:0.20,shadows:false,ao:false,fog:false}
   },
   [FRACTALS3D.MANDELBOX]:{
     name:'Mandelbox',badge:'Mandelbox 3D',
     powerLabel:'Scale',bailoutLabel:'Box fold',
     home:{yaw:0.55,pitch:0.15,distance:26.0,target:[0,0,0],fov:62},
     preset:{power:7.2,bailout:6.8,epsilon:0.00035,maxSteps:144,far:45,
-            palette:1,exposure:1.10,glow:0.22,shadows:false,ao:true,fog:false}
+            palette:1,exposure:1.10,glow:0.22,shadows:false,ao:true,fog:false},
+    presetUltralight:{power:7.2,bailout:6.8,epsilon:0.00060,maxSteps:40,far:32,
+            palette:1,exposure:1.10,glow:0.10,shadows:false,ao:false,fog:false}
   },
   [FRACTALS3D.MENGER]:{
     name:'Menger Sponge',badge:'Menger Sponge',
     powerLabel:'Size',bailoutLabel:'Spacing',
     home:{yaw:0.9,pitch:0.28,distance:8.0,target:[0,0,0],fov:42},
     preset:{power:8.2,bailout:8.6,epsilon:0.00055,maxSteps:120,far:22,
-            palette:1,exposure:0.95,glow:0.18,shadows:true,ao:true,fog:false}
+            palette:1,exposure:0.95,glow:0.18,shadows:true,ao:true,fog:false},
+    presetUltralight:{power:8.2,bailout:8.6,epsilon:0.00080,maxSteps:40,far:16,
+            palette:1,exposure:0.95,glow:0.10,shadows:false,ao:false,fog:false}
   },
   [FRACTALS3D.SIERPINSKI]:{
     name:'Sierpiński Tetrahedron',badge:'Sierpiński 3D',
     powerLabel:'—',bailoutLabel:'—',
     home:{yaw:0.6,pitch:0.35,distance:5.0,target:[0,0,0],fov:45},
     preset:{power:8.0,bailout:8.0,epsilon:0.00040,maxSteps:80,far:12,
-            palette:0,exposure:1.0,glow:0.45,shadows:true,ao:true,fog:false}
+            palette:0,exposure:1.0,glow:0.45,shadows:true,ao:true,fog:false},
+    presetUltralight:{power:8.0,bailout:8.0,epsilon:0.00060,maxSteps:32,far:10,
+            palette:0,exposure:1.0,glow:0.20,shadows:false,ao:false,fog:false}
   },
   [FRACTALS3D.JULIA3]:{
     name:'Quaternion Julia',badge:'Julia 3D',
     powerLabel:'—',bailoutLabel:'—',
     home:{yaw:1.1,pitch:0.20,distance:6.0,target:[0,0,0],fov:45},
     preset:{power:8.0,bailout:8.0,epsilon:0.00050,maxSteps:120,far:18,
-            palette:1,exposure:0.95,glow:0.28,shadows:true,ao:true,fog:false}
+            palette:1,exposure:0.95,glow:0.28,shadows:true,ao:true,fog:false},
+    presetUltralight:{power:8.0,bailout:8.0,epsilon:0.00070,maxSteps:40,far:14,
+            palette:1,exposure:0.95,glow:0.15,shadows:false,ao:false,fog:false}
   }
 };
 
@@ -8337,7 +8396,9 @@ let fps3d=0,frameCount3d=0,fpsTime3d=0,toastTimer3d=null;
 function applyPreset3d(){
   const meta=FRACTAL_META[state3d.fractal];
   if(!meta||!meta.preset) return; // Guard: unknown fractal
-  Object.assign(state3d,meta.preset);
+  const isUltralight=(activePerfProfile==='ultralight'||ssQualityProfile==='ultralight');
+  const p=(isUltralight&&meta.presetUltralight)?meta.presetUltralight:meta.preset;
+  Object.assign(state3d,p);
 }
 function applyHome3d(){
   const meta2=FRACTAL_META[state3d.fractal];
@@ -8419,8 +8480,7 @@ function _ssApplyProfile(profileKey){
   } else {
     try{localStorage.setItem('ss3d_profile',profileKey);}catch(e){}
   }
-  const sel=document.getElementById('ssProfile3d');
-  if(sel) sel.value=profileKey;
+  // Button bar will be refreshed by _ssUpdateProfileUI → buildProfileBtns3d
 }
 function _ssBenchmark(frameMs){
   if(SS_CTRL.benchDone) return;
@@ -8431,7 +8491,8 @@ function _ssBenchmark(frameMs){
   SS_CTRL.benchDone=true;
   const avgMs=SS_CTRL.benchTotalMs/SS_CTRL.BENCH_FRAMES;
   // Recommend a profile based on average frame time at native resolution
-  if(avgMs>55)      ssRecommendedProfile='comfort';
+  if(avgMs>90)      ssRecommendedProfile='ultralight';
+  else if(avgMs>55) ssRecommendedProfile='comfort';
   else if(avgMs>28) ssRecommendedProfile='balanced';
   else              ssRecommendedProfile='quality';
   // Apply the saved profile or the recommended one
@@ -8439,6 +8500,12 @@ function _ssBenchmark(frameMs){
   try{saved=localStorage.getItem('ss3d_profile')||'';}catch(e){}
   const toApply=(saved&&SS_QUALITY_PROFILES[saved])?saved:ssRecommendedProfile;
   _ssApplyProfile(toApply);
+  // For ultralight: immediately cap maxSteps to avoid further freeze
+  if(toApply==='ultralight' && typeof state3d!=='undefined'){
+    const cap=PERF_PROFILES.ultralight.maxSteps3d||48;
+    state3d.maxSteps=Math.min(state3d.maxSteps, cap);
+    if(typeof syncUI3d==='function') syncUI3d();
+  }
   // Update the UI with the recommendation
   _ssUpdateProfileUI();
 }
@@ -8462,19 +8529,25 @@ function _ssInitFromProfile(){
   }catch(e){}
 }
 
+function buildProfileBtns3d(){
+  const bar=document.getElementById('profileBtnBar3d');
+  if(!bar) return;
+  bar.innerHTML=Object.keys(SS_QUALITY_PROFILES).map(k=>{
+    const active=k===ssQualityProfile;
+    const rec=k===ssRecommendedProfile;
+    const i18nLabel=(I18N_3D[locale3D]&&I18N_3D[locale3D][k])||SS_QUALITY_PROFILES[k].label;
+    return `<button class="prof-btn${active?' active':''}${rec?' rec':''}" data-k="${k}">${i18nLabel}${rec?' ★':''}</button>`;
+  }).join('');
+  bar.querySelectorAll('.prof-btn').forEach(btn=>{
+    btn.onclick=()=>{
+      pushHistory3dPoint();
+      _ssApplyProfile(btn.dataset.k);
+      buildProfileBtns3d();
+    };
+  });
+}
 function _ssUpdateProfileUI(){
-  const sel=document.getElementById('ssProfile3d');
-  if(sel){
-    sel.value=ssQualityProfile;
-    // Show star on the recommended profile
-    Array.from(sel.options).forEach(o=>{
-      const isRec=o.value===ssRecommendedProfile;
-      const prof=SS_QUALITY_PROFILES[o.value];
-      o.textContent=(isRec?'★ ':'')+prof.label;
-    });
-  }
-  // Show/hide the manual slider
-
+  buildProfileBtns3d();
 }
 
 function _ssAdaptFromFrameTime(frameMs){
@@ -8662,6 +8735,28 @@ function render3d(){
   // FPS + frame time for the SS controller
   const frameMs=(now-prev3d)*1000; // prev3d is already now here; use dt
   _ssAdaptFromFrameTime(dt*1000);
+
+  // ── 3D Watchdog: reduce maxSteps if frames are too slow ──────────
+  if(!state3d._wdSlowCount) state3d._wdSlowCount=0;
+  if(!state3d._wdLastToastAt) state3d._wdLastToastAt=0;
+  if(dt*1000>90){
+    state3d._wdSlowCount++;
+    if(state3d._wdSlowCount>=6 && state3d.maxSteps>32){
+      const newSteps=Math.max(32, Math.round(state3d.maxSteps*0.75));
+      if(newSteps<state3d.maxSteps){
+        state3d.maxSteps=newSteps;
+        state3d._wdSlowCount=0;
+        const nowMs=performance.now();
+        if(nowMs-state3d._wdLastToastAt>4000){
+          state3d._wdLastToastAt=nowMs;
+          if(typeof toast==='function') toast('🌿','Qualité 3D réduite automatiquement');
+          if(typeof syncUI3d==='function') syncUI3d();
+        }
+      }
+    }
+  } else {
+    state3d._wdSlowCount=Math.max(0,(state3d._wdSlowCount||0)-1);
+  }
   frameCount3d++;
   if(now-fpsTime3d>=1000){
     fps3d=frameCount3d; frameCount3d=0; fpsTime3d=now;
@@ -9025,12 +9120,8 @@ function _init3d(){
   // Actions
 
 
-  // SS quality profile
-  document.getElementById('ssProfile3d').addEventListener('change',e=>{
-    pushHistory3dPoint();
-    _ssApplyProfile(e.target.value);
-    _ssUpdateProfileUI();
-  });
+  // SS quality profile — boutons générés (même UI que la 2D)
+  buildProfileBtns3d();
   bindSelect3d('trapType3d',v=>{state3d.trapType=v;state3d.accumFrame=0;});
   bindRange3d('trapScale3d',v=>{state3d.trapScale=v/100;state3d.accumFrame=0;});
   bindCheck3d('accumulate3d',v=>{state3d.accumulate=v;state3d.accumFrame=0;});
@@ -9063,16 +9154,30 @@ var Fractal3D = {
     syncUI3d();
     applyLocale3D();
     resize3d();
+    // Apply ultralight maxSteps cap if the profile is already set
+    if(activePerfProfile==='ultralight' && PERF_PROFILES.ultralight.maxSteps3d){
+      state3d.maxSteps=Math.min(state3d.maxSteps, PERF_PROFILES.ultralight.maxSteps3d);
+    }
     if(!Fractal3D._running){
       Fractal3D._running = true;
       Fractal3D._gen++;
       const gen = Fractal3D._gen;
       const loop = () => {
         if(!Fractal3D._running || gen !== Fractal3D._gen) return;
-        render3d();
+        if(!document.hidden) render3d();
         requestAnimationFrame(loop);
       };
       requestAnimationFrame(loop);
+      // Pause/resume on page visibility change (screen off, tab switch, app background)
+      if(!Fractal3D._visibilityBound){
+        Fractal3D._visibilityBound=true;
+        document.addEventListener('visibilitychange',()=>{
+          if(!document.hidden && Fractal3D._running){
+            // Reset prev3d to avoid a huge dt spike on resume
+            prev3d=performance.now();
+          }
+        });
+      }
     }
     force3DLayoutRecovery();
   },
@@ -9100,7 +9205,8 @@ var Fractal3D = {
     if(autoRotateInput) autoRotateInput.checked = true;
   },
   _running: false,
-  _gen: 0
+  _gen: 0,
+  _visibilityBound: false
 };
 // ── END PUBLIC INTERFACE ────────────────────────────────────────────────
 
