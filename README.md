@@ -85,7 +85,7 @@ Everything is bundled in a **single HTML file** — works offline, no server nee
  
 ## Getting started
  
-1. **Download** [`fractales.html`](https://github.com/Fabrice-breizh/Fractales-Explorer/raw/main/fractales.html)
+1. **Download** [`fractales.html`](https://github.com/Fabrice-breizh/Fractales-Explorer/releases/latest/download/fractales.html)
 2. **Open** it in any modern browser (Chrome, Firefox, Edge, Safari)
 3. **Explore** — that's it
 Or just [try it online](https://fabzh.eu/fractales.html) without downloading anything.
