@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://fabzh.eu/fractales.html"><strong>Essayer en ligne</strong></a>
+  <a href="https://fabrice-breizh.github.io/Fractales-Explorer/fractales.html"><strong>Essayer en ligne</strong></a>
   &nbsp;·&nbsp;
   <a href="https://github.com/Fabrice-breizh/Fractales-Explorer/raw/main/fractales.html">Télécharger</a>
   &nbsp;·&nbsp;
