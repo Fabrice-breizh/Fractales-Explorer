@@ -993,6 +993,7 @@ body.lowfx .panel-pin[aria-pressed="true"]{background:var(--accent)}
         <div class="row">
           <button class="btn sm" id="histEqBtn" style="width:100%;justify-content:center;font-size:11px" title="Automatically adjusts cycles and shift">Auto-balance</button>
         </div>
+<label class="switch" id="autoColorRow"><span id="autoColorLabel">Colours adapted to the zoom</span><input type="checkbox" id="autoColorChk"></label>
         <div class="row">
           <div class="label"><span>Ready-made styles</span><span class="value">Quick beauty</span></div>
           <div class="preset-grid" id="stylePresetGrid">
@@ -1476,9 +1477,34 @@ vec2 zpw1(vec2 z){
 vec2 zpw(vec2 z){return cpow(z,uExp);}
 #endif`;
 
+// Colouring of one pixel from its iteration data. Shared by the fractal
+// shaders (single pass) and by the colour pass of split rendering.
+// t = smooth iteration count / 64, not wrapped; t<0 interior, t<-1.5 glitch.
+const GLSL_SHADE=`
+// Colour density adapted to the view (1, 0 = classic 64 iterations per cycle).
+uniform float uColScale,uColOff;
+vec4 shadeT(float t,float de,float stripe,float trap,vec2 dz){
+  if(t<-1.5)return vec4(0.,0.,0.,0.5); // glitch : alpha=0.5
+  if(t<0.)return vec4(0.,0.,0.,1.);
+  float sc=uColScale>0.?uColScale:1.;
+  float tu=(t-uColOff)*sc;
+  // Keep the cycle index: the palette's own cycles (uPalCyc) then stay
+  // continuous across cycle boundaries, even for non-integer values.
+  float cyc=floor(tu);t=tu-cyc;
+  float tBase=t;
+  if(uDoStripe==1)tBase=mix(t,fract(t+stripe*.5),uStripeM);
+  if(uDoTrap==1){float tn=clamp(1.-trap/uTrapRad,0.,1.);tn*=tn;tBase=mix(tBase,fract(tBase*.3+tn*.7),uTrapInt);}
+  vec3 col=pal(cyc+tBase);
+  if(uDoDE==1){float edge=clamp(de/uDEThick,0.,1.);float halo=exp(-edge*edge*6.);col=col*(.3+.7*edge)+vec3(halo*.6);}
+  if(uDoNormal==1){float dzMag=length(dz)+1e-10;vec2 dzN=dz/dzMag;float h=uNHeight*.008;vec3 N=normalize(vec3(-dzN.x*h,-dzN.y*h,1.));vec3 L=normalize(vec3(cos(uNAngle)*cos(uNElev),sin(uNAngle)*cos(uNElev),sin(uNElev)));float diff=clamp(dot(N,L),0.,1.);float spec=pow(clamp(dot(N,normalize(L+vec3(0.,0.,1.))),0.,1.),48.)*uNSpec;col=col*(.45+diff*.55)+vec3(spec);}
+  return vec4(clamp(col,0.,1.),1.);
+}`;
+
 const FS_STD=`#version 300 es
 precision highp float;
-out vec4 fragColor;
+layout(location=0) out vec4 fragColor;
+layout(location=1) out vec4 fragData;
+uniform int uDataOut; // 1: write iteration data (split rendering) instead of a colour
 uniform vec2 uRes;uniform vec2 uChi,uClo;uniform float uScale;
 uniform int uMaxIter;
 #ifdef FTYPE
@@ -1496,6 +1522,7 @@ uniform int uDoStripe;uniform float uStripeF,uStripeM;
 float worldX(float u){float s=uChi.x+u;return s+(uChi.x-s)+u+uClo.x;}
 float worldY(float u){float s=uChi.y+u;return s+(uChi.y-s)+u+uClo.y;}
 ${GLSL_PAL}
+${GLSL_SHADE}
 vec2 cmul(vec2 a,vec2 b){return vec2(a.x*b.x-a.y*b.y,a.x*b.y+a.y*b.x);}
 vec2 cdiv(vec2 a,vec2 b){float d=b.x*b.x+b.y*b.y;return vec2((a.x*b.x+a.y*b.y)/d,(a.y*b.x-a.x*b.y)/d);}
 float _cosh(float v){return(exp(v)+exp(-v))*.5;}
@@ -1740,7 +1767,7 @@ vec4 iterate2(vec2 C,vec2 Z0,out vec2 out_dz){
   float deVal=(dm>0.&&(ex2+ey2)>0.)?sqrt(ex2+ey2)*log(ex2+ey2)/(2.*dm):0.;
   if(escaped<0.)return vec4(-1.,deVal,0.,trapMin);
   float sl=log(log(ex2+ey2)/log(65536.))/log(uType==0?2.:(uType==22?1.5:max(uExp,1.01)));
-  float smoothT=fract((escaped+1.-sl)/64.);
+  float smoothT=(escaped+1.-sl)/64.; // wrapped at colouring time
   return vec4(smoothT,deVal,(iterCount>0.)?stripeAcc/iterCount:0.,trapMin);
 }
 uniform vec2 uJit; // sub-pixel offset (anti-aliasing at rest)
@@ -1824,25 +1851,20 @@ void main(){
   if(uType==0){
     // Main cardioid and period-2 bulb: known interior, no need to iterate.
     float q=(C.x-.25)*(C.x-.25)+C.y*C.y;
-    if(q*(q+(C.x-.25))<.25*C.y*C.y||(C.x+1.)*(C.x+1.)+C.y*C.y<.0625){fragColor=vec4(0.,0.,0.,1.);return;}
+    if(q*(q+(C.x-.25))<.25*C.y*C.y||(C.x+1.)*(C.x+1.)+C.y*C.y<.0625){fragColor=(uDataOut==1)?vec4(-1.,0.,0.,0.):vec4(0.,0.,0.,1.);fragData=vec4(0.);return;}
   }
   vec2 dz;vec4 res=iterate2(C,Z,dz);
   float t=res.x,de=res.y,stripe=res.z,trap=res.w;
-  if(t<-1.5){fragColor=vec4(0.,0.,0.,0.5);return;} // glitch : alpha=0.5
-  if(t<0.){fragColor=vec4(0.,0.,0.,1.);return;}
-  float tBase=t;
-  if(uDoStripe==1)tBase=mix(t,fract(t+stripe*.5),uStripeM);
-  if(uDoTrap==1){float tn=clamp(1.-trap/uTrapRad,0.,1.);tn*=tn;tBase=mix(tBase,fract(tBase*.3+tn*.7),uTrapInt);}
-  vec3 col=pal(tBase);
-  if(uDoDE==1){float edge=clamp(de/uDEThick,0.,1.);float halo=exp(-edge*edge*6.);col=col*(.3+.7*edge)+vec3(halo*.6);}
-  if(uDoNormal==1){float dzMag=length(dz)+1e-10;vec2 dzN=dz/dzMag;float h=uNHeight*.008;vec3 N=normalize(vec3(-dzN.x*h,-dzN.y*h,1.));vec3 L=normalize(vec3(cos(uNAngle)*cos(uNElev),sin(uNAngle)*cos(uNElev),sin(uNElev)));float diff=clamp(dot(N,L),0.,1.);float spec=pow(clamp(dot(N,normalize(L+vec3(0.,0.,1.))),0.,1.),48.)*uNSpec;col=col*(.45+diff*.55)+vec3(spec);}
-  fragColor=vec4(clamp(col,0.,1.),1.);
+  if(uDataOut==1){fragColor=vec4(t,de,stripe,trap);fragData=vec4(dz/(length(dz)+1e-10),0.,0.);return;}
+  fragColor=shadeT(t,de,stripe,trap,dz);
 }`;
 
 // Perturbation shader — deep zoom via reference orbit + per-pixel delta
 const FS_PERTURB=`#version 300 es
 precision highp float;
-out vec4 fragColor;
+layout(location=0) out vec4 fragColor;
+layout(location=1) out vec4 fragData;
+uniform int uDataOut; // 1: write iteration data (split rendering) instead of a colour
 uniform vec2 uRes;uniform float uScaleF;uniform vec2 uDcOffset;
 uniform int uMaxIter,uRefLen,uOrbitOffset;uniform sampler2D uOrbit;
 uniform int uJuliaMode;uniform vec2 uJuliaC;
@@ -1853,6 +1875,7 @@ uniform int uDoDE;uniform float uDEThick;
 uniform int uDoTrap,uTrapType;uniform float uTrapInt,uTrapRad;
 uniform int uDoStripe;uniform float uStripeF,uStripeM;
 ${GLSL_PAL}
+${GLSL_SHADE}
 vec2 cpow(vec2 z,float n){float r=length(z);if(r<1e-10)return vec2(0.);float a=atan(z.y,z.x);return pow(r,n)*vec2(cos(a*n),sin(a*n));}
 vec2 cmul(vec2 a,vec2 b){return vec2(a.x*b.x-a.y*b.y,a.x*b.y+a.y*b.x);}
 #ifndef IEXP
@@ -1990,7 +2013,7 @@ for(int i=0;i<12000;i++){
   float dm=sqrt(dex*dex+dey*dey);float deVal=(dm>0.&&(ex2+ey2)>0.)?sqrt(ex2+ey2)*log(ex2+ey2)/(2.*dm):0.;
   if(escaped<0.)return vec4(-1.,deVal,0.,trapMin);
   float sl=log(log(ex2+ey2)/log(65536.))/log(max(uExp,1.01));
-  float smoothT=fract((escaped+1.-sl)/64.);
+  float smoothT=(escaped+1.-sl)/64.; // wrapped at colouring time
   return vec4(smoothT,deVal,(iterCount>0.)?stripeAcc/iterCount:0.,trapMin);
 }
 uniform vec2 uJit; // sub-pixel offset (anti-aliasing at rest)
@@ -2000,25 +2023,19 @@ void main(){
   vec2 dc=uDcOffset+uv*uScaleF;vec2 dez;
   vec4 res=perturbIter2(dc,dez);
   float t=res.x,de=res.y,stripe=res.z,trap=res.w;
-  if(t<0.){fragColor=vec4(0.,0.,0.,1.);return;}
-  float tBase=t;
-  if(uDoStripe==1)tBase=mix(t,fract(t+stripe*.5),uStripeM);
-  if(uDoTrap==1){float tn=clamp(1.-trap/uTrapRad,0.,1.);tn*=tn;tBase=mix(tBase,fract(tBase*.3+tn*.7),uTrapInt);}
-  vec3 col=pal(tBase);
-  if(uDoDE==1){float edge=clamp(de/uDEThick,0.,1.);float halo=exp(-edge*edge*6.);col=col*(.3+.7*edge)+vec3(halo*.6);}
-  if(uDoNormal==1){float dzMag=length(dez)+1e-10;vec2 dzN=dez/dzMag;float h=uNHeight*.008;vec3 N=normalize(vec3(-dzN.x*h,-dzN.y*h,1.));vec3 L=normalize(vec3(cos(uNAngle)*cos(uNElev),sin(uNAngle)*cos(uNElev),sin(uNElev)));float diff=clamp(dot(N,L),0.,1.);float spec=pow(clamp(dot(N,normalize(L+vec3(0.,0.,1.))),0.,1.),48.)*uNSpec;col=col*(.45+diff*.55)+vec3(spec);}
-  fragColor=vec4(clamp(col,0.,1.),1.);
+  if(uDataOut==1){fragColor=vec4(t,de,stripe,trap);fragData=vec4(dez/(length(dez)+1e-10),0.,0.);return;}
+  fragColor=shadeT(t,de,stripe,trap,dez);
 }`;
 
 // Compile shaders and bind quad geometry
 function mkShader(t,s){const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))console.error('Shader:',gl.getShaderInfoLog(sh));return sh;}
 function mkProg(fs){const p=gl.createProgram();gl.attachShader(p,mkShader(gl.VERTEX_SHADER,VS));gl.attachShader(p,mkShader(gl.FRAGMENT_SHADER,fs));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))console.error('Link:',gl.getProgramInfoLog(p));return p;}
-const EFF=['uExp','uNewtonN','uPal','uPalShift','uPalCyc','uDoNormal','uNHeight','uNAngle','uNElev','uNSpec','uEps','uDoDE','uDEThick','uDoTrap','uTrapType','uTrapInt','uTrapRad','uDoStripe','uStripeF','uStripeM'];
+const EFF=['uColScale','uColOff','uExp','uNewtonN','uPal','uPalShift','uPalCyc','uDoNormal','uNHeight','uNAngle','uNElev','uNSpec','uEps','uDoDE','uDEThick','uDoTrap','uTrapType','uTrapInt','uTrapRad','uDoStripe','uStripeF','uStripeM'];
 // Programs are compiled lazily, one specialized program per fractal type
 // (FTYPE is a compile-time constant, so the driver drops every other branch).
 // Nothing is compiled at load time: the home screen stays responsive.
-const STD_UNIFORMS=['uRes','uJit','uChi','uClo','uScale','uMaxIter','uType','uJulia','uPhoenixP','uCP0','uCP1','uCP2','uCP3','uCP4','uCPS1','uCPS2','uCPS3',...EFF];
-const PT_UNIFORMS=['uRes','uJit','uScaleF','uDcOffset','uMaxIter','uRefLen','uOrbitOffset','uOrbit','uJuliaMode','uJuliaC','uCP0','uCP1','uCP2','uCP3','uCP4','uCPS1','uCPS2','uCPS3',...EFF];
+const STD_UNIFORMS=['uRes','uJit','uDataOut','uChi','uClo','uScale','uMaxIter','uType','uJulia','uPhoenixP','uCP0','uCP1','uCP2','uCP3','uCP4','uCPS1','uCPS2','uCPS3',...EFF];
+const PT_UNIFORMS=['uRes','uJit','uDataOut','uScaleF','uDcOffset','uMaxIter','uRefLen','uOrbitOffset','uOrbit','uJuliaMode','uJuliaC','uCP0','uCP1','uCP2','uCP3','uCP4','uCPS1','uCPS2','uCPS3',...EFF];
 let progStd=null,progPerturb=null,vbuf=null,USTD={},UPT={};
 const GLProgs={std:new Map(),pt:new Map()};
 // Integer exponent (2..8) baked into the program, or 0 when the generic cpow path is needed.
@@ -2131,6 +2148,188 @@ const BAND_MS=35;
 const finalRT={fbo:null,tex:null,w:0,h:0,lastW:0,lastH:0};
 let displayRT=mainRT; // render target holding the image currently on screen
 const bandJob={gen:0,active:null};
+
+// ── Split rendering: iteration data, then colour ─────────────────────
+// Final frames are computed in two passes: the fractal shader writes its
+// iteration data (smooth count, distance, stripes, trap, normal direction)
+// into float textures, then a light colour pass turns it into pixels. The
+// data of the last final frame is kept, so changing the palette, its shift
+// or cycles, or the lighting only reruns the colour pass: instant, even on
+// deep views. Without renderable float textures, the single pass is used.
+const Split={ok:null,fbo:null,t0:null,t1:null,w:0,h:0,prog:null,U:null,key:null,frameKey:null};
+const SPLIT_DIRECT_TYPES=new Set([29,30,45]); // colour computed directly by the shader
+const SPLIT_MAX_BYTES=128*1024*1024;
+const FS_COLOR=`#version 300 es
+precision highp float;
+out vec4 fragColor;
+uniform int uPal;uniform float uPalShift,uPalCyc;uniform vec3 uCP0,uCP1,uCP2,uCP3,uCP4;uniform float uCPS1,uCPS2,uCPS3;
+uniform int uDoNormal;uniform float uNHeight,uNAngle,uNElev,uNSpec,uEps;
+uniform int uDoDE;uniform float uDEThick;
+uniform int uDoTrap,uTrapType;uniform float uTrapInt,uTrapRad;
+uniform int uDoStripe;uniform float uStripeF,uStripeM;
+uniform sampler2D uD0,uD1;
+${GLSL_PAL}
+${GLSL_SHADE}
+void main(){
+  ivec2 p=ivec2(gl_FragCoord.xy);
+  vec4 a=texelFetch(uD0,p,0);vec4 b=texelFetch(uD1,p,0);
+  fragColor=shadeT(a.x,a.y,a.z,a.w,b.xy);
+}`;
+function splitReset(){
+  Split.ok=null;Split.fbo=null;Split.t0=null;Split.t1=null;Split.w=Split.h=0;
+  Split.prog=null;Split.U=null;Split.key=null;Split.frameKey=null;
+}
+function splitEnsure(W,H){
+  if(Split.fbo&&Split.w===W&&Split.h===H)return true;
+  try{
+    const mk=(tex,ifmt,type)=>{
+      gl.bindTexture(gl.TEXTURE_2D,tex);
+      gl.texImage2D(gl.TEXTURE_2D,0,ifmt,W,H,0,gl.RGBA,type,null);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    };
+    if(!Split.t0)Split.t0=gl.createTexture();
+    if(!Split.t1)Split.t1=gl.createTexture();
+    if(!Split.fbo)Split.fbo=gl.createFramebuffer();
+    mk(Split.t0,gl.RGBA32F,gl.FLOAT);     // smooth count, distance, stripes, trap: exact
+    mk(Split.t1,gl.RGBA16F,gl.HALF_FLOAT); // normal direction
+    gl.bindFramebuffer(gl.FRAMEBUFFER,Split.fbo);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,Split.t0,0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT1,gl.TEXTURE_2D,Split.t1,0);
+    gl.drawBuffers([gl.COLOR_ATTACHMENT0,gl.COLOR_ATTACHMENT1]);
+    const ok=gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE;
+    gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+    if(!ok){try{gl.deleteFramebuffer(Split.fbo);gl.deleteTexture(Split.t0);gl.deleteTexture(Split.t1);}catch(e){}splitReset();Split.ok=false;return false;}
+  }catch(e){console.warn('splitEnsure',e);splitReset();Split.ok=false;return false;}
+  Split.w=W;Split.h=H;Split.key=null;Split.frameKey=null;
+  return true;
+}
+function splitUsable(kind,W,H){
+  if(kind!=='std'&&kind!=='pt')return false;
+  if(!gl||glLost||runtimeProfile.name==='legacy'||SPLIT_DIRECT_TYPES.has(state.ftype))return false;
+  if(W*H*24>SPLIT_MAX_BYTES)return false;
+  if(Split.ok===null){try{Split.ok=!!gl.getExtension('EXT_color_buffer_float');}catch(e){Split.ok=false;}}
+  return !!Split.ok&&splitEnsure(W,H);
+}
+// Everything the iteration data depends on.
+function splitIterKey(kind,W,H,iters){
+  const s=state;
+  return [kind,W,H,iters,String(s.cx),String(s.cy),s.scale,s.ftype,s.jre,s.jim,s.phoenixP,s.fracExp,s.newtonDegree,
+    s.doNormal,s.doDE,s.doTrap,s.trapType,s.trapRad,s.doStripe,s.stripeF,s.quality,
+    supportsDerivativeEffects(),kind==='pt'?perturb.genID:0].join('|');
+}
+// Everything the colour pass depends on (besides the data).
+function splitColorKey(){
+  const s=state;
+  return [ColorAuto.scale,ColorAuto.off,s.palette,s.palShift,s.palCycles,s.nHeight,s.nAngle,s.nElev,s.nSpec,s.deThick,s.trapInt,s.stripeM,
+    s.palette===8?JSON.stringify([s.customPalette,s.customPalPos]):''].join('|');
+}
+// ── Colour density adapted to the view ───────────────────────────────
+// The palette normally repeats every 64 iterations. In deep zoom a view can
+// span hundreds of iterations, which shows as dozens of colour cycles, i.e.
+// coloured noise. After each final frame, the spread of smooth iteration
+// counts is measured on the stored data (a few rows only); when it is wide,
+// the palette is stretched to about 2.5 cycles across the view and anchored
+// on its outer regions. Narrow spreads (all shallow views) keep the classic
+// mapping exactly. Changes fade in over ~0.5 s through the colour pass.
+// Off by default: it changes the look of existing views (darker backgrounds).
+const ColorAuto={enabled:false,scale:1,off:0,animating:false,raf:0,KEY:'fractal.autoColor'};
+try{ColorAuto.enabled=localStorage.getItem(ColorAuto.KEY)==='1';}catch(e){}
+function colorAutoTarget(){
+  if(!ColorAuto.enabled||!Split.key||!Split.fbo)return{scale:1,off:0};
+  const W=Split.w,H=Split.h,rows=Math.min(48,H),vals=[];
+  const buf=new Float32Array(W*4);
+  gl.bindFramebuffer(gl.READ_FRAMEBUFFER,Split.fbo);gl.readBuffer(gl.COLOR_ATTACHMENT0);
+  for(let r=0;r<rows;r++){
+    const y=Math.min(H-1,Math.floor((r+0.5)*H/rows));
+    gl.readPixels(0,y,W,1,gl.RGBA,gl.FLOAT,buf);
+    for(let x=0;x<W;x+=2){const t=buf[x*4];if(t>=0&&isFinite(t))vals.push(t);}
+  }
+  gl.bindFramebuffer(gl.READ_FRAMEBUFFER,null);
+  if(vals.length<Math.max(50,rows*W/2*0.01))return{scale:ColorAuto.scale,off:ColorAuto.off}; // almost all interior: keep
+  vals.sort((a,b)=>a-b);
+  const q=f=>vals[Math.min(vals.length-1,Math.floor(f*(vals.length-1)))];
+  const p10=q(0.10),p90=q(0.90);
+  const spread=(p90-p10)*64;                 // iterations
+  const period=Math.max(64,spread/2.5);      // iterations per palette cycle
+  const w=Math.max(0,Math.min(1,(period-64)/64)); // 0 at the threshold: continuous with the classic mapping
+  return{scale:64/period,off:p10*w};
+}
+function colorAutoUpdate(){
+  if(!gl||glLost)return;
+  let tg;try{tg=colorAutoTarget();}catch(e){console.warn('colorAuto',e);return;}
+  const s0=ColorAuto.scale,o0=ColorAuto.off;
+  // Ignore changes too small to see (avoids needless recolouring).
+  if(Math.abs(Math.log(tg.scale/s0))<0.02&&Math.abs((tg.off-o0)*tg.scale)<0.01)return;
+  cancelAnimationFrame(ColorAuto.raf);
+  const t0=performance.now(),D=450;
+  ColorAuto.animating=true;
+  const step=()=>{
+    const k=Math.min(1,(performance.now()-t0)/D),e=k*k*(3-2*k);
+    ColorAuto.scale=Math.exp(Math.log(s0)+(Math.log(tg.scale)-Math.log(s0))*e);
+    ColorAuto.off=o0+(tg.off-o0)*e;
+    if(k>=1){ColorAuto.scale=tg.scale;ColorAuto.off=tg.off;ColorAuto.animating=false;}
+    requestRender();
+    if(k<1)ColorAuto.raf=requestAnimationFrame(step);
+  };
+  ColorAuto.raf=requestAnimationFrame(step);
+}
+function colorAutoSchedule(){setTimeout(colorAutoUpdate,0);}
+function splitScissor(W,H,y0,y1){
+  if(y0>0||y1<H){gl.enable(gl.SCISSOR_TEST);gl.scissor(0,y0,W,y1-y0);}else gl.disable(gl.SCISSOR_TEST);
+}
+function splitDataPass(kind,W,H,iters,y0,y1){
+  gl.bindFramebuffer(gl.FRAMEBUFFER,Split.fbo);gl.viewport(0,0,W,H);gl.disable(gl.BLEND);
+  splitScissor(W,H,y0,y1);
+  fracSetup(kind,W,H,iters);
+  const U=kind==='pt'?UPT:USTD;
+  gl.uniform1i(U.uDataOut,1);
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  gl.uniform1i(U.uDataOut,0);
+}
+function splitColorPass(fbo,W,H,y0,y1){
+  if(!Split.prog){Split.prog=mkProg(FS_COLOR);Split.U=getU(Split.prog,['uD0','uD1',...EFF]);}
+  gl.bindFramebuffer(gl.FRAMEBUFFER,fbo);gl.viewport(0,0,W,H);
+  splitScissor(W,H,y0,y1);
+  gl.useProgram(Split.prog);ensureQuad();bindQuad(Split.prog);
+  gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,Split.t0);
+  gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,Split.t1);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.uniform1i(Split.U.uD0,1);gl.uniform1i(Split.U.uD1,2);
+  setEffU(Split.U,W);
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  gl.disable(gl.SCISSOR_TEST);
+}
+function splitPresent(rt,W,H){
+  gl.bindFramebuffer(gl.READ_FRAMEBUFFER,rt.fbo);gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER,null);
+  gl.blitFramebuffer(0,0,W,H,0,0,W,H,gl.COLOR_BUFFER_BIT,gl.NEAREST);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+}
+// Handles a render request from the stored data when possible. Returns true
+// when nothing else has to be drawn.
+function splitTryReuse(kind,W,H,iters,inter){
+  if(!Split.key||!Split.ok||!gl||glLost)return false;
+  if(Split.key!==splitIterKey(kind,W,H,iters))return false;
+  const ck=splitColorKey();
+  try{
+    if(Split.frameKey===Split.key+'#'+ck){
+      // The very same picture is already on screen (or being refined).
+      if(!displayRT||!displayRT.fbo||displayRT.lastW!==W||displayRT.lastH!==H)return false;
+      splitPresent(displayRT,W,H);
+      if(!inter&&!aaJob.active&&displayRT!==aaOutRT){bandJob.gen++;bandJob.active=null;reprojCapture();aaStart(kind,W,H,iters);}
+      return true;
+    }
+    // Only colours changed: recolour the stored data (instant).
+    if(!rtEnsure(W,H))return false;
+    bandJob.gen++;bandJob.active=null;aaJob.active=null;AA.jit=[0,0];
+    splitColorPass(mainRT.fbo,W,H,0,H);
+    mainRT.lastW=W;mainRT.lastH=H;displayRT=mainRT;
+    splitPresent(mainRT,W,H);
+    Split.frameKey=Split.key+'#'+ck;
+    if(!inter&&!ColorAuto.animating){reprojCapture();aaStart(kind,W,H,iters);}
+    return true;
+  }catch(e){console.warn('splitTryReuse',e);Split.key=null;return false;}
+}
 
 // ── Anti-aliasing at rest ────────────────────────────────────────────
 // Once a final frame is on screen and the view is still, the fractal is
@@ -2262,7 +2461,7 @@ void main(){
 // Everything that changes the picture except the view itself.
 function reprojKey(){
   const s=state;
-  return [s.ftype,s.maxIter,s.quality,s.palette,s.palShift,s.palCycles,s.doNormal,s.nHeight,s.nAngle,s.nElev,s.nSpec,
+  return [ColorAuto.scale,ColorAuto.off,s.ftype,s.maxIter,s.quality,s.palette,s.palShift,s.palCycles,s.doNormal,s.nHeight,s.nAngle,s.nElev,s.nSpec,
     s.doDE,s.deThick,s.doTrap,s.trapType,s.trapInt,s.trapRad,s.doStripe,s.stripeF,s.stripeM,
     s.jre,s.jim,s.phoenixP,s.fracExp,s.newtonDegree,
     s.palette===8?JSON.stringify([s.customPalette,s.customPalPos]):''].join('|');
@@ -2388,13 +2587,24 @@ function predictFrameMs(W,H,iters){
 }
 function drawFractal(kind,W,H,iters,{noBand=false}={}){
   const inter=!!runtime.interacting;
+  if(!noBand&&splitTryReuse(kind,W,H,iters,inter))return; // colour-only change: no recompute
   bandJob.gen++;bandJob.active=null; // a new frame supersedes any band job
   gl.disable(gl.SCISSOR_TEST);
-  if(!inter&&!noBand&&predictFrameMs(W,H,iters)>BAND_MS*1.5&&startBandJob(kind,W,H,iters))return;
+  const split=!inter&&splitUsable(kind,W,H);
+  if(!inter&&!noBand&&predictFrameMs(W,H,iters)>BAND_MS*1.5&&startBandJob(kind,W,H,iters,split))return;
   const t0=GpuTimer.begin(inter);
   const r=rtBegin(W,H);
-  fracSetup(kind,r.w,r.h,iters);
-  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  if(split&&!r.direct){
+    Split.key=null;
+    splitDataPass(kind,W,H,iters,0,H);
+    splitColorPass(mainRT.fbo,W,H,0,H);
+    Split.key=splitIterKey(kind,W,H,iters);Split.frameKey=Split.key+'#'+splitColorKey();
+    if(!inter)colorAutoSchedule();
+  }else{
+    fracSetup(kind,r.w,r.h,iters);
+    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+    Split.frameKey=null;
+  }
   rtPresent(W,H,r);
   GpuTimer.end(t0,inter);
   if(!r.direct){
@@ -2402,7 +2612,7 @@ function drawFractal(kind,W,H,iters,{noBand=false}={}){
     else{reprojCapture();aaStart(kind,W,H,iters);} // final frame: reference image, then anti-aliasing
   }
 }
-function startBandJob(kind,W,H,iters){
+function startBandJob(kind,W,H,iters,split=false){
   if(!rtObjEnsure(finalRT,W,H)||!rtObjEnsure(mainRT,W,H))return false;
   if(displayRT===finalRT&&finalRT.lastW){
     // bands will overwrite finalRT: keep the current image as the background
@@ -2414,8 +2624,9 @@ function startBandJob(kind,W,H,iters){
   const est=predictFrameMs(W,H,iters);
   // First band deliberately small (the estimate may be off); later bands are sized from measurements.
   const first=Math.max(8,Math.min(Math.ceil(H/8),Math.round(H*BAND_MS/Math.max(est,1))));
-  const job={gen:bandJob.gen,kind,W,H,iters,y:H,bandH:first,t0:performance.now()};
+  const job={gen:bandJob.gen,kind,W,H,iters,y:H,bandH:first,t0:performance.now(),split:!!split};
   bandJob.active=job;
+  Split.frameKey=null;if(split)Split.key=null; // the stored data is about to be overwritten
   bandStep(job);
   return true;
 }
@@ -2424,12 +2635,17 @@ function bandStep(job){
   if(job.kind==='pt'&&!perturb.canRender()){bandJob.active=null;return;}
   const W=job.W,H=job.H,y1=job.y,y0=Math.max(0,y1-job.bandH);
   try{
-    gl.bindFramebuffer(gl.FRAMEBUFFER,finalRT.fbo);gl.viewport(0,0,W,H);
-    gl.enable(gl.SCISSOR_TEST);gl.scissor(0,y0,W,y1-y0);
-    fracSetup(job.kind,W,H,job.iters);
     const t=performance.now();
-    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
-    gl.disable(gl.SCISSOR_TEST);
+    if(job.split){
+      splitDataPass(job.kind,W,H,job.iters,y0,y1);
+      splitColorPass(finalRT.fbo,W,H,y0,y1);
+    }else{
+      gl.bindFramebuffer(gl.FRAMEBUFFER,finalRT.fbo);gl.viewport(0,0,W,H);
+      gl.enable(gl.SCISSOR_TEST);gl.scissor(0,y0,W,y1-y0);
+      fracSetup(job.kind,W,H,job.iters);
+      gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+      gl.disable(gl.SCISSOR_TEST);
+    }
     const px=new Uint8Array(4);gl.readPixels(0,y0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px); // wait for this band
     const ms=Math.max(0.5,performance.now()-t);
     job.bandH=Math.max(8,Math.min(H,Math.round((y1-y0)*BAND_MS/ms)));
@@ -2449,6 +2665,7 @@ function bandStep(job){
   if(y0>0){requestAnimationFrame(()=>bandStep(job));return;}
   finalRT.lastW=W;finalRT.lastH=H;displayRT=finalRT;bandJob.active=null;
   perfState.lastBandedMs=performance.now()-job.t0;
+  if(job.split){Split.key=splitIterKey(job.kind,W,H,job.iters);Split.frameKey=Split.key+'#'+splitColorKey();colorAutoSchedule();}
   reprojCapture();
   aaStart(job.kind,W,H,job.iters);
 }
@@ -2542,7 +2759,7 @@ function rebuildGL(){
   vbuf=null;ensureQuad();
   mainRT.fbo=null;mainRT.tex=null;mainRT.w=mainRT.h=mainRT.lastW=mainRT.lastH=0;
   finalRT.fbo=null;finalRT.tex=null;finalRT.w=finalRT.h=finalRT.lastW=finalRT.lastH=0;displayRT=mainRT;bandJob.active=null;bandJob.gen++;
-  reprojReset();aaReset();
+  reprojReset();aaReset();splitReset();
   GpuTimer.ext=undefined;GpuTimer.pending=false;GpuTimer.active=false;
   perturb.reset();
 }
@@ -4887,6 +5104,7 @@ function setEffU(U,W){
   gl.uniform1f(U.uExp,(state.ftype===0||(state.ftype===3&&!state.fracExp))?2.0:state.fracExp);
   if(U.uNewtonN) gl.uniform1f(U.uNewtonN,Math.max(3,Math.min(10,state.newtonDegree||3)));
   gl.uniform1i(U.uPal,state.palette);gl.uniform1f(U.uPalShift,state.palShift);gl.uniform1f(U.uPalCyc,state.palCycles);
+  gl.uniform1f(U.uColScale,ColorAuto.scale);gl.uniform1f(U.uColOff,ColorAuto.off);
   if(U.uCP0){
     const cp=state.customPalette||[[0,0,0.5],[0,0.5,1],[1,1,1],[1,0.5,0],[0.5,0,0]];
     const ps=state.customPalPos||[0.25,0.5,0.75];
@@ -4917,6 +5135,7 @@ function setEffU2(tgl,U,sc,W,settings=state){
   if(U.uNewtonN)tgl.uniform1f(U.uNewtonN,state.newtonDegree||3);
   tgl.uniform1f(U.uExp,(state.ftype===0)?2.0:state.fracExp);
   tgl.uniform1i(U.uPal,state.palette);tgl.uniform1f(U.uPalShift,state.palShift);tgl.uniform1f(U.uPalCyc,state.palCycles);
+  tgl.uniform1f(U.uColScale,ColorAuto.scale);tgl.uniform1f(U.uColOff,ColorAuto.off); // exports match the screen
   if(U.uCP0){
     const cp=state.customPalette||[[0,0,0.5],[0,0.5,1],[1,1,1],[1,0.5,0],[0.5,0,0]];
     const ps=state.customPalPos||[0.25,0.5,0.75];
@@ -9065,7 +9284,13 @@ const FS3D=`
 uniform vec2  uRes;
 uniform vec3  uCamPos, uCamTarget;
 uniform float uFov;
-uniform int   uFractal;
+#ifdef FR
+const int uFractal=FR;
+#else
+uniform int uFractal;
+#endif
+uniform float uBound;
+uniform float uPixK;   // surface precision in pixels (0 = fixed epsilon only)
 uniform float uPower, uBailout, uEpsilon;
 uniform int   uMaxSteps;
 uniform float uFar;
@@ -9216,18 +9441,18 @@ vec4 fractalDE(vec3 p){
 }
 float mapDE(vec3 p){ return fractalDE(p).x; }
 
-vec3 estimateNormal(vec3 p){
-  float nEps=uEpsilon*(uFractal==FRACTAL_MANDELBOX?3.6:2.0);
+vec3 estimateNormal(vec3 p,float eps){
+  float nEps=eps*(uFractal==FRACTAL_MANDELBOX?3.6:2.0);
   vec2 e=vec2(1.0,-1.0)*0.5773*nEps;
   return safeNorm(
     e.xyy*mapDE(p+e.xyy)+e.yyx*mapDE(p+e.yyx)+
     e.yxy*mapDE(p+e.yxy)+e.xxx*mapDE(p+e.xxx));
 }
-float softShadow(vec3 ro,vec3 rd,float mint,float maxt,float k){
+float softShadow(vec3 ro,vec3 rd,float mint,float maxt,float k,float eps){
   float res=1.0,t=mint;
   for(int i=0;i<32;i++){
     float h=mapDE(ro+rd*t);
-    if(h<uEpsilon*0.5) return 0.0;
+    if(h<eps*0.5) return 0.0;
     res=min(res,k*h/max(t,1e-4));
     t+=clamp(h,0.02,0.6); if(t>maxt) break;
   }
@@ -9259,8 +9484,18 @@ void main(){
   mat3 cb=camBasis(uCamPos,uCamTarget);
   vec3 ro=uCamPos, rd=safeNorm(cb*vec3(uv,fl));
 
-  float t=0.02,glowAcc=0.0,hitEps=uEpsilon;
-  vec4 info=vec4(0.0); bool hit=false;
+  float t=0.02,glowAcc=0.0,hitEps=uEpsilon,tMax=uFar;
+  // Size of one pixel at unit distance: the surface is resolved to a fraction
+  // of a pixel, no finer (finer detail only shows up as grain).
+  float pixEps=uPixK/(fl*max(uRes.y,1.0));
+  vec4 info=vec4(0.0); bool hit=false,miss=false;
+  // Bounding sphere: rays that miss the fractal skip the march entirely,
+  // the others start at the entry point and stop at the exit point.
+  if(uBound>0.0){
+    float bb=dot(ro,rd),hh=bb*bb-dot(ro,ro)+uBound*uBound;
+    if(hh<0.0) miss=true;
+    else{ hh=sqrt(hh); if(-bb+hh<0.0) miss=true; else{ t=max(t,-bb-hh); tMax=min(tMax,-bb+hh); } }
+  }
   // Per-fractal caps: GPU optimization improves with compile-time bounds
   // In GL2, the loop stops at break() without unrolling all MAX_STEPS
   int stepLimit=uMaxSteps;
@@ -9271,12 +9506,12 @@ void main(){
 
   // Overrelaxation: reduces stepping artifacts
   float prevD=1e9, os=0.0;
-  for(int i=0;i<uMaxSteps;i++){
-    if(i>=stepLimit) break;
+  for(int i=0;i<LOOPMAX;i++){
+    if(i>=stepLimit||miss) break;
     vec3 pos=ro+rd*t;
     info=fractalDE(pos);
     float d=info.x;
-    float adaptiveEps=uEpsilon*(1.0+0.045*t);
+    float adaptiveEps=max(uEpsilon*(1.0+0.045*t),pixEps*t);
     if(uFractal==FRACTAL_MANDELBOX) adaptiveEps*=1.25;
     glowAcc+=exp(-9.0*abs(d))*0.013;
     if(d<adaptiveEps){ hit=true; hitEps=adaptiveEps; break; }
@@ -9285,7 +9520,7 @@ void main(){
     t+=clamp(d+os, adaptiveEps*0.7, 1.2);
     prevD=d;
     if(uFractal==FRACTAL_MANDELBOX && t>uFar*0.98) break;
-    if(t>uFar) break;
+    if(t>tMax) break;
   }
 
   vec3 skyTop=vec3(0.05,0.08,0.14);
@@ -9295,10 +9530,11 @@ void main(){
 
   if(hit){
     vec3 pos=ro+rd*t;
-    vec3 nor=estimateNormal(pos);
+    float surfEps=max(uEpsilon,pixEps*t);
+    vec3 nor=estimateNormal(pos,surfEps);
     vec3 lightDir=safeNorm(vec3(0.7,0.45,0.55));
     float diff=max(dot(nor,lightDir),0.0);
-    float sh=uShadows==1?softShadow(pos+nor*hitEps*6.0,lightDir,0.02,8.0,14.0):1.0;
+    float sh=uShadows==1?softShadow(pos+nor*hitEps*6.0,lightDir,0.02,8.0,14.0,surfEps):1.0;
     float ao=uAO==1?ambientOcclusion(pos,nor):1.0;
     vec3 halfV=safeNorm(lightDir-rd);
     float spec=pow(max(dot(nor,halfV),0.0),48.0)*0.35;
@@ -9776,6 +10012,76 @@ function _updateSSBar(factor){
   }
 }
 
+// ── Adaptive 3D resolution (R3) ─────────────────────────────────────────────
+// Moving (drag, auto-rotation, slider): one full frame per display frame, at a
+// resolution level driven by the measured frame time.
+// At rest: the image is refined level by level into an offscreen texture, in
+// horizontal bands of ~bandMs each, then shown at once. No single draw call can
+// stall the GPU for long, whatever the device.
+const R3={
+  levels:[0.3,0.4,0.55,0.7,0.85,1.0], i:2, ema:0, fast:0, cool:0, vs:16.7,
+  ceil:5, ceilUntil:0, penalty:8000, upAt:0,
+  baseW:0, baseH:0, sig:'', changeAt:0, needMotion:true, prevMotion:false, lastFull:null,
+  rest:null, restDone:false, mspp:0, settleMs:160,
+  bandMs:24, restBudgetMs:3000, maxPix:14e6, maxTex:4096,
+  PROF:12, pixK:0.5, progs:{}, warm:{}, fbo:null, tex:null, fboW:0, fboH:0, blit:null, px:new Uint8Array(4), lost:false
+};
+const U3D_NAMES=['uRes','uCamPos','uCamTarget','uFov','uFractal','uPower','uBailout','uEpsilon',
+  'uMaxSteps','uFar','uExposure','uGlow','uShadows','uAO','uFog','uBound','uPixK',
+  'uTrapType','uTrapScale','uFrame',
+  'uPal','uPalShift','uPalCyc','uCP0','uCP1','uCP2','uCP3','uCP4','uCPS1','uCPS2','uCPS3'];
+function r3Link(vsSrc,fsSrc){
+  const g=gl3;
+  const mk=(type,src)=>{const sh=g.createShader(type);g.shaderSource(sh,src);g.compileShader(sh);
+    if(!g.getShaderParameter(sh,g.COMPILE_STATUS))throw new Error(g.getShaderInfoLog(sh));return sh;};
+  const p=g.createProgram();
+  g.attachShader(p,mk(g.VERTEX_SHADER,vsSrc));g.attachShader(p,mk(g.FRAGMENT_SHADER,fsSrc));
+  g.bindAttribLocation(p,0,'p');g.linkProgram(p);
+  if(!g.getProgramParameter(p,g.LINK_STATUS))throw new Error(g.getProgramInfoLog(p));
+  return p;
+}
+// One program per fractal: the fractal index is a compile-time constant, so each
+// shader only contains its own distance estimator (shorter compile, no branches).
+function prog3dFor(fr){
+  let P=R3.progs[fr]; if(P) return P;
+  const gl2=gl3._isWebGL2;
+  const head=(gl2?'#version 300 es\nprecision highp float;\nout vec4 fragColor;\n#define LOOPMAX uMaxSteps\n'
+                 :'precision highp float;\n#define LOOPMAX 256\n')+'#define FR '+fr+'\n';
+  const prog=r3Link(gl2?VS3D_GL2:VS3D_GL1,head+(gl2?FS3D.replace(/gl_FragColor/g,'fragColor'):FS3D));
+  P={prog,U:{}}; U3D_NAMES.forEach(n=>P.U[n]=gl3.getUniformLocation(prog,n));
+  return R3.progs[fr]=P;
+}
+function _glSetup3d(){
+  const g=gl3;
+  R3.progs={};R3.warm={};R3.fbo=null;R3.tex=null;R3.fboW=R3.fboH=0;R3.blit=null;R3.rest=null;R3.restDone=false;R3.sig='';R3.lastFull=null;
+  R3.maxTex=Math.min(g.getParameter(g.MAX_TEXTURE_SIZE)||4096,(g.getParameter(g.MAX_VIEWPORT_DIMS)||[4096])[0]||4096);
+  gl3_vbo=g.createBuffer();
+  g.bindBuffer(g.ARRAY_BUFFER,gl3_vbo);
+  g.bufferData(g.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),g.STATIC_DRAW);
+  g.enableVertexAttribArray(0);g.vertexAttribPointer(0,2,g.FLOAT,false,0,0);
+  g.disable(g.DEPTH_TEST);g.disable(g.CULL_FACE);
+  runtime3d.attribLocation=0;runtime3d.dirty=true;
+  const P=prog3dFor(state3d.fractal);prog3d=P.prog;U3d=P.U;
+}
+function bound3d(){
+  const s=state3d,k=x=>clamp((x-2)/14,0,1);
+  switch(s.fractal){
+    case FRACTALS3D.MANDELBOX:{const sc=mix(1.65,3.25,k(s.power)),f=mix(0.85,1.8,k(s.bailout));return 2*f*(sc+1)/(sc-1)*1.7321+0.6;}
+    case FRACTALS3D.MENGER:return mix(0.92,1.18,k(s.power))*1.7321+0.6;
+    case FRACTALS3D.SIERPINSKI:return 2.35;
+    case FRACTALS3D.JULIA3:return 2.1;
+    default:return Math.pow(2,1/Math.max(1,s.power-1))+0.7;
+  }
+}
+function r3Dims(f){
+  const w=R3.baseW*f,h=R3.baseH*f;
+  const k=Math.min(1,Math.sqrt(R3.maxPix/(w*h)),R3.maxTex/w,R3.maxTex/h);
+  return [Math.max(1,Math.round(w*k)),Math.max(1,Math.round(h*k))];
+}
+function r3SetCanvas(w,h){
+  if(gl3canvas.width!==w||gl3canvas.height!==h){gl3canvas.width=w;gl3canvas.height=h;}
+  canvasW3d=w;canvasH3d=h;
+}
 function resize3d(){
   if(!wrap3d||!gl3canvas||!document.body.classList.contains('mode3d')) return;
   const rect=wrap3d.getBoundingClientRect();
@@ -9783,56 +10089,220 @@ function resize3d(){
     setTimeout(()=>{ if(document.body.classList.contains('mode3d')) force3DLayoutRecovery(); },50);
     return;
   }
-  const dprCap=state3d.fractal===FRACTALS3D.MANDELBOX?0.9:1.0; // DPR max 1.0, le SS compense
+  const dprCap=state3d.fractal===FRACTALS3D.MANDELBOX?0.9:1.0; // DPR max 1.0, supersampling compensates
   const dpr=Math.min(window.devicePixelRatio||1,dprCap);
-  const baseW=Math.max(rect.width,gl3canvas.clientWidth||0,1);
-  const baseH=Math.max(rect.height,gl3canvas.clientHeight||0,1);
-
-  // Compute the factor according to state
-  let factor;
-  if(!state3d.interactiveScale){
-    factor=SS_STEPS[SS_STEPS.length-1]; // max if adaptive resolution is disabled
-  } else {
-    const isStable=!dragging3d&&!state3d.autoRotate;
-    if(!isStable){
-      // While interacting: immediate low resolution
-      state3d._ssStep=0;
-      state3d._ssFrameCount=0;
-      factor=state3d.fractal===FRACTALS3D.MANDELBOX?0.45:0.55;
-    } else {
-      // At rest: progressively climb levels
-      state3d._ssFrameCount=(state3d._ssFrameCount||0)+1;
-      if(state3d._ssFrameCount>=SS_FRAMES_PER_STEP){
-        state3d._ssFrameCount=0;
-        const cap=_ssMaxStep();
-        const nextStep=Math.min((state3d._ssStep||0)+1,cap);
-        state3d._ssStep=nextStep;
-      }
-      factor=SS_STEPS[state3d._ssStep||0];
-    }
-  }
-
-  const w=Math.max(1,Math.round(baseW*dpr*factor));
-  const h=Math.max(1,Math.round(baseH*dpr*factor));
-  if(w!==canvasW3d||h!==canvasH3d){
-    gl3canvas.width=canvasW3d=w;
-    gl3canvas.height=canvasH3d=h;
-    gl3.viewport(0,0,w,h);
-  }
-  _updateSSBar(factor);
+  const bw=Math.max(rect.width,gl3canvas.clientWidth||0,1)*dpr;
+  const bh=Math.max(rect.height,gl3canvas.clientHeight||0,1)*dpr;
+  if(bw!==R3.baseW||bh!==R3.baseH||!canvasW3d){R3.baseW=bw;R3.baseH=bh;R3.sig='';wake3d();}
 }
 
-// Signature of everything that affects the 3D image: when it has not changed
-// for a while (and nothing moves), the raymarcher stops redrawing.
+// Signature of everything that affects the 3D image.
 function sig3d(){
   const c=cameraPos3d(),s=state3d;
   return [c[0],c[1],c[2],s.target[0],s.target[1],s.target[2],s.fov,s.fractal,s.power,s.bailout,s.epsilon,s.maxSteps,s.far,
-    state.palette,state.palShift,state.palCycles,s.exposure,s.glow,s.shadows,s.ao,canvasW3d,canvasH3d,s._ssStep,
+    state.palette,state.palShift,state.palCycles,s.exposure,s.glow,s.shadows,s.ao,s.trapType,s.trapScale,R3.baseW,R3.baseH,
     JSON.stringify(state.customPalette||0),JSON.stringify(state.customPalPos||0)].join('|');
 }
 function wake3d(){runtime3d.idle=false;runtime3d.sameFrames=0;}
+function r3Uniforms(w,h){
+  const g=gl3,P=prog3dFor(state3d.fractal),U=P.U,s=state3d;
+  prog3d=P.prog;U3d=U;
+  g.useProgram(P.prog);
+  g.bindBuffer(g.ARRAY_BUFFER,gl3_vbo);g.enableVertexAttribArray(0);g.vertexAttribPointer(0,2,g.FLOAT,false,0,0);
+  const cam=cameraPos3d();
+  g.uniform2f(U.uRes,w,h);
+  g.uniform3f(U.uCamPos,cam[0],cam[1],cam[2]);
+  g.uniform3f(U.uCamTarget,s.target[0],s.target[1],s.target[2]);
+  g.uniform1f(U.uFov,s.fov);
+  g.uniform1f(U.uPower,s.power);
+  g.uniform1f(U.uBailout,s.bailout);
+  g.uniform1f(U.uEpsilon,s.epsilon);
+  g.uniform1i(U.uMaxSteps,s.maxSteps);
+  g.uniform1f(U.uFar,s.far);
+  g.uniform1f(U.uBound,R3.noBound?0:bound3d());
+  g.uniform1f(U.uPixK,R3.pixK);
+  g.uniform1i(U.uTrapType,s.trapType|0);
+  g.uniform1f(U.uTrapScale,s.trapScale);
+  g.uniform1i(U.uFrame,0);
+  // Unified palette: same uniforms as the 2D shader
+  g.uniform1i(U.uPal,state.palette);
+  g.uniform1f(U.uPalShift,state.palShift);
+  g.uniform1f(U.uPalCyc,state.palCycles);
+  const cp=state.customPalette||[[0,0,0.5],[0,0.5,1],[1,1,1],[1,0.5,0],[0.5,0,0]];
+  g.uniform3f(U.uCP0,cp[0][0],cp[0][1],cp[0][2]);
+  g.uniform3f(U.uCP1,cp[1][0],cp[1][1],cp[1][2]);
+  g.uniform3f(U.uCP2,cp[2][0],cp[2][1],cp[2][2]);
+  g.uniform3f(U.uCP3,cp[3][0],cp[3][1],cp[3][2]);
+  g.uniform3f(U.uCP4,cp[4][0],cp[4][1],cp[4][2]);
+  const cps=state.customPalPos||[0.25,0.5,0.75];
+  g.uniform1f(U.uCPS1,cps[0]);g.uniform1f(U.uCPS2,cps[1]);g.uniform1f(U.uCPS3,cps[2]);
+  g.uniform1f(U.uExposure,s.exposure);
+  g.uniform1f(U.uGlow,s.glow);
+  g.uniform1i(U.uShadows,s.shadows?1:0);
+  g.uniform1i(U.uAO,s.ao?1:0);
+  g.uniform1i(U.uFog,0);
+}
+// Frame-time driven resolution while moving. Only the frame interval is
+// available here, so climbing is a cautious trial: a level that proves too
+// slow is locked out for a while (doubling each time).
+function r3Adapt(ms,now){
+  if(!state3d.interactiveScale) return;
+  R3.vs=Math.min(R3.vs*1.002,Math.max(ms,4));
+  R3.ema=R3.ema?R3.ema*0.75+ms*0.25:ms;
+  if(R3.cool>0){R3.cool--;return;}
+  const slowT=Math.max(31,R3.vs*1.6),fastT=Math.max(21,R3.vs*1.25);
+  if(R3.ema>slowT){
+    R3.fast=0;
+    if(R3.i>0){
+      if(now-R3.upAt<1500){R3.ceil=R3.i-1;R3.ceilUntil=now+R3.penalty;R3.penalty=Math.min(R3.penalty*2,120000);}
+      R3.i-=(R3.ema>70&&R3.i>1)?2:1;R3.ema=0;R3.cool=4;
+    }
+  }else if(R3.ema<fastT){
+    if(++R3.fast>=40&&R3.i<R3.levels.length-1&&(R3.i<R3.ceil||now>R3.ceilUntil)){R3.i++;R3.upAt=now;R3.fast=0;R3.ema=0;R3.cool=4;}
+  }else R3.fast=0;
+}
+function r3EnsureTarget(w,h){
+  const g=gl3;
+  if(!R3.blit){
+    const gl2=g._isWebGL2;
+    const fs=gl2?'#version 300 es\nprecision mediump float;\nuniform sampler2D T;uniform vec2 R;out vec4 o;\nvoid main(){o=texture(T,gl_FragCoord.xy/R);}'
+                :'precision mediump float;\nuniform sampler2D T;uniform vec2 R;\nvoid main(){gl_FragColor=texture2D(T,gl_FragCoord.xy/R);}';
+    const prog=r3Link(gl2?VS3D_GL2:VS3D_GL1,fs);
+    R3.blit={prog,T:g.getUniformLocation(prog,'T'),R:g.getUniformLocation(prog,'R')};
+  }
+  if(!R3.fbo){R3.fbo=g.createFramebuffer();R3.tex=g.createTexture();R3.fboW=R3.fboH=0;}
+  if(R3.fboW!==w||R3.fboH!==h){
+    g.bindTexture(g.TEXTURE_2D,R3.tex);
+    g.texImage2D(g.TEXTURE_2D,0,g.RGBA,w,h,0,g.RGBA,g.UNSIGNED_BYTE,null);
+    g.texParameteri(g.TEXTURE_2D,g.TEXTURE_MIN_FILTER,g.NEAREST);g.texParameteri(g.TEXTURE_2D,g.TEXTURE_MAG_FILTER,g.NEAREST);
+    g.texParameteri(g.TEXTURE_2D,g.TEXTURE_WRAP_S,g.CLAMP_TO_EDGE);g.texParameteri(g.TEXTURE_2D,g.TEXTURE_WRAP_T,g.CLAMP_TO_EDGE);
+    g.bindFramebuffer(g.FRAMEBUFFER,R3.fbo);
+    g.framebufferTexture2D(g.FRAMEBUFFER,g.COLOR_ATTACHMENT0,g.TEXTURE_2D,R3.tex,0);
+    const ok=g.checkFramebufferStatus(g.FRAMEBUFFER)===g.FRAMEBUFFER_COMPLETE&&!g.getError();
+    g.bindFramebuffer(g.FRAMEBUFFER,null);
+    if(!ok){R3.fboW=R3.fboH=0;return false;}
+    R3.fboW=w;R3.fboH=h;
+  }
+  return true;
+}
+// Fraction of each of n horizontal screen slices (bottom to top) covered by
+// the bounding sphere, with the same camera as the shader.
+function r3Coverage(n){
+  const ro=cameraPos3d(),R=R3.noBound?1e9:bound3d(),out=[];
+  if(dot(ro,ro)<=R*R){for(let j=0;j<n;j++)out.push(1);return out;}
+  const ww=norm(sub(state3d.target,ro));
+  const uu=norm(cross(Math.abs(ww[1])>0.985?[0,0,1]:[0,1,0],ww)),vv=norm(cross(ww,uu));
+  const fl=1/Math.tan(state3d.fov*Math.PI/360),asp=R3.baseW/Math.max(R3.baseH,1),c=dot(ro,ro)-R*R,M=24;
+  for(let j=0;j<n;j++){
+    let hit=0;const v=(j+0.5)/n-0.5;
+    for(let i=0;i<M;i++){
+      const u=((i+0.5)/M-0.5)*asp;
+      const rd=norm(add(add(mul(uu,u),mul(vv,v)),mul(ww,fl))),bq=dot(ro,rd);
+      if(bq<0&&bq*bq-c>=0)hit++;
+    }
+    out.push(hit/M);
+  }
+  return out;
+}
+function r3RestLevel(){
+  const r=R3.rest;
+  [r.w,r.h]=r3Dims(SS_STEPS[r.k]);r.y=0;r.ms=0;r.px=0;
+  if(!r3EnsureTarget(r.w,r.h)){
+    // No offscreen target: fall back to the smallest level, drawn directly.
+    R3.maxPix=Math.max(2e5,Math.min(R3.maxPix,r.w*r.h)/2);r.direct=true;
+  }
+}
+function r3RestStart(){
+  const cap=_ssMaxStep();
+  let k=Math.min(1,cap);
+  const d=r3Dims(SS_STEPS[k]);
+  // The last moving frame may already be this exact image at this exact size.
+  if(R3.lastFull&&R3.lastFull.sig===R3.sig&&R3.lastFull.w===d[0]&&R3.lastFull.h===d[1]){
+    state3d._ssStep=k;
+    if(k+1>cap){R3.restDone=true;r3HideBar();return false;}
+    k++;
+  }
+  R3.rest={k,cap,w:0,h:0,y:0,ms:0,px:0,prof:null,fix:0,cal:1.5,direct:false};R3.restDone=false;
+  r3RestLevel();
+  return true;
+}
+function r3HideBar(){
+  const bar=document.getElementById('ssProgress3d');
+  if(bar&&!bar._hideTimer) bar._hideTimer=setTimeout(()=>{bar.classList.remove('visible');bar._hideTimer=null;},1200);
+}
+function r3RestStep(){
+  const r=R3.rest,g=gl3,fr=state3d.fractal;
+  if(r.direct){
+    r3SetCanvas(r.w,r.h);g.bindFramebuffer(g.FRAMEBUFFER,null);g.disable(g.SCISSOR_TEST);g.viewport(0,0,r.w,r.h);
+    r3Uniforms(r.w,r.h);g.drawArrays(g.TRIANGLE_STRIP,0,4);
+    state3d._ssStep=r.k;R3.rest=null;R3.restDone=true;r3HideBar();return;
+  }
+  g.bindFramebuffer(g.FRAMEBUFFER,R3.fbo);
+  g.enable(g.SCISSOR_TEST);
+  const N=R3.PROF;
+  if(!r.prof){
+    // Probe (two short timed draws): the fixed cost of a synchronised draw
+    // call, then the view at 1/6 scale. Sky is nearly free and the fractal is
+    // not, so the measured cost is spread over horizontal slices according to
+    // how much of each one the bounding sphere covers; band heights follow it.
+    const pw=Math.max(4,Math.min(r.w,Math.round(R3.baseW/6))),ph=Math.max(N,Math.min(r.h,Math.round(R3.baseH/6)));
+    g.viewport(0,0,pw,ph);r3Uniforms(pw,ph);
+    const sync=()=>{g.drawArrays(g.TRIANGLE_STRIP,0,4);g.readPixels(0,0,1,1,g.RGBA,g.UNSIGNED_BYTE,R3.px);};
+    g.scissor(0,0,1,1);
+    sync();R3.warm[fr]=true; // drains pending GPU work (and driver warm-up): not a measurement
+    let t0=performance.now();sync();r.fix=performance.now()-t0;
+    g.scissor(0,0,pw,ph);
+    t0=performance.now();sync();
+    const tAll=Math.max(performance.now()-t0-r.fix,0.05);
+    g.disable(g.SCISSOR_TEST);
+    const cov=r3Coverage(N);let tot=0;for(const c of cov)tot+=c;
+    const c=tAll/(pw*ph*Math.max(tot/N,0.02));
+    r.prof=cov.map(f=>c*Math.max(f,0.02));
+    return;
+  }
+  const slice=y=>Math.min(N-1,Math.floor(y/r.h*N));
+  const worst=(y0,n)=>{let c=0;for(let j=slice(y0),e=slice(y0+n-1);j<=e;j++)c=Math.max(c,r.prof[j]);return c*r.cal;};
+  // A band should cost ~bandMs, but never be so small that the fixed cost dominates.
+  const budget=Math.max(R3.bandMs,3*r.fix)-r.fix;
+  let rows=Math.max(2,Math.min(r.h-r.y,Math.floor(budget/(worst(r.y,1)*r.w))));
+  rows=Math.max(2,Math.min(r.h-r.y,Math.floor(budget/(worst(r.y,rows)*r.w))));
+  rows=Math.min(rows,r.h-r.y);
+  const pred=worst(r.y,rows)*r.w*rows;
+  g.viewport(0,0,r.w,r.h);g.scissor(0,r.y,r.w,rows);
+  r3Uniforms(r.w,r.h);
+  g.readPixels(0,0,1,1,g.RGBA,g.UNSIGNED_BYTE,R3.px); // drain pending work (page compositing) so that only this band is timed
+  const t0=performance.now();
+  g.drawArrays(g.TRIANGLE_STRIP,0,4);
+  g.readPixels(0,r.y,1,1,g.RGBA,g.UNSIGNED_BYTE,R3.px); // waits for the band: real cost
+  const ms=performance.now()-t0;
+  g.disable(g.SCISSOR_TEST);
+  r.y+=rows;r.ms+=ms;r.px+=rows*r.w;R3.lastBandMs=ms;
+  if(ms-r.fix>2||pred>2){const q=Math.max(ms-r.fix,0.05)/Math.max(pred,0.05);r.cal=clamp(r.cal*(q>1?Math.min(q,4):0.7+0.3*q),0.3,12);}
+  if(r.y<r.h) return;
+  // Level complete: show it at once.
+  if(r.px) R3.mspp=r.ms/r.px;
+  g.bindFramebuffer(g.FRAMEBUFFER,null);
+  r3SetCanvas(r.w,r.h);g.viewport(0,0,r.w,r.h);
+  g.useProgram(R3.blit.prog);g.activeTexture(g.TEXTURE0);g.bindTexture(g.TEXTURE_2D,R3.tex);
+  g.uniform1i(R3.blit.T,0);g.uniform2f(R3.blit.R,r.w,r.h);
+  g.drawArrays(g.TRIANGLE_STRIP,0,4);
+  state3d._ssStep=r.k;
+  if(!SS_CTRL.benchDone&&R3.mspp>0){
+    // One measured level replaces the former 12-frame benchmark.
+    const est=R3.mspp*R3.baseW*R3.baseH;
+    SS_CTRL.benchFrames=SS_CTRL.BENCH_FRAMES-1;SS_CTRL.benchTotalMs=est*(SS_CTRL.BENCH_FRAMES-1);
+    _ssBenchmark(est);r.cap=_ssMaxStep();
+  }
+  _updateSSBar(SS_STEPS[r.k]);
+  const nk=r.k+1;
+  if(nk<=r.cap){
+    const [nw,nh]=r3Dims(SS_STEPS[nk]);
+    if(nw*nh>r.w*r.h*1.15&&R3.mspp*nw*nh<=R3.restBudgetMs){r.k=nk;r3RestLevel();return;}
+  }
+  R3.rest=null;R3.restDone=true;r3HideBar();
+}
 function render3d(force=false){
-  if(!gl3||!prog3d||!gl3_vbo) return;
+  if(!gl3||R3.lost||!gl3_vbo) return;
   const now=performance.now();
   const rawDt=(now-prev3d)/1000;          // real frame interval (for measurements)
   const dt=Math.min(rawDt,0.05);          // capped (for animation only)
@@ -9844,99 +10314,54 @@ function render3d(force=false){
 
   stabilizeCamera3d();
   resize3d();
+  if(R3.baseW<2||R3.baseH<2) return;
 
-  if(canvasW3d<2||canvasH3d<2){
-    canvasW3d=Math.max(1,gl3canvas.width||Math.round((gl3canvas.clientWidth||1)*(window.devicePixelRatio||1)));
-    canvasH3d=Math.max(1,gl3canvas.height||Math.round((gl3canvas.clientHeight||1)*(window.devicePixelRatio||1)));
-  }
-
-  // Idle detection: skip redraws of an unchanged, settled image.
+  if(force) R3.sig='';
   const sig=sig3d();
-  const moving=dragging3d||state3d.autoRotate||now<interactionUntil3d||!SS_CTRL.benchDone;
-  if(!force&&!moving&&sig===runtime3d.lastSig){
-    runtime3d.sameFrames=(runtime3d.sameFrames||0)+1;
-    // Settled: many identical frames (fast GPU), or a few over 1.5 s (slow GPU),
-    // enough for the SS controller and the watchdog to have reacted.
-    if(runtime3d.sameFrames>45||(runtime3d.sameFrames>=8&&now-(runtime3d.lastChangeAt||0)>1500)){runtime3d.idle=true;runtime3d.wasIdle=true;return;}
-  }else{runtime3d.sameFrames=0;runtime3d.lastChangeAt=now;}
-  runtime3d.idle=false;runtime3d.lastSig=sig;
-  const resumed=!!runtime3d.wasIdle;runtime3d.wasIdle=false;
+  if(sig!==R3.sig){R3.sig=sig;R3.changeAt=now;R3.rest=null;R3.restDone=false;R3.needMotion=true;}
+  const g=gl3;
 
-  gl3.viewport(0,0,canvasW3d,canvasH3d);
-  gl3.disable(gl3.DEPTH_TEST);
-  gl3.disable(gl3.CULL_FACE);
-  gl3.clearColor(0,0,0,1);
-  gl3.clear(gl3.COLOR_BUFFER_BIT);
-
-  // Rebind the VBO and attribute only when needed
-  if(runtime3d.dirty){
-    gl3.bindBuffer(gl3.ARRAY_BUFFER,gl3_vbo);
-    gl3.enableVertexAttribArray(runtime3d.attribLocation);
-    gl3.vertexAttribPointer(runtime3d.attribLocation,2,gl3.FLOAT,false,0,0);
-    runtime3d.dirty=false;
-  }
-
-  const cam=cameraPos3d();
-  gl3.useProgram(prog3d);
-  gl3.uniform2f(U3d.uRes,canvasW3d,canvasH3d);
-  gl3.uniform3f(U3d.uCamPos,cam[0],cam[1],cam[2]);
-  gl3.uniform3f(U3d.uCamTarget,state3d.target[0],state3d.target[1],state3d.target[2]);
-  gl3.uniform1f(U3d.uFov,state3d.fov);
-  gl3.uniform1i(U3d.uFractal,state3d.fractal);
-  gl3.uniform1f(U3d.uPower,state3d.power);
-  gl3.uniform1f(U3d.uBailout,state3d.bailout);
-  gl3.uniform1f(U3d.uEpsilon,state3d.epsilon);
-  gl3.uniform1i(U3d.uMaxSteps,state3d.maxSteps);
-  gl3.uniform1f(U3d.uFar,state3d.far);
-  // Unified palette: same uniforms as the 2D shader
-  gl3.uniform1i(U3d.uPal,state.palette);
-  gl3.uniform1f(U3d.uPalShift,state.palShift);
-  gl3.uniform1f(U3d.uPalCyc,state.palCycles);
-  const cp3d=state.customPalette||[[0,0,0.5],[0,0.5,1],[1,1,1],[1,0.5,0],[0.5,0,0]];
-  gl3.uniform3f(U3d.uCP0,cp3d[0][0],cp3d[0][1],cp3d[0][2]);
-  gl3.uniform3f(U3d.uCP1,cp3d[1][0],cp3d[1][1],cp3d[1][2]);
-  gl3.uniform3f(U3d.uCP2,cp3d[2][0],cp3d[2][1],cp3d[2][2]);
-  gl3.uniform3f(U3d.uCP3,cp3d[3][0],cp3d[3][1],cp3d[3][2]);
-  gl3.uniform3f(U3d.uCP4,cp3d[4][0],cp3d[4][1],cp3d[4][2]);
-  const cps3d=state.customPalPos||[0.25,0.5,0.75];
-  if(U3d.uCPS1) gl3.uniform1f(U3d.uCPS1,cps3d[0]);
-  if(U3d.uCPS2) gl3.uniform1f(U3d.uCPS2,cps3d[1]);
-  if(U3d.uCPS3) gl3.uniform1f(U3d.uCPS3,cps3d[2]);
-  gl3.uniform1f(U3d.uExposure,state3d.exposure);
-  gl3.uniform1f(U3d.uGlow,state3d.glow);
-  gl3.uniform1i(U3d.uShadows,state3d.shadows?1:0);
-  gl3.uniform1i(U3d.uAO,state3d.ao?1:0);
-  gl3.uniform1i(U3d.uFog,0);
-  gl3.drawArrays(gl3.TRIANGLE_STRIP,0,4);
-
-  // FPS + frame time for the SS controller
-  // Measurements use the real (uncapped) interval; the first frame after an
-  // idle period is not representative and is ignored.
-  const frameMs=rawDt*1000;
-  if(!resumed) _ssAdaptFromFrameTime(frameMs);
-
-  // ── 3D Watchdog: reduce maxSteps if frames are too slow ──────────
-  if(!state3d._wdSlowCount) state3d._wdSlowCount=0;
-  if(!state3d._wdLastToastAt) state3d._wdLastToastAt=0;
-  if(!resumed && frameMs>90){
-    state3d._wdSlowCount++;
-    if(state3d._wdSlowCount>=6 && state3d.maxSteps>32){
-      const newSteps=Math.max(32, Math.round(state3d.maxSteps*0.75));
-      if(newSteps<state3d.maxSteps){
-        state3d.maxSteps=newSteps;
-        state3d._wdSlowCount=0;
-        const nowMs=performance.now();
-        if(nowMs-state3d._wdLastToastAt>4000){
-          state3d._wdLastToastAt=nowMs;
-          if(typeof toast==='function') toast('🌿',t3('autoQualityReduced'));
-          if(typeof syncUI3d==='function') syncUI3d();
+  if(R3.needMotion){
+    // ── Moving: one full frame at the current level ──
+    R3.needMotion=false;runtime3d.idle=false;
+    const f=state3d.interactiveScale?R3.levels[R3.i]:1.0;
+    const [w,h]=r3Dims(f);
+    r3SetCanvas(w,h);
+    g.bindFramebuffer(g.FRAMEBUFFER,null);g.disable(g.SCISSOR_TEST);g.viewport(0,0,w,h);
+    r3Uniforms(w,h);
+    g.drawArrays(g.TRIANGLE_STRIP,0,4);
+    R3.warm[state3d.fractal]=true;
+    R3.lastFull={sig,w,h};
+    const frameMs=Math.min(rawDt*1000,250);
+    if(R3.prevMotion){
+      r3Adapt(frameMs,now);
+      // Watchdog: resolution is already at its floor and frames are still
+      // very slow -> reduce the number of steps.
+      if(frameMs>90&&(R3.i===0||!state3d.interactiveScale)){
+        state3d._wdSlowCount=(state3d._wdSlowCount||0)+1;
+        if(state3d._wdSlowCount>=6&&state3d.maxSteps>32){
+          state3d.maxSteps=Math.max(32,Math.round(state3d.maxSteps*0.75));
+          state3d._wdSlowCount=0;
+          if(now-(state3d._wdLastToastAt||0)>4000){
+            state3d._wdLastToastAt=now;
+            if(typeof toast==='function') toast('🌿',t3('autoQualityReduced'));
+            if(typeof syncUI3d==='function') syncUI3d();
+          }
         }
-      }
+      }else state3d._wdSlowCount=Math.max(0,(state3d._wdSlowCount||0)-1);
     }
-  } else {
-    state3d._wdSlowCount=Math.max(0,(state3d._wdSlowCount||0)-1);
+    R3.prevMotion=true;
+    _updateSSBar(f);
+    frameCount3d++;
+  }else{
+    R3.prevMotion=false;
+    if(dragging3d||now-R3.changeAt<R3.settleMs){runtime3d.idle=false;}
+    else if(!R3.restDone){
+      // ── At rest: refine by bands, level by level ──
+      runtime3d.idle=false;
+      if(R3.rest||r3RestStart()) r3RestStep();
+    }else{runtime3d.idle=true;}
   }
-  frameCount3d++;
   if(now-fpsTime3d>=1000){
     fps3d=frameCount3d; frameCount3d=0; fpsTime3d=now;
     if(runtime3d.hudFpsEl){ const nextFps=String(fps3d); if(runtime3d.lastHudFps!==nextFps){ runtime3d.lastHudFps=nextFps; runtime3d.hudFpsEl.textContent=nextFps; } }
@@ -9984,53 +10409,15 @@ function _init3d(){
     if(!pf||pf.precision===0) console.warn('highp float non supporté en fragment shader');
   }
 
-  function mkShader3d(type,src){
-    const s=gl3.createShader(type);
-    gl3.shaderSource(s,src); gl3.compileShader(s);
-    if(!gl3.getShaderParameter(s,gl3.COMPILE_STATUS))
-      throw new Error(gl3.getShaderInfoLog(s));
-    return s;
-  }
-  // Adapt shaders for WebGL1 or WebGL2
-  const isGL2 = !!(gl3 && typeof WebGL2RenderingContext !== 'undefined' && gl3 instanceof WebGL2RenderingContext);
-  const vs3d_src = isGL2 ? VS3D_GL2 : VS3D_GL1;
-  // En GL2 : ajouter #version 300 es + out vec4 fragColor, remplacer gl_FragColor
-  let fs3d_src;
-  if(isGL2){
-    // WebGL2 : GLSL ES 3.00
-    // - Ajouter #version 300 es
-    // - precision highp float
-    // - out vec4 fragColor (remplace gl_FragColor)
-    // - attribute -> in (for VS, already handled)
-    fs3d_src = '#version 300 es\nprecision highp float;\nout vec4 fragColor;\n'
-      + FS3D.replace(/gl_FragColor/g,'fragColor');
-  } else {
-    // WebGL1 : GLSL ES 1.00 — shader tel quel
-    fs3d_src = 'precision highp float;\n' + FS3D;
-  }
-  prog3d=gl3.createProgram();
-  gl3.attachShader(prog3d,mkShader3d(gl3.VERTEX_SHADER,vs3d_src));
-  gl3.attachShader(prog3d,mkShader3d(gl3.FRAGMENT_SHADER,fs3d_src));
-  gl3.linkProgram(prog3d);
-  if(!gl3.getProgramParameter(prog3d,gl3.LINK_STATUS))
-    throw new Error(gl3.getProgramInfoLog(prog3d));
-
-  // Full-screen quad
-  gl3_vbo=gl3.createBuffer();
-  gl3.bindBuffer(gl3.ARRAY_BUFFER,gl3_vbo);
-  gl3.bufferData(gl3.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl3.STATIC_DRAW);
-  runtime3d.attribLocation=gl3.getAttribLocation(prog3d,'p');
-  gl3.enableVertexAttribArray(runtime3d.attribLocation);
-  gl3.vertexAttribPointer(runtime3d.attribLocation,2,gl3.FLOAT,false,0,0);
-  runtime3d.dirty=true;
-
-  // Uniforms
-  U3d={};
-  ['uRes','uCamPos','uCamTarget','uFov','uFractal','uPower','uBailout','uEpsilon',
-   'uMaxSteps','uFar','uExposure','uGlow','uShadows','uAO','uFog',
-   'uTrapType','uTrapScale','uFrame',
-   'uPal','uPalShift','uPalCyc','uCP0','uCP1','uCP2','uCP3','uCP4','uCPS1','uCPS2','uCPS3']
-  .forEach(n=>U3d[n]=gl3.getUniformLocation(prog3d,n));
+  if(gpuCaps.isMobile){R3.i=1;R3.maxPix=4e6;R3.restBudgetMs=2000;}
+  _glSetup3d();
+  // Context loss (GPU overload, tab in background on mobile): stop drawing,
+  // then rebuild everything with a lower pixel ceiling when the context returns.
+  gl3canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();R3.lost=true;},false);
+  gl3canvas.addEventListener('webglcontextrestored',()=>{
+    R3.maxPix=Math.max(1e6,R3.maxPix/2);R3.i=0;
+    try{_glSetup3d();R3.lost=false;wake3d();}catch(err){console.warn('3D context restore failed',err);}
+  },false);
 
   // ── RESIZE (once per actual change) ─────────────────────────────
   canvasW3d=0, canvasH3d=0;
@@ -10448,6 +10835,22 @@ bootApp();
 // being explored (drag, wheel, keyboard) or when the pointer has left them
 // for a moment, and come back when the pointer reaches the edge of the screen
 // (or their handle). A panel closed with its handle stays closed.
+(function setupAutoColorToggle(){
+  const chk=document.getElementById('autoColorChk'),lab=document.getElementById('autoColorLabel'),row=document.getElementById('autoColorRow');
+  if(!chk)return;
+  const texts=()=>{
+    const fr=(typeof currentLocale!=='undefined'&&currentLocale==='fr');
+    lab.textContent=fr?'Couleurs adaptées au zoom':'Colours adapted to the zoom';
+    row.title=fr?'En zoom profond, étire la palette pour éviter le bruit coloré':'In deep zoom, stretches the palette to avoid coloured noise';
+  };
+  chk.checked=ColorAuto.enabled;texts();
+  chk.addEventListener('change',()=>{
+    ColorAuto.enabled=chk.checked;
+    try{localStorage.setItem(ColorAuto.KEY,chk.checked?'1':'0');}catch(e){}
+    colorAutoUpdate();
+  });
+  new MutationObserver(texts).observe(document.body,{attributes:true,attributeFilter:['data-locale']});
+})();
 (function setupPanelAutoFade(){
   const app=document.getElementById('appRoot'),wrapEl=document.getElementById('canvasWrap');
   const L=document.getElementById('leftSidebar'),R=document.getElementById('sidebar');
