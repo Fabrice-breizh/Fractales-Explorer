@@ -577,6 +577,16 @@ body.mode3d .only-2d{display:none!important}
 .app-version{font-size:10px;font-weight:400;opacity:.5;letter-spacing:.04em;white-space:nowrap}
 .left-project-footer .app-version{grid-column:1/-1;text-align:center}
 .modal:focus{outline:none}
+/* Gallery: one picture per fractal type */
+.gallery-grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.gallery-card{padding:0;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.gallery-thumb{display:block;width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;background:#0a0d13;border-bottom:1px solid var(--line)}
+.gallery-text{padding:6px 9px 7px}
+@media(max-width:600px){
+  .gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px}
+  .gallery-card{padding:0;display:flex;align-items:stretch;gap:0}
+  .gallery-card b{white-space:normal}
+}
 </style>
 <style id="overlayPanelsCss">
 /* Desktop: the image fills the whole window. The side panels float above it
@@ -1057,7 +1067,7 @@ body.lowfx .panel-pin[aria-pressed="true"]{background:var(--accent)}
         <div class="label"><span data-i18n="d3.trapScale"></span><span class="value" id="trapScaleVal3d">1.00</span></div>
         <input type="range" id="trapScale3d" min="10" max="300" value="100">
       </div>
-      <label class="switch"><span data-i18n="d3.accumulate"></span><input type="checkbox" id="accumulate3d"></label>
+      <label class="switch" style="display:none"><span data-i18n="d3.accumulate"></span><input type="checkbox" id="accumulate3d"></label>
     </div>
 
     <div class="section">
@@ -1242,8 +1252,8 @@ body.lowfx .panel-pin[aria-pressed="true"]{background:var(--accent)}
 <div class="modal-backdrop" id="galleryModal">
   <div class="modal modal-gallery" role="dialog" aria-modal="true" aria-labelledby="galleryModalTitle" tabindex="-1">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:10px">
-      <h2 style="margin:0;white-space:nowrap" data-i18n="ui.allFractals" id="galleryModalTitle"></h2>
-      <input type="search" id="gallerySearch" style="flex:1;max-width:220px;padding:5px 10px;border-radius:6px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);font-size:12px;outline:none" data-i18n-placeholder="x.gallerySearch">
+      <h2 style="margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0" data-i18n="ui.allFractals" id="galleryModalTitle"></h2>
+      <input type="search" id="gallerySearch" style="flex:1;min-width:0;max-width:220px;padding:5px 10px;border-radius:6px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);font-size:12px;outline:none" data-i18n-placeholder="x.gallerySearch">
       <button class="btn sm" id="closeGalleryBtn" style="padding:4px 12px;font-size:16px;line-height:1;flex-shrink:0;background:#c0392b;border-color:#e74c3c;color:#fff" data-i18n="x.close" data-i18n-title="x.close"></button>
     </div>
     <div id="galleryContent"></div>
@@ -1548,6 +1558,23 @@ vec4 iterate2(vec2 C,vec2 Z0,out vec2 out_dz){
       nx=x2-y2+cex;
       ny=2.*x*y+cey;
     }
+    else if(uType==60){
+      // McMullen: z^3 + lambda/z^3 (parameter plane)
+      vec2 z3=vec2(x*(x2-3.*y2),y*(3.*x2-y2));
+      vec2 q=cdiv(C,z3);nx=z3.x+q.x;ny=z3.y+q.y;
+    }
+    else if(uType==61){
+      // McMullen: z^2 + lambda/z^2 (Julia set, lambda = the constant c)
+      vec2 z2=vec2(x2-y2,2.*x*y);
+      vec2 q=cdiv(C,z2);nx=z2.x+q.x;ny=z2.y+q.y;
+    }
+    else if(uType==62){
+      // Tetration: z -> c^z = exp(z*ln c)
+      vec2 lc=vec2(.5*log(max(dot(C,C),1e-30)),atan(C.y,C.x));
+      vec2 w=cmul(vec2(x,y),lc);
+      float ew=exp(clamp(w.x,-40.,20.));
+      nx=ew*cos(w.y);ny=ew*sin(w.y);
+    }
     else if(uType==52){
       float a=x2-y2, b=2.*x*y;
       nx=sinh(a)*cos(b)+C.x;
@@ -1687,7 +1714,7 @@ vec4 iterate2(vec2 C,vec2 Z0,out vec2 out_dz){
   float dm=sqrt(dx*dx+dy*dy);
   float deVal=(dm>0.&&(ex2+ey2)>0.)?sqrt(ex2+ey2)*log(ex2+ey2)/(2.*dm):0.;
   if(escaped<0.)return vec4(-1.,deVal,0.,trapMin);
-  float sl=log(log(ex2+ey2)/log(65536.))/log(uType==0?2.:(uType==22?1.5:max(uExp,1.01)));
+  float sl=log(log(ex2+ey2)/log(65536.))/log((uType==0||uType==61||uType==62)?2.:(uType==22?1.5:(uType==60?3.:max(uExp,1.01))));
   float smoothT=(escaped+1.-sl)/64.; // wrapped at colouring time
   return vec4(smoothT,deVal,(iterCount>0.)?stripeAcc/iterCount:0.,trapMin);
 }
@@ -1766,8 +1793,10 @@ void main(){
     return;
   }
   vec2 C,Z;
-  if(uType==1||uType==7||uType==13||uType==18||uType==22||uType==32){C=uJulia;Z=wpos;}
+  if(uType==1||uType==7||uType==13||uType==18||uType==22||uType==32||uType==61){C=uJulia;Z=wpos;}
   else if(uType==4){C=wpos;Z=wpos;}
+  else if(uType==60){C=wpos;Z=cpow(wpos,1./6.);}   // McMullen: start on a critical point, z^6 = lambda
+  else if(uType==62){C=wpos;Z=vec2(1.,0.);}         // Tetration: c^c^c..., starting from 1
   else{C=wpos;Z=vec2(0.);}
   if(uType==0){
     // Main cardioid and period-2 bulb: known interior, no need to iterate.
@@ -3467,12 +3496,9 @@ const Actions={
     if(ft===10&&state.fracExp<=2) extra.fracExp=3;
     if([2,3,8,32].includes(ft)&&(!state.fracExp||state.fracExp<2)) extra.fracExp=2;
     if(ft===4&&(!state.newtonDegree||state.newtonDegree<3)) extra.newtonDegree=3;
-    if(ft===32){extra.jre=-1.5;extra.jim=0.0;extra.doNormal=true;extra.nHeight=3.0;extra.palette=0;}
-    if(ft===34){extra.doNormal=true;extra.nHeight=2.5;extra.palette=3;extra.maxIter=300;}
-    if(ft===35){extra.doNormal=true;extra.nHeight=2.0;extra.palette=5;extra.maxIter=600;}
-    if(ft===36){extra.doNormal=true;extra.nHeight=2.5;extra.palette=2;extra.maxIter=600;}
-    if(ft===37){extra.doNormal=true;extra.nHeight=2.2;extra.palette=0;extra.maxIter=800;}
-    if(ft===38){extra.doNormal=true;extra.nHeight=2.0;extra.palette=7;extra.maxIter=800;}
+    if(ft===32){extra.jre=-1.5;extra.jim=0.0;}
+    const iters={34:300,35:600,36:600,37:800,38:800}[ft];
+    if(iters) extra.maxIter=iters;
     applyState(extra,{push,renderNow:false});
     resetView(false);
   },
@@ -3719,6 +3745,9 @@ const FRACTALS=[
   {id:34,name:'Collatz',group:'Organiques',desc:'Collatz conjecture in ℂ with very characteristic organic filaments.'},
   {id:35,name:'Barnsley 2',group:'Anguleuses',desc:'Barnsley formula (1988) with very distinctive crystalline Julias.'},
   {id:36,name:'Barnsley 3',group:'Anguleuses',desc:'Cubic Barnsley variant with unique geometric structures.'},
+  {id:60,name:'McMullen',group:'Algébriques / attracteurs',desc:'z = z³ + λ/z³ in the parameter plane — a necklace of rings and medallions.'},
+  {id:61,name:'McMullen Julia',group:'Algébriques / attracteurs',desc:'z = z² + λ/z² — nested circles down to infinity (Sierpiński carpet); λ is the constant c.'},
+  {id:62,name:'Tetration',group:'Algébriques / attracteurs',desc:'The power tower c^c^c… — bouquets of feathers and eyes.'},
   {id:37,name:'Manowar',group:'Organiques',desc:'z = z² + c + previous z — spiderweb-like cousin of Phoenix.'},
   {id:38,name:'Spider',group:'Organiques',desc:'z = z² + c, c = c/2 + z — characteristic web-like spirals.'},
   {id:29,name:'Bitwise AND',group:'Géométriques',desc:'Sierpiński triangle via binary AND. No iteration — direct coloring.'},
@@ -3828,6 +3857,10 @@ const FRACTAL_DEFAULTS={
   45:{cx:'0',cy:'0',scale:3.0},
   48:{cx:'-0.0695',cy:'0.7349',scale:0.0346},
   52:{cx:'0',cy:'0',scale:2.5},
+  // These escape in few iterations: one colour cycle would leave them almost black.
+  60:{cx:'0',cy:'0',scale:0.95,maxIter:300,palette:1,palCycles:3.5},
+  61:{cx:'0',cy:'0',scale:3.6,maxIter:200,jre:-0.0625,jim:0,palette:0,palCycles:2.5},
+  62:{cx:'-1.6',cy:'0',scale:4.4,maxIter:200,palette:0,palCycles:2.5},
   53:{cx:'-42.5',cy:'5.89',scale:125.6},
   77:{cx:'0.0',cy:'0.0',scale:2.5,maxIter:900},
   // Barnsley Fern
@@ -4538,9 +4571,15 @@ function fmtZoom(z,{markMax=false}={}){
 function round50(v){return Math.max(50,Math.round(v/50)*50);}
 function split(v){const h=Math.fround(v);return[h,Math.fround(v-h)];}
 function visualDefaults(){return{palette:0,palShift:0,palCycles:1.0,doNormal:false,doDE:false,doTrap:false,doStripe:false};}
+// Look a fractal opens with (relief, palette). Applied by resetView, so it holds
+// both when the type is chosen and when "Default view" is pressed.
+const TYPE_STYLE={
+  32:{doNormal:true,nHeight:3.0,palette:0},34:{doNormal:true,nHeight:2.5,palette:3},35:{doNormal:true,nHeight:2.0,palette:5},
+  36:{doNormal:true,nHeight:2.5,palette:2},37:{doNormal:true,nHeight:2.2,palette:0},38:{doNormal:true,nHeight:2.0,palette:7}
+};
 function currentZoom(){return BASE/state.scale;}
 function hasPowerControl(ftype=state.ftype){return [1,10,3,2,32,8].includes(+ftype);} // Julia, Multibrot, Multicorn, Burning Ship, Burning Ship Julia, Celtic
-function hasCControl(ftype=state.ftype){return [1,7,13,18,22,32].includes(+ftype);} // Julia-like / c-driven fractals
+function hasCControl(ftype=state.ftype){return [1,7,13,18,22,32,61].includes(+ftype);} // Julia-like / c-driven fractals
 function hasPhoenixControl(ftype=state.ftype){return +ftype===7;}
 function hasNewtonControl(ftype=state.ftype){return +ftype===4;}
 function hasShapeControls(ftype=state.ftype){return hasPowerControl(ftype)||hasCControl(ftype)||hasPhoenixControl(ftype)||hasNewtonControl(ftype);}
@@ -5309,16 +5348,38 @@ function drawBuddhabrotBuffer(ctx,bufR,bufG,bufB,w,h,maxR,maxG,maxB,viewBounds,s
   // The buffer always stores the displayed domain AFTER rotation
   const img=ctx.createImageData(w,h);
   const data=img.data;
+  // While few trajectories have landed, the histogram is smoothed (3x3 binomial,
+  // up to two passes); the smoothing fades out as the mean density grows.
+  let mean=0,cnt=0;
+  for(let i=0;i<bufR.length;i+=7){mean+=bufR[i];cnt++;}
+  mean/=Math.max(1,cnt);
+  const smooth=Math.max(0,Math.min(2,1.6-0.8*Math.log10(1+mean)));
+  if(smooth>0.02&&w>2&&h>2){
+    const tmp=new Float32Array(w*h);
+    const blur=(src,k)=>{
+      const out=new Float32Array(w*h);let top=0;
+      for(let y=0;y<h;y++){const o=y*w;for(let x=0;x<w;x++)tmp[o+x]=(src[o+(x>0?x-1:x)]+2*src[o+x]+src[o+(x<w-1?x+1:x)])*.25;}
+      for(let y=0;y<h;y++){const o=y*w,up=y>0?o-w:o,dn=y<h-1?o+w:o;
+        for(let x=0;x<w;x++){const v=src[o+x],r=out[o+x]=v+k*((tmp[up+x]+2*tmp[o+x]+tmp[dn+x])*.25-v);if(r>top)top=r;}}
+      blur.top=top;return out;
+    };
+    for(let pass=0;pass<2;pass++){
+      const k=Math.min(1,smooth-pass);if(k<=0.02)break;
+      // the brightest value drops with the smoothing: keep the exposure in step
+      bufR=blur(bufR,k);maxR=blur.top||1;bufG=blur(bufG,k);maxG=blur.top||1;bufB=blur(bufB,k);maxB=blur.top||1;
+    }
+  }
   const normR=Math.log(1+maxR)||1;
   const normG=Math.log(1+maxG)||1;
   const normB=Math.log(1+maxB)||1;
-  const makeTone=(max,norm,gamma)=>{
-    const lut=new Float64Array(Math.min(65535,Math.floor(max))+1);
-    for(let i=0;i<lut.length;i++)lut[i]=Math.pow(Math.log(1+i)/norm,gamma);
-    return lut;
-  };
-  const toneR=makeTone(maxR,normR,1.2),toneG=makeTone(maxG,normG,1.4),toneB=makeTone(maxB,normB,1.6);
+  // Tables for the per-channel gamma and for the palette: densities are weighted,
+  // hence not integers, so they are looked up after the logarithm.
+  const TN=1024,makeTone=gamma=>{const lut=new Float32Array(TN+1);for(let i=0;i<=TN;i++)lut[i]=Math.pow(i/TN,gamma);return lut;};
+  const toneR=makeTone(1.2),toneG=makeTone(1.4),toneB=makeTone(1.6);
+  const kR=TN/normR,kG=TN/normG,kB=TN/normB;
   const pal=state.palette;
+  const PN=511,palLut=new Float32Array((PN+1)*3);
+  for(let i=0;i<=PN;i++){const l=i/PN,c=pal===4?[l,l,l]:builtinPalColor(pal,Math.min(0.99,l),state);palLut[i*3]=c[0];palLut[i*3+1]=c[1];palLut[i*3+2]=c[2];}
   const shift=state.palShift||0;
   const noiseFloor=Math.max(1, maxR*0.002);
   const bf=bufferBounds;
@@ -5350,17 +5411,17 @@ function drawBuddhabrotBuffer(ctx,bufR,bufG,bufB,w,h,maxR,maxG,maxB,viewBounds,s
         vR=bufR[i];vG=bufG[i];vB=bufB[i];
       }
       const off=(py*w+px)*4;
-      if(vR<noiseFloor&&vG<noiseFloor&&vB<noiseFloor){
-        data[off]=data[off+1]=data[off+2]=0;data[off+3]=255;continue;
-      }
-      const r=(toneR[vR]??Math.pow(Math.log(1+vR)/normR,1.2));
-      const g=(toneG[vG]??Math.pow(Math.log(1+vG)/normG,1.4));
-      const b=(toneB[vB]??Math.pow(Math.log(1+vB)/normB,1.6));
-      const lum=(r+g+b)/3;
-      const pc=pal===4?[lum,lum,lum]:builtinPalColor(pal,Math.min(0.99,lum),state);
-      data[off]=Math.min(255,Math.round((r*0.6+pc[0]*0.4)*255));
-      data[off+1]=Math.min(255,Math.round((g*0.6+pc[1]*0.4)*255));
-      data[off+2]=Math.min(255,Math.round((b*0.6+pc[2]*0.4)*255));
+      const vm=Math.max(vR,vG,vB);
+      if(vm<=0){data[off]=data[off+1]=data[off+2]=0;data[off+3]=255;continue;}
+      // faint densities fade to black instead of being cut at a threshold
+      const ft=Math.min(1,vm/(2*noiseFloor)),k255=255*ft*ft*(3-2*ft);
+      const r=toneR[Math.min(TN,(Math.log(1+vR)*kR)|0)];
+      const g=toneG[Math.min(TN,(Math.log(1+vG)*kG)|0)];
+      const b=toneB[Math.min(TN,(Math.log(1+vB)*kB)|0)];
+      const pi=((r+g+b)*(PN/3)|0)*3;
+      data[off]=Math.min(255,Math.round((r*0.6+palLut[pi+0]*0.4)*k255));
+      data[off+1]=Math.min(255,Math.round((g*0.6+palLut[pi+1]*0.4)*k255));
+      data[off+2]=Math.min(255,Math.round((b*0.6+palLut[pi+2]*0.4)*k255));
       data[off+3]=255;
     }
   }
@@ -5392,6 +5453,14 @@ function buddhaWorkerMain(){
     drawBuddhabrotBuffer(ctx,job.r,job.g,job.b,job.w,job.h,job.maxR||1,job.maxG||1,job.maxB||1,job.bounds,job.settings,job.bounds);
     job.drawMs=performance.now()-start;job.lastDraw=performance.now();
   }
+  // Helper: hand the trajectories gathered since the last hand-over to the page,
+  // which passes them on to the worker that owns the picture.
+  function flush(){
+    const {r,g,b,samples}=job,n=job.w*job.h;
+    waiting=true;job.lastDraw=performance.now();job.flushMs=Math.min(1500,job.flushMs*1.5);
+    job.r=new Float32Array(n);job.g=new Float32Array(n);job.b=new Float32Array(n);job.samples=0;
+    self.postMessage({type:'delta',r:r.buffer,g:g.buffer,b:b.buffer,samples},[r.buffer,g.buffer,b.buffer]);
+  }
   function tick(){
     timer=null;if(paused||!job)return;
     const start=performance.now();
@@ -5401,7 +5470,9 @@ function buddhaWorkerMain(){
       const m=accumulateBuddhabrot(job.r,job.g,job.b,job.w,job.h,job.bounds,take,512,100,20,job.sampler);
       job.maxR=Math.max(job.maxR,m.r);job.maxG=Math.max(job.maxG,m.g);job.maxB=Math.max(job.maxB,m.b);job.samples+=take;
     }while(performance.now()-start<24&&job.samples<job.limit);
-    if(job.samples>=job.limit||(!waiting&&performance.now()-job.lastDraw>=Math.max(180,job.drawMs*3)))paint();
+    const now=performance.now();
+    if(job.helper){if(!waiting&&now-job.lastDraw>=job.flushMs)flush();}
+    else if(job.samples>=job.limit||(!waiting&&now>=job.firstAt&&now-job.lastDraw>=Math.max(180,job.drawMs*3)))paint();
     schedule();
   }
   self.onmessage=({data:d})=>{
@@ -5409,7 +5480,18 @@ function buddhaWorkerMain(){
       if(timer!==null)clearTimeout(timer);timer=null;waiting=false;paused=!!d.paused;
       job={...d,r:new Float32Array(d.w*d.h),g:new Float32Array(d.w*d.h),b:new Float32Array(d.w*d.h),
         maxR:0,maxG:0,maxB:0,samples:0,sampler:createBuddhaSampler(d.bounds),limit:d.limit||Infinity,lastDraw:performance.now()-120,drawMs:0};
+      job.firstAt=performance.now()+(d.firstDelay||0);job.flushMs=d.flushMs||300;
       schedule();
+    }else if(d.type==='merge'&&job){
+      const r=new Float32Array(d.r),g=new Float32Array(d.g),b=new Float32Array(d.b),R=job.r,G=job.g,B=job.b;
+      if(r.length!==R.length)return;
+      let mr=job.maxR,mg=job.maxG,mb=job.maxB;
+      for(let i=0;i<r.length;i++){
+        let v=(R[i]+=r[i]);if(v>mr)mr=v;
+        v=(G[i]+=g[i]);if(v>mg)mg=v;
+        v=(B[i]+=b[i]);if(v>mb)mb=v;
+      }
+      job.maxR=mr;job.maxG=mg;job.maxB=mb;job.samples+=d.samples;
     }else if(d.type==='settings'&&job){job.settings=d.settings;job.lastDraw=0;schedule();}
     else if(d.type==='ack'){waiting=false;}
     else if(d.type==='pause'){paused=d.value;if(paused&&timer!==null){clearTimeout(timer);timer=null;}else schedule();}
@@ -5429,11 +5511,23 @@ function createBuddhaWorker(){
 function stopBuddhaJob(job){
   if(!job)return;
   if(job.worker){job.worker.terminate();job.worker=null;}
+  if(job.helpers){job.helpers.forEach(h=>h.terminate());job.helpers=null;}
   if(job.timer!=null){clearTimeout(job.timer);job.timer=null;}
   job.running=false;
 }
 function paintBuddhaPixels(ctx,d){
   ctx.putImageData(new ImageData(new Uint8ClampedArray(d.pixels),d.w,d.h),0,0);
+}
+// Last finished-looking picture and the window it shows: stretched into the new
+// window while a moved or zoomed view is being recomputed.
+const BuddhaPreview={canvas:null,bounds:null,styleKey:''};
+// Extra workers that only trace trajectories; bounded by cores and by memory
+// (each one holds its own three-channel histogram).
+function buddhaHelperCount(w,h){
+  if(activePerfProfile==='safe'||activePerfProfile==='ultralight')return 1;
+  const cores=navigator.hardwareConcurrency||4,mem=navigator.deviceMemory||8;
+  const byMem=Math.floor((mem<=4?120e6:300e6)/(w*h*24));
+  return Math.max(0,Math.min(cores-2,6,byMem));
 }
 function startBuddhaView(w,h,bounds){
   const settings=buddhaColorSettings(),key=buddhaViewKey(w,h,bounds);
@@ -5444,10 +5538,26 @@ function startBuddhaView(w,h,bounds){
       if(cur.worker)cur.worker.postMessage({type:'settings',settings});}
     return;
   }
+  const pv=BuddhaPreview;
+  if(cur.painted&&cur.bounds&&cur.w===cpuCanvas.width&&cur.h===cpuCanvas.height){
+    if(!pv.canvas)pv.canvas=document.createElement('canvas');
+    pv.canvas.width=cur.w;pv.canvas.height=cur.h;pv.canvas.getContext('2d').drawImage(cpuCanvas,0,0);
+    pv.bounds=cur.bounds;pv.styleKey=cur.styleKey;
+  }
   cancelCpuRender(true);
   cur=cpuRender.buddha={key,w,h,bounds,settings,styleKey:JSON.stringify(settings),running:true,samples:0,
-    maxR:0,maxG:0,maxB:0,lastDraw:0,drawMs:0,worker:null,timer:null};
+    maxR:0,maxG:0,maxB:0,lastDraw:0,drawMs:0,worker:null,helpers:null,timer:null,painted:false};
   clearCpuCanvas();updateBuddhaProgress(0,w,h);
+  let hasPreview=false;
+  if(pv.canvas&&pv.styleKey===cur.styleKey){
+    const o=pv.bounds,kx=w/(bounds.maxX-bounds.minX),ky=h/(bounds.maxY-bounds.minY);
+    const dw=(o.maxX-o.minX)*kx,dh=(o.maxY-o.minY)*ky;
+    if(dw>8&&dh>8&&dw<w*64){
+      cpuCtx.save();cpuCtx.fillStyle='#000';cpuCtx.fillRect(0,0,w,h);cpuCtx.imageSmoothingEnabled=true;
+      cpuCtx.drawImage(pv.canvas,(o.minX-bounds.minX)*kx,(bounds.maxY-o.maxY)*ky,dw,dh);cpuCtx.restore();
+      hasPreview=true;
+    }
+  }
   const gen=cpuRender.gen;
   const current=()=>gen===cpuRender.gen&&cpuRender.buddha===cur&&state.ftype===FRACTAL_BUDDHABROT;
   const fallback=()=>{
@@ -5487,18 +5597,31 @@ function startBuddhaView(w,h,bounds){
         if(key!==buddhaViewKey(canvas.width,canvas.height,buddhaViewBounds(canvas.width,canvas.height)))return;
         cur.samples=d.samples;
         if(!document.hidden&&!uiOverlayOpen()){
-          paintBuddhaPixels(cpuCtx,d);updateBuddhaProgress(d.samples,w,h);
+          paintBuddhaPixels(cpuCtx,d);cur.painted=true;updateBuddhaProgress(d.samples,w,h);
         }
         cur.worker.postMessage({type:'ack'});
       };
       cur.worker.onerror=e=>{if(e.preventDefault)e.preventDefault();fallback();};
-      cur.worker.postMessage({type:'init',w,h,bounds,settings:cur.settings,paused:document.hidden});
+      cur.worker.postMessage({type:'init',w,h,bounds,settings:cur.settings,paused:document.hidden,firstDelay:hasPreview?450:0});
+      cur.helpers=[];
+      for(let i=buddhaHelperCount(w,h);i>0;i--){
+        const helper=createBuddhaWorker();
+        helper.onmessage=({data:d})=>{
+          if(!current()||d.type!=='delta'||!cur.worker)return;
+          cur.worker.postMessage({type:'merge',r:d.r,g:d.g,b:d.b,samples:d.samples},[d.r,d.g,d.b]);
+          helper.postMessage({type:'ack'});
+        };
+        helper.onerror=e=>{if(e.preventDefault)e.preventDefault();helper.terminate();};
+        helper.postMessage({type:'init',w,h,bounds,helper:true,paused:document.hidden});
+        cur.helpers.push(helper);
+      }
     }catch(e){fallback();}
   },runtime.interacting?100:0);
 }
 document.addEventListener('visibilitychange',()=>{
   const job=cpuRender.buddha;
   if(job.worker)job.worker.postMessage({type:'pause',value:document.hidden});
+  if(job.helpers)job.helpers.forEach(h=>h.postMessage({type:'pause',value:document.hidden}));
 });
 
 function renderBuddhaWorkerImage(ctx,w,h,bounds,settings,limit,onProgress=null){
@@ -5911,12 +6034,14 @@ function resetView(push=true){
   const d=FRACTAL_DEFAULTS[state.ftype]||{cx:'-0.5',cy:'0'};
   let baseScale=d.scale!==undefined?+d.scale:BASE;
   if([46,47].includes(state.ftype)){const r=wrap.getBoundingClientRect();baseScale*=Math.max(1,r.width/Math.max(1,r.height));}
-  applyState({...visualDefaults(),cx:d.cx,cy:d.cy,scale:adaptiveScale(baseScale),...(d.jre!==undefined?{jre:d.jre}:{}),
+  applyState({...visualDefaults(),...TYPE_STYLE[state.ftype],cx:d.cx,cy:d.cy,scale:adaptiveScale(baseScale),...(d.jre!==undefined?{jre:d.jre}:{}),
     ...(d.jim!==undefined?{jim:d.jim}:{}),
     ...(d.phoenixP!==undefined?{phoenixP:d.phoenixP}:{}),
     ...(d.fracExp!==undefined?{fracExp:d.fracExp}:{}),
     ...(d.newtonDegree!==undefined?{newtonDegree:d.newtonDegree}:{}),
-    ...(d.maxIter!==undefined?{maxIter:d.maxIter}:{})},{push,renderNow:true});
+    ...(d.maxIter!==undefined?{maxIter:d.maxIter}:{}),
+    ...(d.palette!==undefined?{palette:d.palette}:{}),
+    ...(d.palCycles!==undefined?{palCycles:d.palCycles}:{})},{push,renderNow:true});
 }
 
 function applyRectZoom(x0,y0,x1,y1){
@@ -6872,6 +6997,122 @@ function computeHistogramEq(){
 
 // Populate fractal/palette/trap selects and scene presets
 // ── Fractal gallery (modal) ─────────────────────────────────────
+// ── Gallery thumbnails ──────────────────────────────────────────────
+// Each fractal type is drawn once, at the view and style it opens with, then
+// kept as an image for the session. GPU types use a small offscreen WebGL2
+// context (one specialised program per type, one type per task so the gallery
+// stays responsive); the context is released once every thumbnail is made.
+// CPU types reuse their export renderers. 3D types only get a badge.
+const Thumbs={
+  W:240,H:150,cache:new Map(),waiting:new Map(),queue:[],running:false,g:null,
+  view(ft){
+    const d=FRACTAL_DEFAULTS[ft]||{cx:'-0.5',cy:'0'};
+    const v={...URL_STATE_DEFAULTS,...visualDefaults(),...TYPE_STYLE[ft],ftype:ft};
+    if(ft===1)v.fracExp=2;
+    if(ft===10)v.fracExp=3;
+    if(ft===32){v.jre=-1.5;v.jim=0;}
+    for(const k of ['jre','jim','phoenixP','fracExp','newtonDegree','maxIter','palette','palCycles'])if(d[k]!==undefined)v[k]=d[k];
+    v.cx=new D(d.cx);v.cy=new D(d.cy);
+    v.scale=(d.scale!==undefined?+d.scale:BASE)*([46,47].includes(ft)?this.W/this.H:1);
+    v.maxIter=Math.min(v.maxIter||300,400);
+    return v;
+  },
+  context(){
+    if(this.g)return this.g;
+    const c=document.createElement('canvas');c.width=this.W;c.height=this.H;
+    const g=c.getContext('webgl2',{antialias:false,alpha:false,preserveDrawingBuffer:true});
+    if(!g)return null;
+    g.bindBuffer(g.ARRAY_BUFFER,g.createBuffer());
+    g.bufferData(g.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),g.STATIC_DRAW);
+    return this.g=g;
+  },
+  drawGpu(ft,v){
+    const g=this.context();if(!g)return null;
+    const W=this.W,H=this.H,prog=g.createProgram();
+    for(const [type,src] of [[g.VERTEX_SHADER,VS],[g.FRAGMENT_SHADER,stdSource(ft,stdIExp(ft,v))]]){
+      const sh=g.createShader(type);g.shaderSource(sh,src);g.compileShader(sh);g.attachShader(prog,sh);g.deleteShader(sh);
+    }
+    g.linkProgram(prog);
+    if(!g.getProgramParameter(prog,g.LINK_STATUS))throw new Error(g.getProgramInfoLog(prog));
+    const U={};STD_UNIFORMS.forEach(n=>{U[n]=g.getUniformLocation(prog,n);});
+    const a=g.getAttribLocation(prog,'p');g.enableVertexAttribArray(a);g.vertexAttribPointer(a,2,g.FLOAT,false,0,0);
+    g.viewport(0,0,W,H);g.useProgram(prog);
+    const [xh,xl]=split(v.cx.toNumber()),[yh,yl]=split(v.cy.toNumber());
+    g.uniform2f(U.uRes,W,H);g.uniform2f(U.uChi,xh,yh);g.uniform2f(U.uClo,xl,yl);g.uniform1f(U.uScale,v.scale);
+    g.uniform1i(U.uMaxIter,v.maxIter);g.uniform1i(U.uType,ft);g.uniform2f(U.uJulia,v.jre,v.jim);g.uniform1f(U.uPhoenixP,v.phoenixP);
+    // thumbnails ignore the zoom-adapted colours of the view currently open
+    const keep=[ColorAuto.scale,ColorAuto.off];ColorAuto.scale=1;ColorAuto.off=0;
+    try{setEffU(U,W,{g,st:v,scale:v.scale,live:false});}finally{[ColorAuto.scale,ColorAuto.off]=keep;}
+    g.drawArrays(g.TRIANGLE_STRIP,0,4);
+    const url=g.canvas.toDataURL('image/jpeg',0.85);
+    g.deleteProgram(prog);
+    return url;
+  },
+  // 3D types: the raymarcher's program for that fractal, at its home camera and
+  // preset. state3d is borrowed for the camera/bound helpers, then put back.
+  draw3d(ft){
+    const g=this.context();if(!g)return null;
+    const W=this.W,H=this.H,fr=ft-FRACTAL_3D_BASE,prog=g.createProgram();
+    const fs='#version 300 es\nprecision highp float;\nout vec4 fragColor;\n#define LOOPMAX uMaxSteps\n#define FR '+fr+'\n'+FS3D.replace(/gl_FragColor/g,'fragColor');
+    for(const [type,src] of [[g.VERTEX_SHADER,VS3D_GL2],[g.FRAGMENT_SHADER,fs]]){
+      const sh=g.createShader(type);g.shaderSource(sh,src);g.compileShader(sh);g.attachShader(prog,sh);g.deleteShader(sh);
+    }
+    g.bindAttribLocation(prog,0,'p');g.linkProgram(prog);
+    if(!g.getProgramParameter(prog,g.LINK_STATUS))throw new Error(g.getProgramInfoLog(prog));
+    const U={};U3D_NAMES.forEach(n=>{U[n]=g.getUniformLocation(prog,n);});
+    const keep={...state3d,target:state3d.target.slice()};
+    let s,cam,bound;
+    try{
+      state3d.fractal=fr;applyPreset3d();applyHome3d();
+      s={...state3d,target:state3d.target.slice()};cam=cameraPos3d();bound=bound3d();
+    }finally{Object.assign(state3d,keep);}
+    g.enableVertexAttribArray(0);g.vertexAttribPointer(0,2,g.FLOAT,false,0,0);
+    g.viewport(0,0,W,H);g.useProgram(prog);
+    g.uniform2f(U.uRes,W,H);g.uniform3f(U.uCamPos,cam[0],cam[1],cam[2]);g.uniform3f(U.uCamTarget,s.target[0],s.target[1],s.target[2]);
+    g.uniform1f(U.uFov,s.fov);g.uniform1f(U.uPower,s.power);g.uniform1f(U.uBailout,s.bailout);g.uniform1f(U.uEpsilon,s.epsilon);
+    g.uniform1i(U.uMaxSteps,s.maxSteps);g.uniform1f(U.uFar,s.far);g.uniform1f(U.uBound,bound);g.uniform1f(U.uPixK,R3.pixK);
+    g.uniform1i(U.uTrapType,0);g.uniform1f(U.uTrapScale,1);g.uniform1i(U.uFrame,0);
+    setPaletteU(g,U,{...URL_STATE_DEFAULTS,palette:s.palette});
+    g.uniform1f(U.uExposure,s.exposure);g.uniform1f(U.uGlow,s.glow);g.uniform1i(U.uShadows,s.shadows?1:0);g.uniform1i(U.uAO,s.ao?1:0);g.uniform1i(U.uFog,0);
+    g.drawArrays(g.TRIANGLE_STRIP,0,4);
+    const url=g.canvas.toDataURL('image/jpeg',0.85);
+    g.deleteProgram(prog);
+    return url;
+  },
+  async drawCpu(ft,v){
+    const W=this.W,H=this.H,c=document.createElement('canvas');c.width=W;c.height=H;
+    const ctx=c.getContext('2d');ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+    if(ft===FRACTAL_LYAPUNOV)await renderLyapunovToCtx(ctx,W,H,true,v,Math.min(v.maxIter,200));
+    else if(ft===FRACTAL_BUDDHABROT)await renderBuddhabrotToCtx(ctx,W,H,150000,true,v);
+    else if(ft===FRACTAL_FOUGERE)await renderFougereToCtx(ctx,W,H,viewBounds2D(W,H,v));
+    else await renderLorenzToCtx(ctx,W,H,+v.scale,+v.cx,+v.cy);
+    return c.toDataURL('image/jpeg',0.85);
+  },
+  // Fills img with the thumbnail of type ft, now or as soon as it is drawn.
+  request(ft,img){
+    if(this.cache.has(ft)){const url=this.cache.get(ft);if(url)img.src=url;else img.remove();return;}
+    if(!this.waiting.has(ft))this.waiting.set(ft,[]);
+    this.waiting.get(ft).push(img);
+    if(!this.queue.includes(ft))this.queue.push(ft);
+    this.pump();
+  },
+  async pump(){
+    if(this.running)return;
+    this.running=true;
+    while(this.queue.length){
+      const ft=this.queue.shift();
+      let url=null;
+      try{url=isFractal3D(ft)?this.draw3d(ft):isCpuFractal(ft)?await this.drawCpu(ft,this.view(ft)):this.drawGpu(ft,this.view(ft));}
+      catch(err){console.warn('Thumbnail',ft,err);}
+      this.cache.set(ft,url);
+      for(const img of this.waiting.get(ft)||[]){if(url)img.src=url;else img.remove();}
+      this.waiting.delete(ft);
+      await new Promise(r=>setTimeout(r,0));
+    }
+    this.running=false;
+    if(this.g){this.g.getExtension('WEBGL_lose_context')?.loseContext();this.g=null;}
+  }
+};
 function buildGallery(filter=''){
   const host=$('galleryContent');if(!host)return;
   host.innerHTML='';
@@ -6897,7 +7138,9 @@ function buildGallery(filter=''){
       const card=document.createElement('button');card.className='gallery-card';
       if(f.id===state.ftype)card.classList.add('active');
       const meta=fractMeta(f.id);
-      card.innerHTML='<b>'+meta.name+'</b><span>'+meta.desc+'</span>';
+      card.innerHTML='<div class="gallery-text"><b>'+meta.name+'</b><span>'+meta.desc+'</span></div>';
+      const img=document.createElement('img');img.className='gallery-thumb';img.alt='';img.width=Thumbs.W;img.height=Thumbs.H;
+      card.prepend(img);Thumbs.request(f.id,img);
       card.onclick=()=>{
         openModal('galleryModal',false);
         $('splash').classList.add('out');
@@ -7183,7 +7426,7 @@ const I18N={en:{
   traps:['Circle','Cross','Point','Square'],
   groups:{'3D':'3D',Classiques:'Classics',Anguleuses:'Angular',Organiques:'Organic','Algébriques / attracteurs':'Algebraic / attractors','Géométriques':'Geometric','Spéciales':'Special','Créations':'Creations'},
   groupDescriptions:{'3D':'Navigable volumes and structures in three dimensions.',Classiques:'The foundational sets for exploring fractal forms.',Anguleuses:'Abs(), bifurcations and sharp edges.',Organiques:'Orbit memory, filaments and living structures.','Algébriques / attracteurs':'Attractor basins and transcendental functions.','Géométriques':'Direct computation and repeating structures.','Spéciales':'CPU engines, trajectories and unique renderers.','Créations':'Original fractals selected for their visual and mathematical singularity.'},
-  cpPresets:['🌊 Ocean','🔥 Plasma','🌿 Forest','✨ Galaxy'],
+  cpPresets:['Ocean','Plasma','Forest','Galaxy'],
   stylePresets:{cinema:['Cinema','Deep contrast'],glacier:['Glacier','Bright blues'],velours:['Velvet','Soft pastel'],noir:['B&W Relief','Sharp graphics'],volcan:['Volcano','Hot and sculpted'],cristal:['Crystal','Sharp and bright']},
   juliaPresets:[['Spiral','Dense classic'],['Rabbit','Organic shapes'],['Island','Fine archipelago'],['Dragon','Nervous structure']],
   effects:{normal:'Normal map',distance:'Distance',orbitTrap:'Orbit trap',stripe:'Stripe',expShort:'Exp.',degree:'Degree',abSequence:'AB sequence',fixedC:'fixed c',accumulation:'Progressive accumulation'},
@@ -7205,7 +7448,7 @@ fr:{
   juliaPresets:[['Spirale','Classique dense'],['Lapin','Formes organiques'],['Île','Archipel fin'],['Dragon','Structure nerveuse']],
   effects:{normal:'Relief',orbitTrap:'Piège d’orbite',stripe:'Stries',degree:'Degré',abSequence:'Séquence AB',fixedC:'c fixe',accumulation:'Accumulation progressive'},
   saved:{empty:'Aucun favori enregistré.',open:'Ouvrir',viewThumbnail:'Vue'},
-  fractals:{0:['Mandelbrot','L’ensemble classique avec le chemin de zoom le plus profond et le plus stable.'],1:['Julia','Constante c fixée : exposant 2 pour la forme classique, ajustable pour explorer d’autres formes.'],2:['Burning Ship','Navire brûlant à puissance variable — bords très denses, excellent rendu de relief.'],3:['Multicorn','Version conjuguée du Mandelbrot, à symétrie inversée.'],4:['Newton','Bassins de Newton paramétrables pour z^n−1.'],5:['Magnet I','Bulles et structures fermées.'],6:['Buffalo','Variante abs() bicubique — structures angulaires très distinctes.'],7:['Phoenix','Mémoire d’orbite — structures tourbillonnantes.'],8:['Celtic','Motifs anguleux et entrelacs géométriques, modulables par puissance.'],9:['Cosinus','Ondulations de cosinus complexe.'],10:['Multibrot','Exposant libre d pour faire varier la topologie.'],11:['Perpendicular Mandelbrot','Variante abs() sur l’axe imaginaire, avec plumes et spirales cristallines.'],12:['Feather','Formule avec division par la norme, donnant des filaments organiques en plumes.'],13:['Lambda','Logistique complexe — très sensible à c.'],18:['Sinus','Plumes et rubans complexes.'],21:['Nova','Newton décalé par c — très graphique.'],22:['Glynn','Puissance fractionnaire — motifs organiques.'],23:['Lyapunov','Carte de stabilité de l’équation logistique, riche en bandes et structures fines.'],24:['Buddhabrot','Rendu par densité d’orbites des points qui s’échappent, affiné progressivement.'],29:['Bitwise AND','Triangle de Sierpiński via AND binaire. Pas d’itération — coloration directe.'],30:['Bitwise XOR','Damier fractal récursif via XOR binaire. Motifs géométriques infinis.'],31:['Mandelbox 2D','Box-fold + inversion sphérique — structures répétitives cubiques tressées.'],32:['Burning Ship Julia','Mode Julia de Burning Ship avec puissance variable — formes asymétriques très marquées.'],34:['Collatz','Conjecture de Collatz dans ℂ — filaments organiques très caractéristiques.'],35:['Barnsley 2','Formule de Barnsley (1988) — Julia cristallines très distinctes.'],36:['Barnsley 3','Variante cubique de Barnsley — structures géométriques uniques.'],37:['Manowar','z = z² + c + z_préc — toile d’araignée fractale, cousin de Phoenix.'],38:['Spider','z = z² + c, c = c/2 + z — spirales en toile caractéristiques.'],40:['Mandelbulb 3D','Généralisation 3D de Mandelbrot.'],41:['Mandelbox 3D','Fractale architecturale 3D.'],42:['Éponge de Menger','IFS 3D classique.'],43:['Tétraèdre de Sierpiński','IFS tétraèdre 3D.'],44:['Julia quaternion 3D','Julia en espace quaternion.'],45:['Apollonian Gasket',"Circles tangents imbriqués à l'infini — distance estimation directe."],46:['Fougère de Barnsley','IFS classique — 4 transformations affines, rendu par accumulation de points.'],47:['Attracteur de Lorenz','Système chaotique de Lorenz — trajectoire en papillon intégrée par RK4.'],48:['Spirale Φ','Rétroaction de phase au nombre d’or : des spirales qui refusent de se fermer.'],52:['Sinh','Sinus hyperbolique : flammes asymétriques et croissance non périodique.'],53:['Exponentielle','Famille de Fatou-Bieberbach : araignées infinies, c·exp(z)−1.'],77:['Peau d’étoile','Membrane stellaire granuleuse, avec rayons, plis et pulsations.']},
+  fractals:{60:['McMullen','z = z³ + λ/z³ dans le plan des paramètres : un collier d’anneaux et de médaillons.'],61:['McMullen Julia','z = z² + λ/z² : des cercles emboîtés à l’infini (tapis de Sierpiński) ; λ est la constante c.'],62:['Tétration','La tour de puissances c^c^c… : bouquets de plumes et d’yeux.'],0:['Mandelbrot','L’ensemble classique avec le chemin de zoom le plus profond et le plus stable.'],1:['Julia','Constante c fixée : exposant 2 pour la forme classique, ajustable pour explorer d’autres formes.'],2:['Burning Ship','Navire brûlant à puissance variable — bords très denses, excellent rendu de relief.'],3:['Multicorn','Version conjuguée du Mandelbrot, à symétrie inversée.'],4:['Newton','Bassins de Newton paramétrables pour z^n−1.'],5:['Magnet I','Bulles et structures fermées.'],6:['Buffalo','Variante abs() bicubique — structures angulaires très distinctes.'],7:['Phoenix','Mémoire d’orbite — structures tourbillonnantes.'],8:['Celtic','Motifs anguleux et entrelacs géométriques, modulables par puissance.'],9:['Cosinus','Ondulations de cosinus complexe.'],10:['Multibrot','Exposant libre d pour faire varier la topologie.'],11:['Perpendicular Mandelbrot','Variante abs() sur l’axe imaginaire, avec plumes et spirales cristallines.'],12:['Feather','Formule avec division par la norme, donnant des filaments organiques en plumes.'],13:['Lambda','Logistique complexe — très sensible à c.'],18:['Sinus','Plumes et rubans complexes.'],21:['Nova','Newton décalé par c — très graphique.'],22:['Glynn','Puissance fractionnaire — motifs organiques.'],23:['Lyapunov','Carte de stabilité de l’équation logistique, riche en bandes et structures fines.'],24:['Buddhabrot','Rendu par densité d’orbites des points qui s’échappent, affiné progressivement.'],29:['Bitwise AND','Triangle de Sierpiński via AND binaire. Pas d’itération — coloration directe.'],30:['Bitwise XOR','Damier fractal récursif via XOR binaire. Motifs géométriques infinis.'],31:['Mandelbox 2D','Box-fold + inversion sphérique — structures répétitives cubiques tressées.'],32:['Burning Ship Julia','Mode Julia de Burning Ship avec puissance variable — formes asymétriques très marquées.'],34:['Collatz','Conjecture de Collatz dans ℂ — filaments organiques très caractéristiques.'],35:['Barnsley 2','Formule de Barnsley (1988) — Julia cristallines très distinctes.'],36:['Barnsley 3','Variante cubique de Barnsley — structures géométriques uniques.'],37:['Manowar','z = z² + c + z_préc — toile d’araignée fractale, cousin de Phoenix.'],38:['Spider','z = z² + c, c = c/2 + z — spirales en toile caractéristiques.'],40:['Mandelbulb 3D','Généralisation 3D de Mandelbrot.'],41:['Mandelbox 3D','Fractale architecturale 3D.'],42:['Éponge de Menger','IFS 3D classique.'],43:['Tétraèdre de Sierpiński','IFS tétraèdre 3D.'],44:['Julia quaternion 3D','Julia en espace quaternion.'],45:['Apollonian Gasket',"Circles tangents imbriqués à l'infini — distance estimation directe."],46:['Fougère de Barnsley','IFS classique — 4 transformations affines, rendu par accumulation de points.'],47:['Attracteur de Lorenz','Système chaotique de Lorenz — trajectoire en papillon intégrée par RK4.'],48:['Spirale Φ','Rétroaction de phase au nombre d’or : des spirales qui refusent de se fermer.'],52:['Sinh','Sinus hyperbolique : flammes asymétriques et croissance non périodique.'],53:['Exponentielle','Famille de Fatou-Bieberbach : araignées infinies, c·exp(z)−1.'],77:['Peau d’étoile','Membrane stellaire granuleuse, avec rayons, plis et pulsations.']},
   tour:[['Vue d’ensemble',"L'ensemble de Mandelbrot complet. Chaque point noir reste borné sous z²+c. La frontière est infiniment complexe."],['Cardioïde principale',"Le corps en forme de cœur. Tout point à l'intérieur converge vers un cycle de période 1."],['Seahorse Valley',"La vallée des hippocampes, entre cardioïde et bulbe. Les spirales s'enroulent à l'infini."],['Seahorse Spiral',"En zoomant, les spirales se multiplient. Chaque bras contient des copies miniatures de l'ensemble."],['Spiral de feu','Zoom ×7 500. Les spirales se densifient dans la vallée.'],['Spiral de feu profonde','Zoom ×100 000. Chaque bras engendre ses propres tourbillons.'],['Œil de paon',"Structure concentrique en forme d'œil, typique des zones proches de la frontière."],['Couronne satellites','Des bulbes satellites orbitent autour du bulbe principal, chacun avec sa propre période.'],['Galaxie fractale','Structure spiralée rappelant une galaxie, avec ses bras et ses amas de mini-Mandelbrots.'],['Trompe éléphant','Les trompes se ramifient en sous-spirales auto-similaires dans la vallée des éléphants.'],['Vallée du Sceptre',"Structures en forme de sceptre entre le Big Disk et l'extrémité de l'ensemble."],['Antenne',"L'extrémité gauche de l'ensemble, là où la queue se termine en pointe infiniment fine."],['Mini-Mandelbrot',"Une copie complète de l'ensemble, nichée dans un filament : l'auto-similarité fondamentale."],['Double spirale','Deux spirales jumelles en sens opposés, signature des points de Misiurewicz.'],['Filaments fins','Réseaux de filaments connectant les bulbes. Chaque intersection recèle un mini-Mandelbrot.'],['Dentelles profondes','Dentelles ultra-fines de la frontière. Chaque fil est lui-même fractal, à toutes les échelles.'],['Point de Feigenbaum',"Le point d'accumulation de la cascade de doublements de période. Constante universelle δ ≈ 4.669."],['Escargots',"Près de c = −2, les spirales s'enroulent very slowement, comme des coquilles d'escargot."],['Queue profonde','On plonge dans la queue, vers c = −2, là où les filaments deviennent infiniment ténus.'],['Mini-brot solaire',"Un mini-Mandelbrot rayonnant, niché à ×183 millions de profondeur dans la queue de l'ensemble."],['Fractale ultime','Zoom ×6 000 milliards. Aux confins de la précision, des structures émergent encore du néant.'],['Tentacules',"Longs filaments ondulants s'étendant depuis les zones chaotiques de la frontière."],['Nœuds celtiques',"Motifs entrelacés évoquant l'art celtique, nés de l'interaction des cycles orbitaux."],['Col Misiurewicz',"Point de Misiurewicz : l'orbite est pré-périodique et la frontière y est particulièrement rugueuse."],['Ruban de feu',"Rubans ondulants créés par les orbites qui frôlent le rayon d'échappement avant de diverger."],["Retour vue d'ensemble",'Retour au point de départ. Tout ce que nous avons vu tient dans cette silhouette noire.']],
   x:{metaDescription:'Explorez des fractales interactives 2D et 3D — Mandelbrot, Julia, Buddhabrot, Mandelbulb et plus. Fonctionne hors ligne.',ogDescription:'Explorez des fractales interactives en 2D et 3D dans votre navigateur.',splashLead:(count)=>count+' fractales interactives en 2D et 3D · Zoomez. Explorez. Émerveillez-vous !',otherFractals:(count)=>'Voir la liste des '+count+' fractales',saveReminder:'Pensez à sauvegarder vos favoris.',localStorageHint:'Ils sont conservés dans ce navigateur. Exportez-les pour éviter de les perdre.',changeFractal:'Changer de fractale',randomFractal:'Fractale aléatoire',randomFractalDesc:'Lancer une vue surprise',randomFractalTag:'Découverte rapide',resetView:'Réinitialiser la vue',addFavorite:'Ajouter aux favoris',topFavorite:'Favoris',topFavoriteTitle:'Ajouter aux favoris',tour:'Visite guidée',tourDesc:'Parcourez les plus belles fractales',tourCount:(n)=>`${n} lieux à découvrir`,allFractalsTitle:'Toutes les fractales',fullCatalog:'Vue complète',download:'Télécharger',downloadHtml:'Télécharger le fichier HTML',offline:'Version hors ligne',realC:'Constante c réelle',imagC:'Constante c imaginaire',juliaHint:'Modifie la constante c. Indépendant de l’exposant.',shape:'Forme de la fractale',exponent:'Exposant',phoenix:'Mémoire Phoenix',newton:'Degré Newton',resolution:'Résolution',gallerySearch:'Rechercher…',close:'Fermer',cancel:'Annuler',export:'Exporter',home:'Accueil',undo:'Annuler',share:'Partager',fullscreen:'Plein écran',help:'Aide rapide',helpShort:'Aide',dragOrbit:'Glisser : orbite · Molette : zoom',shiftPan:'Shift+glisser : panoramique',doubleCenter:'Double-clic : centrer sur ce point',ssResolution:'Résolution',homeMiniProjects:'Mes projets :',homeMiniCoffee:'Pour rester éveillé :',languageName:'Français',flagClass:'fr',replayGuide:'Revoir la visite guidée',perfComfortLabel:'Confort',perfComfort2d:'Priorité fluidité — résolution et itérations réduites si nécessaire',perfBalancedLabel:'Équilibré',perfBalanced2d:'Le moteur ajuste seul — recommandé pour la plupart des appareils',perfQualityLabel:'Qualité',perfQuality2d:'Priorité résolution — peut ralentir sur GPU modeste',perfUltralightLabel:'Ultra-léger',perfUltralight2d:'GPU très limité — qualité minimale pour rester fluide',currentFractalPrefix:'Fractale actuelle : ',viewThumbnail:'Vue',fractalShapePowerHint:'Exposant 2 = forme classique. Les valeurs plus hautes modifient la géométrie.',labels3d:{power:'Puissance',scale:'Échelle',box:'Pliage de boîte',size:'Taille',spacing:'Espacement'},cardRecommended:'★ Recommandé',mandelbrotCardDesc:'Explorez la fractale la plus célèbre',mandelbrotCardTag:'Zoom infini',mandelbulbCardDesc:'Plongez dans les volumes fractals',mandelbulbCardTag:'Volumes organiques',projectLinksLabel:'Liens du projet',noAdditionalEffects:'Aucun effet additionnel',export3dTitle:'Export 3D',export3dDesc:'Les fractales 3D utilisent la capture du canvas 3D courant. Les presets 16K concernent les fractales 2D.',invalidCustomExport:'Indiquez une largeur et une hauteur valides.',downloadedTitle:'Fichier téléchargé',downloadedDesc:'Conservez localement.',saveHtmlFallback:'Utilisez Ctrl+S pour enregistrer.',exportCustomChoice:'Perso',exportCustomChoiceLabel:'Saisir largeur × hauteur',customResolution:'Résolution personnalisée',customWidth:'Largeur',customHeight:'Hauteur',useCustom:'Utiliser',exportCustomHint:'Chaque côté est limité à 16384 px. L’image sera réduite automatiquement si elle dépasse le plafond du profil.',slow:'lent',verySlow:'très lent',mouseDrag:'Glisser',mouseWheel:'Molette',shiftDrag:'Shift+glisser',doubleClick:'Double-clic',helpNavMove:'déplacer la vue',helpNavWheel:'zoomer sous le curseur',helpNavBox:'zoom par rectangle',helpNavDouble:'zoom ×2 vers le point',shortcutZoom:'+ / − zoom clavier',shortcutPan:'←→↑↓ déplacement',shortcutHome:'Accueil : vue par défaut',shortcutTab:'P panneau · H aide',navDragText:'déplacer · Shift+glisser : zoom rectangle',navWheelText:'zoom · double-clic : zoom ×2',navKeyboardText:'zoom · ←→↑↓ déplacer · Accueil : réinitialiser',navTabText:'P panneau · H aide',open:'Ouvrir',delete:'Supprimer',import:'Importer',exportPng:'Exporter PNG',desktopProfileLabel:'Profil de performance',ready:'Prêt',pwaShortName:'Fractales',pwaDescription:(count)=>`${count} fractales interactives 2D et 3D`,languageNames:{en:'Anglais',ar:'Arabe',zh:'Chinois',es:'Espagnol',fr:'Français'},autoColor:'Couleurs adaptées au zoom',autoColorTitle:'En zoom profond, étire la palette pour éviter le bruit coloré',pinOn:'Panneau épinglé : cliquer pour le laisser s’estomper',pinOff:'Épingler le panneau (il ne s’estompera plus)',effectUnavailable:'Effet indisponible pour ce moteur de rendu.',webgl2Needed:'Cette fractale nécessite WebGL 2.',no3d:'Le rendu 3D est indisponible sur cet appareil.',saveFailed:'Sauvegarde impossible',saveFailedDesc:'Le stockage du navigateur est indisponible ou plein. Exportez vos favoris avant de libérer de la place.',language:'Langue : ',exportRendering:'Rendu',exportAssembling:'Assemblage de l’image…',exportAA:'Lissage des contours',exportAAOff:'Aucun (le plus rapide)',exportAAHigh:'Élevé (16 passes, lent)'},
   d3:{autoQualityReduced:'Qualité 3D réduite automatiquement',fractal:'Fractale',params:'Paramètres',render:'Rendu',camera:'Caméra',orbitTrap:'Effets de couleur',trapClassic:'Classique',trapSphere:'Sphère',trapPlane:'Plan XY',trapAxis:'Axe Z',trapScale:'Échelle',accumulate:'Qualité progressive',qualityProfile:'Profil de qualité',exposure:'Exposition',brightness:'Luminosité',glow:'Halo lumineux',softShadows:'Ombres douces',ao:'Occlusion ambiante',fog:'Brouillard',fov:'Champ de vision',adaptiveRes:'Résolution adaptative',precision:'Précision',maxSteps:'Pas max.',autoRotate:'Rotation auto',rotSpeed:'Vitesse rotation',ultralight:'Ultra-léger 🐢',comfort:'Confort',balanced:'Équilibré',quality:'Qualité',resetView:'⌂ Vue par défaut',applyPreset:'⚙ Paramètres recommandés',restartRotate:'⟳ Relancer la rotation',ready:'Prêt',resolution:'Résolution',viewReset:'Vue réinitialisée',pointCentered:'Point centré'},
@@ -7217,12 +7460,12 @@ es:{
   traps:['Círculo','Cruz','Punto','Cuadrado'],
   groups:{Classiques:'Clásicas',Anguleuses:'Angulares',Organiques:'Orgánicas','Algébriques / attracteurs':'Algebraicas / atractores','Géométriques':'Geométricas','Spéciales':'Especiales','Créations':'Creaciones'},
   groupDescriptions:{'3D':'Volúmenes y estructuras navegables en tres dimensiones.',Classiques:'Los conjuntos fundamentales para explorar formas fractales.',Anguleuses:'Abs(), bifurcaciones y bordes afilados.',Organiques:'Memoria de órbita, filamentos y estructuras vivas.','Algébriques / attracteurs':'Cuencas de atracción y funciones trascendentes.','Géométriques':'Cálculo directo y estructuras repetitivas.','Spéciales':'Motores CPU, trayectorias y renderizados únicos.','Créations':'Fractales originales elegidas por su singularidad visual y matemática.'},
-  cpPresets:['🌊 Oceano','🔥 Plasma','🌿 Bosque','✨ Galaxia'],
+  cpPresets:['Oceano','Plasma','Bosque','Galaxia'],
   stylePresets:{cinema:['Cine','Contraste profundo'],glacier:['Glaciar','Azules luminosos'],velours:['Terciopelo','Pastel suave'],noir:['B/N Relieve','Gráfico nítido'],volcan:['Volcán','Cálido y esculpido'],cristal:['Cristal','Nítido y luminoso']},
   juliaPresets:[['Espiral','Clásica densa'],['Conejo','Formas orgánicas'],['Isla','Archipiélago fino'],['Dragón','Estructura nerviosa']],
   effects:{distance:'Distancia',orbitTrap:'Trampa de órbita',stripe:'Franja',degree:'Grado',abSequence:'Secuencia AB',fixedC:'c fija'},
   saved:{empty:'Aún no hay favoritos guardados.',open:'Abrir',viewThumbnail:'Vista'},
-  fractals:{0:['Mandelbrot','El conjunto clásico con el camino de zoom más profundo y estable.'],1:['Julia','Constante c fija: el exponente 2 mantiene la forma clásica; ajústalo para explorar otras formas.'],2:['Burning Ship','Barco ardiente de potencia variable, con bordes densos y excelente relieve.'],3:['Multicorn','Variante conjugada de potencia variable: contraparte angular de Multibrot.'],4:['Newton','Cuencas de Newton configurables para z^n−1.'],5:['Magnet I','Burbujas y estructuras cerradas.'],6:['Buffalo','Variante bicúbica abs() con estructuras angulares muy distintivas.'],7:['Phoenix','La memoria de órbita crea estructuras en espiral.'],8:['Celtic','Motivos angulares y entrelazados geométricos, ajustables por potencia.'],9:['Coseno','Ondas y ondulaciones de coseno complejo.'],10:['Multibrot','Exponente libre d para variar la topología.'],11:['Mandelbrot perpendicular','Variante abs() en el eje imaginario, con plumas cristalinas y espirales.'],12:['Pluma','Fórmula con división por la norma y filamentos orgánicos en forma de pluma.'],13:['Lambda','Mapa logístico complejo, muy sensible a c.'],18:['Seno','Plumas y cintas complejas de aspecto plumoso.'],21:['Nova','Newton desplazado por c, muy gráfico.'],22:['Glynn','Potencia fraccionaria con motivos orgánicos.'],23:['Lyapunov','Mapa de estabilidad de la ecuación logística con ricas franjas.'],24:['Buddhabrot','Renderizado por densidad orbital de puntos de escape, refinado progresivamente.'],29:['Bitwise AND','Triángulo de Sierpiński mediante AND binario. Sin iteración: color directo.'],30:['Bitwise XOR','Tablero fractal recursivo mediante XOR binario.'],31:['Mandelbox 2D','Plegado de caja más inversión esférica con repeticiones cúbicas trenzadas.'],32:['Burning Ship Julia','Burning Ship en modo Julia con potencia variable y formas muy asimétricas.'],34:['Collatz','Conjetura de Collatz en ℂ con filamentos orgánicos muy característicos.'],35:['Barnsley 2','Fórmula de Barnsley (1988) con Julias cristalinas muy distintivas.'],36:['Barnsley 3','Variante cúbica de Barnsley con estructuras geométricas únicas.'],37:['Manowar','z = z² + c + z anterior — primo en telaraña de Phoenix.'],38:['Spider','z = z² + c, c = c/2 + z — espirales en forma de red.'],40:['Mandelbulb 3D','Generalización 3D de Mandelbrot.'],41:['Mandelbox 3D','Fractal 3D arquitectónica.'],42:['Esponja de Menger','IFS 3D clásico.'],43:['Tetraedro de Sierpiński','IFS tetraédrico 3D.'],44:['Julia cuaternión 3D','Conjunto de Julia en espacio de cuaterniones.'],45:['Empaquetamiento apolonio','Círculos tangentes infinitamente anidados — estimación directa de distancia.'],46:['Helecho de Barnsley','IFS clásico: 4 transformaciones afines renderizadas por acumulación de puntos.'],47:['Atractor de Lorenz','Sistema caótico de Lorenz: trayectoria de mariposa integrada con RK4.'],48:['Espiral Phi','Retroalimentación de fase con proporción áurea: espirales que no se cierran.'],52:['Sinh','Seno hiperbólico: llamas asimétricas y crecimiento no periódico.'],53:['Exponencial','Familia Fatou-Bieberbach: arañas infinitas, c exp(z)-1.'],77:['Piel de estrella','Membrana estelar granular con rayos, pliegues y pulsos.']},
+  fractals:{60:['McMullen','z = z³ + λ/z³ en el plano de parámetros: un collar de anillos y medallones.'],61:['McMullen Julia','z = z² + λ/z²: círculos anidados hasta el infinito (alfombra de Sierpiński); λ es la constante c.'],62:['Tetración','La torre de potencias c^c^c…: ramos de plumas y ojos.'],0:['Mandelbrot','El conjunto clásico con el camino de zoom más profundo y estable.'],1:['Julia','Constante c fija: el exponente 2 mantiene la forma clásica; ajústalo para explorar otras formas.'],2:['Burning Ship','Barco ardiente de potencia variable, con bordes densos y excelente relieve.'],3:['Multicorn','Variante conjugada de potencia variable: contraparte angular de Multibrot.'],4:['Newton','Cuencas de Newton configurables para z^n−1.'],5:['Magnet I','Burbujas y estructuras cerradas.'],6:['Buffalo','Variante bicúbica abs() con estructuras angulares muy distintivas.'],7:['Phoenix','La memoria de órbita crea estructuras en espiral.'],8:['Celtic','Motivos angulares y entrelazados geométricos, ajustables por potencia.'],9:['Coseno','Ondas y ondulaciones de coseno complejo.'],10:['Multibrot','Exponente libre d para variar la topología.'],11:['Mandelbrot perpendicular','Variante abs() en el eje imaginario, con plumas cristalinas y espirales.'],12:['Pluma','Fórmula con división por la norma y filamentos orgánicos en forma de pluma.'],13:['Lambda','Mapa logístico complejo, muy sensible a c.'],18:['Seno','Plumas y cintas complejas de aspecto plumoso.'],21:['Nova','Newton desplazado por c, muy gráfico.'],22:['Glynn','Potencia fraccionaria con motivos orgánicos.'],23:['Lyapunov','Mapa de estabilidad de la ecuación logística con ricas franjas.'],24:['Buddhabrot','Renderizado por densidad orbital de puntos de escape, refinado progresivamente.'],29:['Bitwise AND','Triángulo de Sierpiński mediante AND binario. Sin iteración: color directo.'],30:['Bitwise XOR','Tablero fractal recursivo mediante XOR binario.'],31:['Mandelbox 2D','Plegado de caja más inversión esférica con repeticiones cúbicas trenzadas.'],32:['Burning Ship Julia','Burning Ship en modo Julia con potencia variable y formas muy asimétricas.'],34:['Collatz','Conjetura de Collatz en ℂ con filamentos orgánicos muy característicos.'],35:['Barnsley 2','Fórmula de Barnsley (1988) con Julias cristalinas muy distintivas.'],36:['Barnsley 3','Variante cúbica de Barnsley con estructuras geométricas únicas.'],37:['Manowar','z = z² + c + z anterior — primo en telaraña de Phoenix.'],38:['Spider','z = z² + c, c = c/2 + z — espirales en forma de red.'],40:['Mandelbulb 3D','Generalización 3D de Mandelbrot.'],41:['Mandelbox 3D','Fractal 3D arquitectónica.'],42:['Esponja de Menger','IFS 3D clásico.'],43:['Tetraedro de Sierpiński','IFS tetraédrico 3D.'],44:['Julia cuaternión 3D','Conjunto de Julia en espacio de cuaterniones.'],45:['Empaquetamiento apolonio','Círculos tangentes infinitamente anidados — estimación directa de distancia.'],46:['Helecho de Barnsley','IFS clásico: 4 transformaciones afines renderizadas por acumulación de puntos.'],47:['Atractor de Lorenz','Sistema caótico de Lorenz: trayectoria de mariposa integrada con RK4.'],48:['Espiral Phi','Retroalimentación de fase con proporción áurea: espirales que no se cierran.'],52:['Sinh','Seno hiperbólico: llamas asimétricas y crecimiento no periódico.'],53:['Exponencial','Familia Fatou-Bieberbach: arañas infinitas, c exp(z)-1.'],77:['Piel de estrella','Membrana estelar granular con rayos, pliegues y pulsos.']},
   tour:[['Vista general','El conjunto de Mandelbrot completo. Cada punto negro permanece acotado bajo z²+c. Su frontera es infinitamente compleja.'],['Cardioide principal','El cuerpo con forma de corazón. Cada punto interior converge hacia un ciclo de periodo 1.'],['Valle Seahorse','El valle entre el cardioide y el bulbo, donde las espirales se enrollan sin fin.'],['Espiral Seahorse','Al acercarse, las espirales se multiplican. Cada brazo contiene copias miniatura del conjunto.'],['Espiral de fuego','Zoom ×7 500. Las espirales se densifican dentro del valle.'],['Espiral de fuego profunda','Zoom ×100 000. Cada brazo genera sus propios remolinos.'],['Ojo de pavo real','Estructura concéntrica en forma de ojo, típica de zonas cercanas a la frontera.'],['Corona de satélites','Bulbos satélite orbitan el bulbo principal, cada uno con su propio periodo.'],['Galaxia fractal','Estructura espiral similar a una galaxia, con brazos y cúmulos de mini-Mandelbrots.'],['Trompa de elefante','Las trompas se ramifican en subespirales autosimilares en el valle de los elefantes.'],['Valle del cetro','Estructuras con forma de cetro entre el Big Disk y el extremo del conjunto.'],['Antena','La punta izquierda del conjunto, donde la cola termina en una punta infinitamente fina.'],['Mini-Mandelbrot','Una copia completa del conjunto, anidada en un filamento: autosimilitud fundamental.'],['Doble espiral','Espirales gemelas en sentidos opuestos, firma de los puntos de Misiurewicz.'],['Filamentos finos','Redes de filamentos conectan los bulbos. Cada cruce esconde un mini-Mandelbrot.'],['Encaje profundo','Encajes ultrafinos de la frontera. Cada hilo es fractal a todas las escalas.'],['Punto de Feigenbaum','El punto de acumulación de la cascada de duplicación de periodo. Constante universal δ ≈ 4.669.'],['Caracoles','Cerca de c = −2, las espirales se enrollan lentamente como conchas.'],['Cola profunda','Una inmersión en la cola cerca de c = −2, donde los filamentos se vuelven infinitamente finos.'],['Mini-brot solar','Un mini-Mandelbrot radiante, anidado ×183 millones de profundidad en la cola.'],['Fractal última','Zoom ×6 billones. En el borde de la precisión, aún emergen estructuras de la nada.'],['Tentáculos','Largos filamentos ondulantes se extienden desde zonas caóticas de la frontera.'],['Nudos celtas','Motivos entrelazados que recuerdan al arte celta, nacidos de ciclos orbitales interactivos.'],['Paso Misiurewicz','Punto de Misiurewicz: la órbita es preperiódica y la frontera especialmente rugosa.'],['Cinta de fuego','Cintas ondulantes creadas por órbitas que rozan el radio de escape antes de divergir.'],['Volver a la vista general','Regreso al punto de partida. Todo lo visto cabe dentro de esta silueta negra.']],
   x:{languageName:'Español',languageNames:{en:'Inglés',ar:'Árabe',zh:'Chino',es:'Español',fr:'Francés'},flagClass:'es',share:'Copiar enlace',metaDescription:'Explora fractales interactivas 2D y 3D — Mandelbrot, Julia, Buddhabrot, Mandelbulb y más. Funciona sin conexión.',ogDescription:'Explora fractales interactivas 2D y 3D en tu navegador.',splashLead:(count)=>count+' fractales interactivas 2D y 3D · Haz zoom. Explora. Maravíllate.',otherFractals:(count)=>'Ver la lista de '+count+' fractales',saveReminder:'Recuerda guardar tus favoritos.',localStorageHint:'Se guardan en este navegador. Exportarlos evita pérdidas.',changeFractal:'Cambiar fractal',randomFractal:'Fractal aleatoria',randomFractalDesc:'Lanzar una vista sorpresa',randomFractalTag:'Descubrimiento rápido',resetView:'Restablecer vista',addFavorite:'Añadir a favoritos',topFavorite:'Favoritos',topFavoriteTitle:'Añadir a favoritos',tour:'Visita guiada',tourDesc:'Recorre las fractales más bellas',tourCount:(n)=>n+' lugares por descubrir',allFractalsTitle:'Todas las fractales',fullCatalog:'Catálogo completo',download:'Descargar',downloadHtml:'Descargar el archivo HTML',offline:'Versión sin conexión',realC:'Constante c real',imagC:'Constante c imaginaria',juliaHint:'Modifica la constante c. Independiente del exponente.',shape:'Forma de la fractal',exponent:'Exponente',phoenix:'Memoria Phoenix',newton:'Grado Newton',resolution:'Resolución',gallerySearch:'Buscar…',close:'Cerrar',cancel:'Cancelar',export:'Exportar',home:'Inicio',undo:'Deshacer',fullscreen:'Pantalla completa',help:'Ayuda rápida',helpShort:'Ayuda',dragOrbit:'Arrastrar: orbitar · Rueda: zoom',shiftPan:'Shift+arrastrar: panorámica',doubleCenter:'Doble clic: centrar en este punto',ssResolution:'Resolución',homeMiniProjects:'Mis proyectos:',homeMiniCoffee:'Fondo para seguir despierto:',replayGuide:'Rever la visita guiada',perfComfortLabel:'Confort',perfComfort2d:'Prioridad fluidez — reduce resolución e iteraciones si hace falta',perfBalancedLabel:'Equilibrado',perfBalanced2d:'El motor se ajusta solo — recomendado para la mayoría de dispositivos',perfQualityLabel:'Calidad',perfQuality2d:'Prioridad resolución — puede ralentizarse en GPU modesta',navDrawer:'Menú',currentFractalPrefix:'Fractal actual: ',viewThumbnail:'Vista',fractalShapePowerHint:'Exponente 2 = forma clásica. Valores superiores modifican la geometría.',labels3d:{power:'Potencia',scale:'Escala',box:'Pliegue de caja',size:'Tamaño',spacing:'Espaciado'},cardRecommended:'★ Recomendado',mandelbrotCardDesc:'Explora la fractal más famosa',mandelbrotCardTag:'Zoom infinito',mandelbulbCardDesc:'Sumérgete en volúmenes fractales',mandelbulbCardTag:'Volúmenes orgánicos',projectLinksLabel:'Enlaces del proyecto',noAdditionalEffects:'Sin efecto adicional',export3dTitle:'Exportación 3D',export3dDesc:'Las fractales 3D usan la captura del canvas 3D actual. Los presets 16K son para fractales 2D.',invalidCustomExport:'Introduce una anchura y una altura válidas.',downloadedTitle:'Archivo descargado',downloadedDesc:'Guárdalo localmente.',saveHtmlFallback:'Usa Ctrl+S para guardar.',exportCustomChoiceLabel:'Introducir anchura × altura',customResolution:'Resolución personalizada',customWidth:'Anchura',customHeight:'Altura',useCustom:'Usar',exportCustomHint:'Cada lado está limitado a 16384 px. La imagen se reducirá automáticamente si supera el límite del perfil.',slow:'lento',verySlow:'muy lento',mouseDrag:'Arrastrar',mouseWheel:'Rueda',shiftDrag:'Shift+arrastrar',doubleClick:'Doble clic',helpNavMove:'mover la vista',helpNavWheel:'zoom hacia el cursor',helpNavBox:'zoom rectangular',helpNavDouble:'zoom ×2 hacia el punto',shortcutZoom:'+ / − zoom teclado',shortcutPan:'←→↑↓ panorámica',shortcutHome:'Inicio: vista por defecto',shortcutTab:'P panel · H ayuda',navDragText:'mover · Shift+arrastrar: zoom rectangular',navWheelText:'zoom · doble clic: zoom ×2',navKeyboardText:'zoom · ←→↑↓ mover · Inicio: restablecer',navTabText:'P panel · H ayuda',open:'Abrir',delete:'Eliminar',import:'Importar',desktopProfileLabel:'Perfil de rendimiento',ready:'Listo',pwaShortName:'Fractales',pwaDescription:(count)=>`${count} fractales interactivas 2D y 3D`,exportRendering:'Renderizado',exportAssembling:'Ensamblando la imagen…',exportAA:'Suavizado de bordes',exportAAOff:'Ninguno (más rápido)',exportAAStd:'Estándar (4 pasadas)',exportAAHigh:'Alto (16 pasadas, lento)'},
   d3:{autoQualityReduced:'Calidad 3D reducida automáticamente',params:'Parámetros',camera:'Cámara',actions:'Acciones',nav:'Navegación',orbitTrap:'Efectos de color',trapType:'Modo',trapClassic:'Clásico',trapSphere:'Esfera',trapPlane:'Plano XY',trapAxis:'Eje Z',trapCube:'Cubo',trapScale:'Escala',accumulate:'Calidad progresiva',qualityProfile:'Perfil de calidad',palette:'Paleta',exposure:'Exposición',brightness:'Luminosidad',glow:'Halo luminoso',softShadows:'Sombras suaves',ao:'Oclusión ambiental',fog:'Niebla',fov:'Campo de visión',adaptiveRes:'Resolución adaptativa',precision:'Precisión',maxSteps:'Pasos máx.',autoRotate:'Rotación auto',rotSpeed:'Velocidad de rotación',ultralight:'Ultra-ligero 🐢',comfort:'Confort',balanced:'Equilibrado',quality:'Calidad',resetView:'⌂ Vista por defecto',applyPreset:'⚙ Ajustes recomendados',restartRotate:'⟳ Reiniciar rotación',ready:'Listo',resolution:'Resolución',viewReset:'Vista restablecida',pointCentered:'Punto centrado'},
@@ -7234,12 +7477,12 @@ zh:{
   traps:['圆形','十字','点','方形'],
   groups:{Classiques:'经典',Anguleuses:'棱角',Organiques:'有机','Algébriques / attracteurs':'代数 / 吸引子','Géométriques':'几何','Spéciales':'特殊','Créations':'创作'},
   groupDescriptions:{'3D':'可在三维中导航的体积和结构。',Classiques:'探索分形形态的基础集合。',Anguleuses:'Abs()、分叉和锐利边缘。',Organiques:'轨道记忆、丝状结构和生命感形态。','Algébriques / attracteurs':'吸引域和超越函数。','Géométriques':'直接计算和重复结构。','Spéciales':'CPU 引擎、轨迹和独特渲染。','Créations':'因视觉与数学独特性而选出的原创分形。'},
-  cpPresets:['🌊 海洋','🔥 等离子','🌿 森林','✨ 银河'],
+  cpPresets:['海洋','等离子','森林','银河'],
   stylePresets:{cinema:['电影','深对比'],glacier:['冰川','明亮蓝色'],velours:['天鹅绒','柔和粉彩'],noir:['黑白浮雕','清晰图形'],volcan:['火山','炽热雕塑感'],cristal:['水晶','清晰明亮']},
   juliaPresets:[['螺旋','密集经典'],['兔子','有机形状'],['岛屿','精细群岛'],['龙','神经状结构']],
   effects:{normal:'法线贴图',distance:'距离',orbitTrap:'轨道陷阱',stripe:'条纹',expShort:'指数',degree:'阶数',abSequence:'AB 序列',fixedC:'固定 c'},
   saved:{empty:'尚无收藏。',open:'打开',viewThumbnail:'视图'},
-  fractals:{0:['Mandelbrot','经典集合，拥有最深且最稳定的缩放路径。'],1:['Julia','固定 c 常数：指数 2 保持经典形状，可调整以探索新形态。'],2:['Burning Ship','可变幂的燃烧船，边缘密集，浮雕效果出色。'],3:['Multicorn','可变幂的共轭变体：Multibrot 的棱角对应物。'],4:['Newton','可配置的 z^n−1 牛顿吸引域。'],5:['Magnet I','气泡和封闭结构。'],6:['Buffalo','双三次 abs() 变体，具有非常鲜明的棱角结构。'],7:['Phoenix','轨道记忆产生旋涡结构。'],8:['Celtic','棱角图案和几何交织，现在可由幂调整。'],9:['Cosine','复余弦的波纹和涟漪。'],10:['Multibrot','自由指数 d 可改变拓扑结构。'],11:['垂直 Mandelbrot','沿虚轴使用 abs() 的变体，带有晶体状羽毛和螺旋。'],12:['羽毛','按范数除法的公式，生成有机羽毛状丝线。'],13:['Lambda','复逻辑映射，对 c 极其敏感。'],18:['Sine','羽毛状羽流和复杂缎带。'],21:['Nova','由 c 偏移的牛顿分形，图形感很强。'],22:['Glynn','带有有机图案的分数幂。'],23:['Lyapunov','逻辑方程稳定性图，具有丰富条纹结构。'],24:['Buddhabrot','逃逸点的轨道密度渲染，逐步细化。'],29:['Bitwise AND','通过二进制 AND 生成 Sierpiński 三角形，无迭代，直接着色。'],30:['Bitwise XOR','通过二进制 XOR 生成递归分形棋盘。'],31:['Mandelbox 2D','盒折叠加球面反演，形成编织状立方重复。'],32:['Burning Ship Julia','Julia 模式的 Burning Ship，可变幂且强烈不对称。'],34:['Collatz','复平面中的 Collatz 猜想，带有独特有机丝状结构。'],35:['Barnsley 2','Barnsley 公式（1988），具有独特晶体状 Julia。'],36:['Barnsley 3','Barnsley 三次变体，结构几何感独特。'],37:['Manowar','z = z² + c + previous z，类似 Phoenix 的蛛网亲族。'],38:['Spider','z = z² + c, c = c/2 + z，典型网状螺旋。'],40:['Mandelbulb 3D','Mandelbrot 的 3D 推广。'],41:['Mandelbox 3D','建筑感 3D 分形。'],42:['Menger Sponge','经典 3D IFS。'],43:['Sierpiński Tetrahedron','3D 四面体 IFS。'],44:['Quaternion Julia 3D','四元数空间中的 Julia 集。'],45:['Apollonian Gasket','无限嵌套的相切圆，直接距离估计。'],46:['Barnsley Fern','经典 IFS，4 个仿射变换，以点累积渲染。'],47:['Lorenz Attractor','Lorenz 混沌系统，使用 RK4 积分的蝴蝶轨迹。'],48:['Phi Spiral','黄金比例相位反馈，永不闭合的螺旋。'],52:['Sinh','双曲正弦，非对称火焰和非周期增长。'],53:['Exponential','Fatou-Bieberbach 族，无限蜘蛛状结构，c exp(z)-1。'],77:['Star Skin','颗粒状恒星薄膜，带射线、褶皱和脉冲。']},
+  fractals:{0:['Mandelbrot','经典集合，拥有最深且最稳定的缩放路径。'],1:['Julia','固定 c 常数：指数 2 保持经典形状，可调整以探索新形态。'],2:['Burning Ship','可变幂的燃烧船，边缘密集，浮雕效果出色。'],3:['Multicorn','可变幂的共轭变体：Multibrot 的棱角对应物。'],4:['Newton','可配置的 z^n−1 牛顿吸引域。'],5:['Magnet I','气泡和封闭结构。'],6:['Buffalo','双三次 abs() 变体，具有非常鲜明的棱角结构。'],7:['Phoenix','轨道记忆产生旋涡结构。'],8:['Celtic','棱角图案和几何交织，现在可由幂调整。'],9:['Cosine','复余弦的波纹和涟漪。'],10:['Multibrot','自由指数 d 可改变拓扑结构。'],11:['垂直 Mandelbrot','沿虚轴使用 abs() 的变体，带有晶体状羽毛和螺旋。'],12:['羽毛','按范数除法的公式，生成有机羽毛状丝线。'],13:['Lambda','复逻辑映射，对 c 极其敏感。'],18:['Sine','羽毛状羽流和复杂缎带。'],21:['Nova','由 c 偏移的牛顿分形，图形感很强。'],22:['Glynn','带有有机图案的分数幂。'],23:['Lyapunov','逻辑方程稳定性图，具有丰富条纹结构。'],24:['Buddhabrot','逃逸点的轨道密度渲染，逐步细化。'],29:['Bitwise AND','通过二进制 AND 生成 Sierpiński 三角形，无迭代，直接着色。'],30:['Bitwise XOR','通过二进制 XOR 生成递归分形棋盘。'],31:['Mandelbox 2D','盒折叠加球面反演，形成编织状立方重复。'],32:['Burning Ship Julia','Julia 模式的 Burning Ship，可变幂且强烈不对称。'],34:['Collatz','复平面中的 Collatz 猜想，带有独特有机丝状结构。'],35:['Barnsley 2','Barnsley 公式（1988），具有独特晶体状 Julia。'],36:['Barnsley 3','Barnsley 三次变体，结构几何感独特。'],37:['Manowar','z = z² + c + previous z，类似 Phoenix 的蛛网亲族。'],38:['Spider','z = z² + c, c = c/2 + z，典型网状螺旋。'],40:['Mandelbulb 3D','Mandelbrot 的 3D 推广。'],41:['Mandelbox 3D','建筑感 3D 分形。'],42:['Menger Sponge','经典 3D IFS。'],43:['Sierpiński Tetrahedron','3D 四面体 IFS。'],44:['Quaternion Julia 3D','四元数空间中的 Julia 集。'],45:['Apollonian Gasket','无限嵌套的相切圆，直接距离估计。'],46:['Barnsley Fern','经典 IFS，4 个仿射变换，以点累积渲染。'],47:['Lorenz Attractor','Lorenz 混沌系统，使用 RK4 积分的蝴蝶轨迹。'],48:['Phi Spiral','黄金比例相位反馈，永不闭合的螺旋。'],52:['Sinh','双曲正弦，非对称火焰和非周期增长。'],53:['Exponential','Fatou-Bieberbach 族，无限蜘蛛状结构，c exp(z)-1。'],77:['Star Skin','颗粒状恒星薄膜，带射线、褶皱和脉冲。'],60:['McMullen','参数平面中的 z = z³ + λ/z³：由圆环与圆章串成的项链。'],61:['McMullen Julia','z = z² + λ/z²：无限嵌套的圆（谢尔宾斯基地毯）；λ 即常数 c。'],62:['迭代幂次','幂塔 c^c^c…：羽毛与眼睛组成的花束。']},
   tour:[['概览','完整的 Mandelbrot 集。每个黑点在 z²+c 下保持有界，边界无限复杂。'],['主心形区','心形主体。内部每个点都收敛到周期 1 循环。'],['海马谷','心形区与圆泡之间的山谷，螺旋在这里无尽卷曲。'],['海马螺旋','放大时螺旋不断增多，每条臂都包含完整集合的微缩副本。'],['火焰螺旋','缩放 ×7,500。山谷中的螺旋变得更密。'],['深层火焰螺旋','缩放 ×100,000。每条臂都会生成自己的漩涡。'],['孔雀眼','靠近边界区域常见的同心眼状结构。'],['卫星冠','卫星圆泡围绕主圆泡运行，每个都有自己的周期。'],['分形星系','类似星系的螺旋结构，带有旋臂和迷你 Mandelbrot 星团。'],['象鼻','象谷中的象鼻分支成自相似的子螺旋。'],['权杖谷','位于大圆盘与集合末端之间的权杖状结构。'],['天线','集合最左端，尾部收束为无限细的尖点。'],['迷你 Mandelbrot','嵌在细丝中的完整集合副本：基本自相似性。'],['双螺旋','反向旋转的双螺旋，是 Misiurewicz 点的特征。'],['细丝','连接圆泡的细丝网络，每个交叉点都隐藏着迷你 Mandelbrot。'],['深层花边','边界的超细花边，每根线在所有尺度上都是分形。'],['Feigenbaum 点','倍周期级联的聚积点。通用常数 δ ≈ 4.669。'],['蜗牛','在 c = −2 附近，螺旋像蜗牛壳一样缓慢卷曲。'],['深尾','深入 c = −2 附近的尾部，细丝变得无限纤细。'],['太阳迷你-brot','一个发光的迷你 Mandelbrot，嵌在尾部 ×1.83 亿深处。'],['终极分形','缩放 ×6 万亿。在精度边缘，结构仍从虚无中浮现。'],['触手','长长的波动细丝从混沌边界区域延伸。'],['凯尔特结','类似凯尔特艺术的交织图案，由轨道周期相互作用产生。'],['Misiurewicz 隘口','Misiurewicz 点：轨道是前周期的，边界特别粗糙。'],['火焰丝带','轨道在发散前掠过逃逸半径，形成波动丝带。'],['返回概览','回到起点。我们看到的一切都包含在这个黑色剪影中。']],
   x:{languageName:'中文',languageNames:{en:'英语',ar:'阿拉伯语',zh:'中文',es:'西班牙语',fr:'法语',hi:'印地语'},flagClass:'zh',share:'复制链接',metaDescription:'探索交互式 2D 和 3D 分形 — Mandelbrot、Julia、Buddhabrot、Mandelbulb 等。可离线使用。',ogDescription:'在浏览器中探索交互式 2D 和 3D 分形。',splashLead:(count)=>count+' 个交互式 2D 和 3D 分形 · 缩放。探索。惊叹。',otherFractals:(count)=>'查看 '+count+' 个分形列表',saveReminder:'记得备份你的收藏。',localStorageHint:'收藏保存在本浏览器中。导出可避免丢失。',changeFractal:'更换分形',randomFractal:'随机分形',randomFractalDesc:'启动一个惊喜视图',randomFractalTag:'快速发现',resetView:'重置视图',addFavorite:'添加到收藏',topFavorite:'收藏',topFavoriteTitle:'添加到收藏',tour:'导览',tourDesc:'浏览最美的分形',tourCount:(n)=>n+' 个地点可探索',allFractalsTitle:'所有分形',fullCatalog:'完整目录',download:'下载',downloadHtml:'下载 HTML 文件',offline:'离线版本',realC:'实部 c 常数',imagC:'虚部 c 常数',juliaHint:'修改 c 常数，独立于指数。',shape:'分形形状',exponent:'指数',phoenix:'Phoenix 记忆',newton:'牛顿阶数',resolution:'分辨率',gallerySearch:'搜索…',close:'关闭',cancel:'取消',export:'导出',home:'首页',undo:'撤销',fullscreen:'全屏',help:'快速帮助',helpShort:'帮助',dragOrbit:'拖动：轨道 · 滚轮：缩放',shiftPan:'Shift+拖动：平移',doubleCenter:'双击：居中到此点',ssResolution:'分辨率',homeMiniProjects:'我的项目：',homeMiniCoffee:'保持清醒基金：',zoomInTitle:'放大 +',zoomOutTitle:'缩小 −',replayGuide:'重放导览',perfComfortLabel:'舒适',perfComfort2d:'优先流畅 — 必要时降低分辨率和迭代',perfBalancedLabel:'平衡',perfBalanced2d:'引擎自动调整 — 推荐大多数设备使用',perfQualityLabel:'质量',perfQuality2d:'优先分辨率 — 普通 GPU 可能变慢',navDrawer:'菜单',currentFractalPrefix:'当前分形：',viewThumbnail:'视图',fractalShapePowerHint:'指数 2 = 经典形状。更高值会改变几何结构。',labels3d:{power:'幂',scale:'比例',box:'盒折叠',size:'大小',spacing:'间距'},cardRecommended:'★ 推荐',mandelbrotCardDesc:'探索最著名的分形',mandelbrotCardTag:'无限缩放',mandelbulbCardDesc:'进入分形体积',mandelbulbCardTag:'有机体积',projectLinksLabel:'项目链接',noAdditionalEffects:'无额外效果',export3dTitle:'3D 导出',export3dDesc:'3D 分形使用当前 3D 画布截图。16K 预设适用于 2D 分形。',invalidCustomExport:'请输入有效的宽度和高度。',downloadedTitle:'文件已下载',downloadedDesc:'请保存在本地。',saveHtmlFallback:'使用 Ctrl+S 保存。',exportCustomChoice:'自定义',exportCustomChoiceLabel:'输入宽度 × 高度',customResolution:'自定义分辨率',customWidth:'宽度',customHeight:'高度',useCustom:'使用',exportCustomHint:'每边限制为 16384 px。超过配置上限时图像会自动降低。',slow:'慢',verySlow:'很慢',mouseDrag:'拖动',mouseWheel:'滚轮',shiftDrag:'Shift+拖动',doubleClick:'双击',helpNavMove:'移动视图',helpNavWheel:'向光标缩放',helpNavBox:'框选缩放',helpNavDouble:'向该点 ×2 缩放',shortcutZoom:'+ / − 键盘缩放',shortcutPan:'←→↑↓ 平移',shortcutHome:'Home：默认视图',shortcutTab:'P 面板 · H 帮助',navDragText:'移动 · Shift+拖动：框选缩放',navWheelText:'缩放 · 双击：×2 缩放',navKeyboardText:'缩放 · ←→↑↓ 移动 · Home：重置',navTabText:'P 面板 · H 帮助',open:'打开',delete:'删除',import:'导入',desktopProfileLabel:'性能配置',ready:'就绪',pwaShortName:'分形',pwaDescription:(count)=>`${count} 个交互式 2D 和 3D 分形`,exportRendering:'渲染中',exportAssembling:'正在合成图像…',exportAA:'抗锯齿',exportAAOff:'关闭（最快）',exportAAStd:'标准（4 次采样）',exportAAHigh:'高（16 次采样，较慢）'},
   d3:{autoQualityReduced:'已自动降低 3D 画质',fractal:'分形',params:'参数',render:'渲染',camera:'相机',actions:'操作',nav:'导航',orbitTrap:'颜色效果',trapType:'模式',trapClassic:'经典',trapSphere:'球体',trapPlane:'XY 平面',trapAxis:'Z 轴',trapCube:'立方体',trapScale:'比例',accumulate:'渐进质量',qualityProfile:'质量配置',palette:'调色板',exposure:'曝光',brightness:'亮度',glow:'光晕',softShadows:'柔和阴影',ao:'环境光遮蔽',fog:'雾',fov:'视野',adaptiveRes:'自适应分辨率',precision:'精度',maxSteps:'最大步数',autoRotate:'自动旋转',rotSpeed:'旋转速度',ultralight:'超轻量 🐢',comfort:'舒适',balanced:'平衡',quality:'质量',resetView:'⌂ 默认视图',applyPreset:'⚙ 推荐设置',restartRotate:'⟳ 重新开始旋转',ready:'就绪',resolution:'分辨率',viewReset:'视图已重置',pointCentered:'点已居中'},
@@ -7251,11 +7494,11 @@ hi:{
   traps:['वृत्त','क्रॉस','बिंदु','वर्ग'],
   groups:{Classiques:'क्लासिक',Anguleuses:'कोणीय',Organiques:'ऑर्गैनिक','Algébriques / attracteurs':'बीजगणितीय / attractors','Géométriques':'ज्यामितीय','Spéciales':'विशेष','Créations':'रचनाएँ'},
   groupDescriptions:{'3D':'तीन आयामों में नेविगेट करने योग्य वॉल्यूम और संरचनाएँ।',Classiques:'फ्रैक्टल रूपों को खोजने के आधारभूत सेट।',Anguleuses:'Abs(), विभाजन और तीखे किनारे।',Organiques:'ऑर्बिट मेमरी, फिलामेंट और जीवंत संरचनाएँ।','Algébriques / attracteurs':'Attractor basins और transcendental functions।','Géométriques':'सीधी गणना और दोहराती संरचनाएँ।','Spéciales':'CPU engines, trajectories और अनोखे renderers।','Créations':'दृश्य और गणितीय विशिष्टता के लिए चुने गए मूल फ्रैक्टल।'},
-  cpPresets:['🌊 महासागर','🔥 प्लाज़्मा','🌿 वन','✨ आकाशगंगा'],
+  cpPresets:['महासागर','प्लाज़्मा','वन','आकाशगंगा'],
   stylePresets:{cinema:['सिनेमा','गहरा contrast'],glacier:['ग्लेशियर','चमकीले नीले'],velours:['वेलवेट','मुलायम pastel'],noir:['B&W Relief','तेज़ graphic'],volcan:['ज्वालामुखी','गर्म और sculpted'],cristal:['क्रिस्टल','तेज़ और चमकीला']},
   juliaPresets:[['स्पाइरल','घना क्लासिक'],['रैबिट','ऑर्गैनिक आकार'],['आइलैंड','सूक्ष्म archipelago'],['ड्रैगन','नर्वस संरचना']],
   saved:{empty:'अभी कोई पसंदीदा सेव नहीं।',open:'खोलें'},
-  fractals:{0:['Mandelbrot','सबसे गहरे और स्थिर zoom path वाला classic set.'],1:['Julia','निश्चित c constant: exponent 2 classic shape रखता है; नए रूपों के लिए बदलें.'],2:['Burning Ship','Variable-power burning ship, dense edges और relief rendering के लिए शानदार.'],3:['Multicorn','Variable-power conjugate variant: Multibrot का angular counterpart.'],4:['Newton','z^n−1 के configurable Newton basins.'],5:['Magnet I','Bubbles और बंद संरचनाएँ.'],6:['Buffalo','Bicubic abs() variant, बहुत अलग angular structures.'],7:['Phoenix','Orbit memory swirling structures बनाती है.'],8:['Celtic','Angular motifs और geometric interlacing, power से adjustable.'],9:['Cosine','Complex cosine waves और ripples.'],10:['Multibrot','Free exponent d topology बदलने के लिए.'],11:['Perpendicular Mandelbrot','काल्पनिक अक्ष पर abs() variant, crystalline feathers और spirals के साथ.'],12:['Feather','Norm-division formula, organic feather-like filaments के साथ.'],13:['Lambda','Complex logistic map — c के प्रति बहुत sensitive.'],18:['Sine','Feather-like plumes और complex ribbons.'],21:['Nova','Newton shifted by c — बहुत graphic.'],22:['Glynn','Fractional power with organic motifs.'],23:['Lyapunov','Logistic equation की stability map, rich striped structures.'],24:['Buddhabrot','Escaping points की orbit-density rendering, धीरे-धीरे refined.'],29:['Bitwise AND','Binary AND से Sierpiński triangle. Iteration नहीं — direct coloring.'],30:['Bitwise XOR','Binary XOR से recursive fractal checkerboard.'],31:['Mandelbox 2D','Box-fold plus spherical inversion with braided cubic repetitions.'],32:['Burning Ship Julia','Julia mode में Burning Ship, variable power और strongly asymmetric shapes.'],34:['Collatz','ℂ में Collatz conjecture, characteristic organic filaments.'],35:['Barnsley 2','Barnsley formula (1988), very distinctive crystalline Julias.'],36:['Barnsley 3','Cubic Barnsley variant with unique geometric structures.'],37:['Manowar','z = z² + c + previous z — Phoenix का spiderweb cousin.'],38:['Spider','z = z² + c, c = c/2 + z — web-like spirals.'],40:['Mandelbulb 3D','Mandelbrot का 3D generalization.'],41:['Mandelbox 3D','Architectural 3D fractal.'],42:['Menger Sponge','Classic 3D IFS.'],43:['Sierpiński Tetrahedron','3D tetrahedron IFS.'],44:['Quaternion Julia 3D','Quaternion space में Julia set.'],45:['Apollonian Gasket','Infinitely nested tangent circles — direct distance estimation.'],46:['Barnsley Fern','Classic IFS — 4 affine transforms, point accumulation से rendered.'],47:['Lorenz Attractor','Lorenz chaotic system — RK4 से integrated butterfly trajectory.'],48:['Phi Spiral','Golden-ratio phase feedback — spirals जो बंद नहीं होते.'],52:['Sinh','Hyperbolic sine — asymmetric flames और non-periodic growth.'],53:['Exponential','Fatou-Bieberbach family — infinite spiders, c exp(z)-1.'],77:['Star Skin','Granular stellar membrane with rays, folds and pulses.']},
+  fractals:{0:['Mandelbrot','सबसे गहरे और स्थिर zoom path वाला classic set.'],1:['Julia','निश्चित c constant: exponent 2 classic shape रखता है; नए रूपों के लिए बदलें.'],2:['Burning Ship','Variable-power burning ship, dense edges और relief rendering के लिए शानदार.'],3:['Multicorn','Variable-power conjugate variant: Multibrot का angular counterpart.'],4:['Newton','z^n−1 के configurable Newton basins.'],5:['Magnet I','Bubbles और बंद संरचनाएँ.'],6:['Buffalo','Bicubic abs() variant, बहुत अलग angular structures.'],7:['Phoenix','Orbit memory swirling structures बनाती है.'],8:['Celtic','Angular motifs और geometric interlacing, power से adjustable.'],9:['Cosine','Complex cosine waves और ripples.'],10:['Multibrot','Free exponent d topology बदलने के लिए.'],11:['Perpendicular Mandelbrot','काल्पनिक अक्ष पर abs() variant, crystalline feathers और spirals के साथ.'],12:['Feather','Norm-division formula, organic feather-like filaments के साथ.'],13:['Lambda','Complex logistic map — c के प्रति बहुत sensitive.'],18:['Sine','Feather-like plumes और complex ribbons.'],21:['Nova','Newton shifted by c — बहुत graphic.'],22:['Glynn','Fractional power with organic motifs.'],23:['Lyapunov','Logistic equation की stability map, rich striped structures.'],24:['Buddhabrot','Escaping points की orbit-density rendering, धीरे-धीरे refined.'],29:['Bitwise AND','Binary AND से Sierpiński triangle. Iteration नहीं — direct coloring.'],30:['Bitwise XOR','Binary XOR से recursive fractal checkerboard.'],31:['Mandelbox 2D','Box-fold plus spherical inversion with braided cubic repetitions.'],32:['Burning Ship Julia','Julia mode में Burning Ship, variable power और strongly asymmetric shapes.'],34:['Collatz','ℂ में Collatz conjecture, characteristic organic filaments.'],35:['Barnsley 2','Barnsley formula (1988), very distinctive crystalline Julias.'],36:['Barnsley 3','Cubic Barnsley variant with unique geometric structures.'],37:['Manowar','z = z² + c + previous z — Phoenix का spiderweb cousin.'],38:['Spider','z = z² + c, c = c/2 + z — web-like spirals.'],40:['Mandelbulb 3D','Mandelbrot का 3D generalization.'],41:['Mandelbox 3D','Architectural 3D fractal.'],42:['Menger Sponge','Classic 3D IFS.'],43:['Sierpiński Tetrahedron','3D tetrahedron IFS.'],44:['Quaternion Julia 3D','Quaternion space में Julia set.'],45:['Apollonian Gasket','Infinitely nested tangent circles — direct distance estimation.'],46:['Barnsley Fern','Classic IFS — 4 affine transforms, point accumulation से rendered.'],47:['Lorenz Attractor','Lorenz chaotic system — RK4 से integrated butterfly trajectory.'],48:['Phi Spiral','Golden-ratio phase feedback — spirals जो बंद नहीं होते.'],52:['Sinh','Hyperbolic sine — asymmetric flames और non-periodic growth.'],53:['Exponential','Fatou-Bieberbach family — infinite spiders, c exp(z)-1.'],77:['Star Skin','Granular stellar membrane with rays, folds and pulses.'],60:['McMullen','Parameter plane में z = z³ + λ/z³ — छल्लों और पदकों की माला।'],61:['McMullen Julia','z = z² + λ/z² — अनंत तक एक-दूसरे में बसे वृत्त (Sierpiński कालीन); λ ही स्थिरांक c है।'],62:['Tetration','घातों की मीनार c^c^c… — पंखों और आँखों के गुच्छे।']},
   tour:[['Overview','पूरा Mandelbrot set. हर black point z²+c में bounded रहता है; boundary infinitely complex है.'],['Main cardioid','Heart-shaped body. अंदर का हर point period-1 cycle में converge करता है.'],['Seahorse Valley','Cardioid और bulb के बीच valley, जहाँ spirals अंतहीन घूमते हैं.'],['Seahorse Spiral','Zoom करने पर spirals बढ़ते हैं. हर arm में पूरे set की miniature copies हैं.'],['Fire Spiral','Zoom ×7,500. Valley में spirals dense हो जाते हैं.'],['Deep Fire Spiral','Zoom ×100,000. हर arm अपने whirlpools बनाता है.'],['Peacock Eye','Boundary के पास eye-like concentric structure.'],['Satellite Crown','Satellite bulbs main bulb के around orbit करते हैं, हर एक का अपना period है.'],['Fractal Galaxy','Galaxy जैसी spiral structure, arms और mini-Mandelbrot clusters के साथ.'],['Elephant Trunk','Elephant Valley में trunks self-similar sub-spirals में branch होते हैं.'],['Scepter Valley','Big Disk और set के end के बीच scepter-like structures.'],['Antenna','Set का left tip, जहाँ tail infinitely fine point में खत्म होती है.'],['Mini-Mandelbrot','Filament में nested पूरा set: fundamental self-similarity.'],['Double Spiral','Opposite directions में twin spirals, Misiurewicz points की signature.'],['Fine Filaments','Bulbs को जोड़ते filaments. हर intersection में mini-Mandelbrot छिपा है.'],['Deep Lace','Boundary की ultra-fine lace. हर thread हर scale पर fractal है.'],['Feigenbaum Point','Period-doubling cascade का accumulation point. Universal constant δ ≈ 4.669.'],['Snails','c = −2 के पास spirals snail shells जैसे धीरे coil करते हैं.'],['Deep Tail','c = −2 के पास tail में dive, जहाँ filaments infinitely thin होते हैं.'],['Solar Mini-brot','Tail में ×183 million deep nested radiant mini-Mandelbrot.'],['Ultimate Fractal','Zoom ×6 trillion. Precision की edge पर भी structures emerge होते हैं.'],['Tentacles','Chaotic boundary regions से long waving filaments extend होते हैं.'],['Celtic Knots','Celtic art जैसे interlaced motifs, orbital cycles interaction से बने.'],['Misiurewicz Pass','Misiurewicz point: orbit pre-periodic है और boundary rough है.'],['Fire Ribbon','Escape radius छूकर diverge करती orbits से waving ribbons बनते हैं.'],['Return to Overview','Starting point पर वापसी. हमने जो देखा वह सब इस black silhouette में है.']],
   x:{languageName:'हिन्दी',languageNames:{en:'अंग्रेज़ी',ar:'अरबी',zh:'चीनी',es:'स्पेनिश',fr:'फ़्रेंच',hi:'हिन्दी'},flagClass:'hi',share:'Copy link',metaDescription:'इंटरैक्टिव 2D और 3D fractals खोजें — Mandelbrot, Julia, Buddhabrot, Mandelbulb और अधिक। Offline चलता है।',ogDescription:'अपने browser में interactive 2D और 3D fractals खोजें।',splashLead:(count)=>count+' interactive 2D और 3D fractals · Zoom. Explore. Wonder.',otherFractals:(count)=>count+' fractals की सूची देखें',saveReminder:'अपने पसंदीदा save करना न भूलें।',localStorageHint:'वे इसी browser में रखे जाते हैं। Export करने से loss से बचते हैं।',changeFractal:'Fractal बदलें',randomFractalDesc:'Surprise view launch करें',resetView:'दृश्य reset करें',addFavorite:'पसंदीदा में जोड़ें',topFavorite:'पसंदीदा',topFavoriteTitle:'पसंदीदा में जोड़ें',tourDesc:'सबसे सुंदर fractals देखें',tourCount:(n)=>n+' जगहें खोजें',allFractalsTitle:'सभी fractals',fullCatalog:'पूरा catalog',downloadHtml:'HTML file download करें',juliaHint:'c constant बदलता है। Exponent से स्वतंत्र।',gallerySearch:'खोजें…',close:'बंद करें',cancel:'रद्द करें',help:'Quick help',doubleCenter:'Double-click: इस point पर center',homeMiniProjects:'मेरे projects:',homeMiniCoffee:'जागे रहने का fund:',replayGuide:'Guided tour फिर देखें',perfComfortLabel:'सहज',perfComfort2d:'Smoothness first — जरूरत पड़ने पर resolution और iterations घटते हैं',perfBalancedLabel:'संतुलित',perfBalanced2d:'Engine self-adjusts — अधिकांश devices के लिए recommended',perfQualityLabel:'गुणवत्ता',perfQuality2d:'Resolution first — modest GPU पर धीमा हो सकता है',fractalShapePowerHint:'Exponent 2 = classic shape. Higher values geometry बदलते हैं।',mandelbrotCardDesc:'सबसे प्रसिद्ध fractal खोजें',mandelbulbCardDesc:'Fractal volumes में उतरें',export3dDesc:'3D fractals current 3D canvas capture का उपयोग करते हैं। 16K presets 2D fractals के लिए हैं।',invalidCustomExport:'Valid width और height दर्ज करें।',downloadedTitle:'File downloaded',downloadedDesc:'इसे locally रखें।',saveHtmlFallback:'Save करने के लिए Ctrl+S उपयोग करें।',exportCustomChoiceLabel:'Width × height दर्ज करें',exportCustomHint:'हर side 16384 px तक सीमित है। Profile cap से ऊपर image automatic reduce होगी।',helpNavMove:'दृश्य move करें',helpNavWheel:'cursor की ओर zoom',helpNavDouble:'point की ओर ×2 zoom',open:'खोलें',delete:'हटाएँ',pwaDescription:(count)=>`${count} interactive 2D और 3D fractals`,exportAssembling:'Image तैयार हो रही है…',exportAAOff:'Off (सबसे तेज़)',exportAAHigh:'High (16 passes, धीमा)'},
   d3:{autoQualityReduced:'3D गुणवत्ता स्वतः कम की गई',ultralight:'अति-हल्का 🐢',resetView:'⌂ Default view',applyPreset:'⚙ Recommended settings'},
@@ -7267,12 +7510,12 @@ ar:{
   traps:['دائرة','صليب','نقطة','مربع'],
   groups:{Classiques:'كلاسيكية',Anguleuses:'زاوية',Organiques:'عضوية','Algébriques / attracteurs':'جبرية / جاذبات','Géométriques':'هندسية','Spéciales':'خاصة','Créations':'إبداعات'},
   groupDescriptions:{'3D':'أحجام وهياكل قابلة للتنقل في ثلاثة أبعاد.',Classiques:'المجموعات الأساسية لاستكشاف أشكال الفركتل.',Anguleuses:'Abs()، تشعبات وحواف حادة.',Organiques:'ذاكرة المدار وخيوط وبنى حية.','Algébriques / attracteurs':'أحواض الجذب والدوال المتعالية.','Géométriques':'حساب مباشر وهياكل متكررة.','Spéciales':'محركات CPU ومسارات وطرق عرض فريدة.','Créations':'فركتلات أصلية مختارة لفرادتها البصرية والرياضية.'},
-  cpPresets:['🌊 محيط','🔥 بلازما','🌿 غابة','✨ مجرة'],
+  cpPresets:['محيط','بلازما','غابة','مجرة'],
   stylePresets:{cinema:['سينما','تباين عميق'],glacier:['جليد','أزرق مضيء'],velours:['مخمل','باستيل ناعم'],noir:['أسود وأبيض بارز','رسوم حادة'],volcan:['بركان','حار ومنحوت'],cristal:['كريستال','حاد ومضيء']},
   juliaPresets:[['حلزون','كلاسيكي كثيف'],['أرنب','أشكال عضوية'],['جزيرة','أرخبيل دقيق'],['تنين','بنية عصبية']],
   effects:{distance:'مسافة',orbitTrap:'مصيدة المدار',stripe:'خطوط',expShort:'أس',degree:'درجة',abSequence:'تسلسل AB',fixedC:'c ثابت'},
   saved:{empty:'لا توجد مفضلات محفوظة بعد.',open:'فتح',viewThumbnail:'عرض'},
-  fractals:{0:['Mandelbrot','المجموعة الكلاسيكية مع أعمق مسار تكبير وأكثره استقراراً.'],1:['Julia','ثابت c ثابت: الأس 2 يحافظ على الشكل الكلاسيكي ويمكن تعديله لاستكشاف أشكال جديدة.'],2:['Burning Ship','سفينة محترقة بأس متغيّر وحواف كثيفة وعرض تضاريس ممتاز.'],3:['Multicorn','متغيّر مرافق بأس متغير: النظير الزاوي لـ Multibrot.'],4:['Newton','أحواض نيوتن قابلة للضبط لـ z^n−1.'],5:['Magnet I','فقاعات وهياكل مغلقة.'],6:['Buffalo','متغيّر abs() ثنائي تكعيبي بهياكل زاوية مميزة جداً.'],7:['Phoenix','ذاكرة المدار تولد هياكل دوامية.'],8:['Celtic','نقوش زاوية وتشابكات هندسية قابلة للتعديل بالأس.'],9:['Cosine','تموجات وجيوب تمام مركبة.'],10:['Multibrot','أس حر d لتغيير الطوبولوجيا.'],11:['Mandelbrot العمودي','متغيّر abs() على المحور التخيلي مع ريش بلوري ولوالب.'],12:['ريشة','صيغة قسمة بالمعيار تنتج خيوطاً عضوية شبيهة بالريش.'],13:['Lambda','خريطة لوجستية مركبة شديدة الحساسية لـ c.'],18:['Sine','ريش وأشرطة مركبة شبيهة بالريش.'],21:['Nova','نيوتن مزاح بـ c، شديد الرسومية.'],22:['Glynn','أس كسري بزخارف عضوية.'],23:['Lyapunov','خريطة استقرار للمعادلة اللوجستية ببنى مخططة غنية.'],24:['Buddhabrot','عرض كثافة مدارات النقاط الهاربة مع تحسين تدريجي.'],29:['Bitwise AND','مثلث Sierpiński عبر AND ثنائي. لا تكرار، تلوين مباشر.'],30:['Bitwise XOR','رقعة فركتلية متكررة عبر XOR ثنائي.'],31:['Mandelbox 2D','طي صندوقي مع انعكاس كروي وتكرارات مكعبة مضفورة.'],32:['Burning Ship Julia','Burning Ship في وضع Julia بأس متغير وأشكال غير متناظرة بقوة.'],34:['Collatz','حدسية Collatz في ℂ بخيوط عضوية مميزة.'],35:['Barnsley 2','صيغة Barnsley (1988) مع Julias بلورية مميزة جداً.'],36:['Barnsley 3','متغيّر Barnsley تكعيبي بهياكل هندسية فريدة.'],37:['Manowar','z = z² + c + previous z — قريب من Phoenix بشكل شبكة عنكبوتية.'],38:['Spider','z = z² + c, c = c/2 + z — حلزونات شبكية مميزة.'],40:['Mandelbulb 3D','تعميم ثلاثي الأبعاد لـ Mandelbrot.'],41:['Mandelbox 3D','فركتل ثلاثي الأبعاد معماري.'],42:['Menger Sponge','IFS ثلاثي الأبعاد كلاسيكي.'],43:['Sierpiński Tetrahedron','IFS رباعي الوجوه ثلاثي الأبعاد.'],44:['Quaternion Julia 3D','مجموعة Julia في فضاء الكواترنيون.'],45:['Apollonian Gasket','دوائر تماس متداخلة بلا نهاية — تقدير مسافة مباشر.'],46:['Barnsley Fern','IFS كلاسيكي — 4 تحويلات أفينية، يعرض بتراكم النقاط.'],47:['Lorenz Attractor','نظام Lorenz الفوضوي — مسار فراشة مدمج بـ RK4.'],48:['Phi Spiral','تغذية طورية بنسبة ذهبية — حلزونات لا تغلق.'],52:['Sinh','جيب قطعي — لهب غير متناظر ونمو غير دوري.'],53:['Exponential','عائلة Fatou-Bieberbach — عناكب لا نهائية، c exp(z)-1.'],77:['Star Skin','غشاء نجمي حبيبي بأشعة وطيات ونبضات.']},
+  fractals:{0:['Mandelbrot','المجموعة الكلاسيكية مع أعمق مسار تكبير وأكثره استقراراً.'],1:['Julia','ثابت c ثابت: الأس 2 يحافظ على الشكل الكلاسيكي ويمكن تعديله لاستكشاف أشكال جديدة.'],2:['Burning Ship','سفينة محترقة بأس متغيّر وحواف كثيفة وعرض تضاريس ممتاز.'],3:['Multicorn','متغيّر مرافق بأس متغير: النظير الزاوي لـ Multibrot.'],4:['Newton','أحواض نيوتن قابلة للضبط لـ z^n−1.'],5:['Magnet I','فقاعات وهياكل مغلقة.'],6:['Buffalo','متغيّر abs() ثنائي تكعيبي بهياكل زاوية مميزة جداً.'],7:['Phoenix','ذاكرة المدار تولد هياكل دوامية.'],8:['Celtic','نقوش زاوية وتشابكات هندسية قابلة للتعديل بالأس.'],9:['Cosine','تموجات وجيوب تمام مركبة.'],10:['Multibrot','أس حر d لتغيير الطوبولوجيا.'],11:['Mandelbrot العمودي','متغيّر abs() على المحور التخيلي مع ريش بلوري ولوالب.'],12:['ريشة','صيغة قسمة بالمعيار تنتج خيوطاً عضوية شبيهة بالريش.'],13:['Lambda','خريطة لوجستية مركبة شديدة الحساسية لـ c.'],18:['Sine','ريش وأشرطة مركبة شبيهة بالريش.'],21:['Nova','نيوتن مزاح بـ c، شديد الرسومية.'],22:['Glynn','أس كسري بزخارف عضوية.'],23:['Lyapunov','خريطة استقرار للمعادلة اللوجستية ببنى مخططة غنية.'],24:['Buddhabrot','عرض كثافة مدارات النقاط الهاربة مع تحسين تدريجي.'],29:['Bitwise AND','مثلث Sierpiński عبر AND ثنائي. لا تكرار، تلوين مباشر.'],30:['Bitwise XOR','رقعة فركتلية متكررة عبر XOR ثنائي.'],31:['Mandelbox 2D','طي صندوقي مع انعكاس كروي وتكرارات مكعبة مضفورة.'],32:['Burning Ship Julia','Burning Ship في وضع Julia بأس متغير وأشكال غير متناظرة بقوة.'],34:['Collatz','حدسية Collatz في ℂ بخيوط عضوية مميزة.'],35:['Barnsley 2','صيغة Barnsley (1988) مع Julias بلورية مميزة جداً.'],36:['Barnsley 3','متغيّر Barnsley تكعيبي بهياكل هندسية فريدة.'],37:['Manowar','z = z² + c + previous z — قريب من Phoenix بشكل شبكة عنكبوتية.'],38:['Spider','z = z² + c, c = c/2 + z — حلزونات شبكية مميزة.'],40:['Mandelbulb 3D','تعميم ثلاثي الأبعاد لـ Mandelbrot.'],41:['Mandelbox 3D','فركتل ثلاثي الأبعاد معماري.'],42:['Menger Sponge','IFS ثلاثي الأبعاد كلاسيكي.'],43:['Sierpiński Tetrahedron','IFS رباعي الوجوه ثلاثي الأبعاد.'],44:['Quaternion Julia 3D','مجموعة Julia في فضاء الكواترنيون.'],45:['Apollonian Gasket','دوائر تماس متداخلة بلا نهاية — تقدير مسافة مباشر.'],46:['Barnsley Fern','IFS كلاسيكي — 4 تحويلات أفينية، يعرض بتراكم النقاط.'],47:['Lorenz Attractor','نظام Lorenz الفوضوي — مسار فراشة مدمج بـ RK4.'],48:['Phi Spiral','تغذية طورية بنسبة ذهبية — حلزونات لا تغلق.'],52:['Sinh','جيب قطعي — لهب غير متناظر ونمو غير دوري.'],53:['Exponential','عائلة Fatou-Bieberbach — عناكب لا نهائية، c exp(z)-1.'],77:['Star Skin','غشاء نجمي حبيبي بأشعة وطيات ونبضات.'],60:['ماكمولن','z = z³ + λ/z³ في مستوى الوسيط: عقد من الحلقات والميداليات.'],61:['جوليا ماكمولن','z = z² + λ/z²: دوائر متداخلة إلى ما لا نهاية (سجادة سيربنسكي)؛ λ هو الثابت c.'],62:['تتريت','برج القوى c^c^c…: باقات من الريش والعيون.']},
   tour:[['نظرة عامة','مجموعة Mandelbrot كاملة. كل نقطة سوداء تبقى محدودة تحت z²+c، وحدودها معقدة بلا نهاية.'],['الكارديود الرئيسي','الجسم على شكل قلب. كل نقطة داخله تتقارب إلى دورة من الفترة 1.'],['وادي Seahorse','الوادي بين الكارديود والفقاعة، حيث تلتف الحلزونات إلى ما لا نهاية.'],['حلزون Seahorse','مع التكبير تتكاثر الحلزونات. كل ذراع يحتوي نسخاً مصغرة من المجموعة.'],['حلزون النار','تكبير ×7,500. تصبح الحلزونات أكثر كثافة داخل الوادي.'],['حلزون نار عميق','تكبير ×100,000. كل ذراع يولد دواماته الخاصة.'],['عين الطاووس','بنية متحدة المركز شبيهة بالعين، نموذجية قرب الحدود.'],['تاج الأقمار','فقاعات قمرية تدور حول الفقاعة الرئيسية، لكل منها فترة خاصة.'],['مجرة فركتلية','بنية حلزونية تشبه المجرة، بأذرع وعناقيد mini-Mandelbrots.'],['خرطوم الفيل','تتفرع الخراطيم إلى حلزونات فرعية ذاتية التشابه في وادي الفيلة.'],['وادي الصولجان','هياكل على شكل صولجان بين Big Disk ونهاية المجموعة.'],['الهوائي','الطرف الأيسر للمجموعة، حيث تنتهي الذيل بنقطة دقيقة بلا نهاية.'],['Mini-Mandelbrot','نسخة كاملة من المجموعة داخل خيط: التشابه الذاتي الأساسي.'],['حلزون مزدوج','حلزونان توأمان باتجاهين متعاكسين، علامة نقاط Misiurewicz.'],['خيوط دقيقة','شبكات خيوط تربط الفقاعات. كل تقاطع يخفي mini-Mandelbrot.'],['دانتيل عميق','دانتيل حدودي بالغ الدقة. كل خيط فركتلي على كل المقاييس.'],['نقطة Feigenbaum','نقطة تراكم شلال تضاعف الفترة. الثابت الكوني δ ≈ 4.669.'],['حلزونات بطيئة','قرب c = −2 تلتف الحلزونات ببطء مثل أصداف الحلزون.'],['ذيل عميق','غوص في الذيل قرب c = −2، حيث تصبح الخيوط دقيقة بلا نهاية.'],['Mini-brot شمسي','Mini-Mandelbrot مشع، متداخل على عمق ×183 مليون داخل الذيل.'],['الفركتل النهائي','تكبير ×6 تريليون. عند حافة الدقة، ما زالت البنى تظهر من العدم.'],['مجسات','خيوط طويلة متموجة تمتد من مناطق الحدود الفوضوية.'],['عقد كلتية','زخارف متشابكة تشبه الفن الكلتي، ناتجة من تفاعل الدورات المدارية.'],['ممر Misiurewicz','نقطة Misiurewicz: المدار قبل دوري والحدود خشنة خصوصاً.'],['شريط النار','أشرطة متموجة تصنعها مدارات تلامس نصف قطر الهروب قبل التباعد.'],['عودة إلى النظرة العامة','عودة إلى نقطة البداية. كل ما رأيناه يوجد داخل هذه الظلية السوداء.']],
   x:{languageName:'العربية',languageNames:{en:'الإنجليزية',ar:'العربية',zh:'الصينية',es:'الإسبانية',fr:'الفرنسية',hi:'الهندية'},flagClass:'ar',share:'نسخ الرابط',metaDescription:'استكشف فركتلات تفاعلية ثنائية وثلاثية الأبعاد — Mandelbrot وJulia وBuddhabrot وMandelbulb والمزيد. يعمل دون اتصال.',ogDescription:'استكشف فركتلات تفاعلية ثنائية وثلاثية الأبعاد في المتصفح.',splashLead:(count)=>count+' فركتلات تفاعلية 2D و3D · كبّر. استكشف. اندهش.',otherFractals:(count)=>'عرض قائمة '+count+' فركتلات',saveReminder:'تذكر حفظ مفضلاتك.',localStorageHint:'تحفظ في هذا المتصفح. التصدير يمنع فقدانها.',changeFractal:'تغيير الفركتل',randomFractal:'فركتل عشوائي',randomFractalDesc:'تشغيل عرض مفاجئ',randomFractalTag:'اكتشاف سريع',resetView:'إعادة ضبط العرض',addFavorite:'أضف إلى المفضلة',topFavorite:'المفضلة',topFavoriteTitle:'أضف إلى المفضلة',tour:'جولة موجهة',tourDesc:'تصفح أجمل الفركتلات',tourCount:(n)=>n+' مواضع للاستكشاف',allFractalsTitle:'كل الفركتلات',fullCatalog:'الفهرس الكامل',download:'تنزيل',downloadHtml:'تنزيل ملف HTML',offline:'نسخة دون اتصال',realC:'ثابت c الحقيقي',imagC:'ثابت c التخيلي',juliaHint:'يغير ثابت c. مستقل عن الأس.',shape:'شكل الفركتل',exponent:'الأس',phoenix:'ذاكرة Phoenix',newton:'درجة نيوتن',resolution:'الدقة',gallerySearch:'بحث…',close:'إغلاق',cancel:'إلغاء',export:'تصدير',home:'الرئيسية',undo:'تراجع',fullscreen:'ملء الشاشة',help:'مساعدة سريعة',helpShort:'مساعدة',dragOrbit:'سحب: مدار · عجلة: تكبير',shiftPan:'Shift+سحب: تحريك',doubleCenter:'نقرة مزدوجة: توسيط على هذه النقطة',ssResolution:'الدقة',homeMiniProjects:'مشاريعي:',homeMiniCoffee:'وقود السهر:',zoomInTitle:'تكبير +',zoomOutTitle:'تصغير −',replayGuide:'إعادة عرض الجولة',perfComfortLabel:'راحة',perfComfort2d:'الأولوية للسلاسة — تخفيض الدقة والتكرارات عند الحاجة',perfBalancedLabel:'متوازن',perfBalanced2d:'المحرك يضبط نفسه — موصى به لمعظم الأجهزة',perfQualityLabel:'جودة',perfQuality2d:'الأولوية للدقة — قد يبطئ على GPU متواضع',navDrawer:'القائمة',currentFractalPrefix:'الفركتل الحالي: ',viewThumbnail:'عرض',fractalShapePowerHint:'الأس 2 = الشكل الكلاسيكي. القيم الأعلى تغير الهندسة.',labels3d:{power:'القوة',scale:'المقياس',box:'طي الصندوق',size:'الحجم',spacing:'التباعد'},cardRecommended:'★ موصى به',mandelbrotCardDesc:'استكشف أشهر فركتل',mandelbrotCardTag:'تكبير لا نهائي',mandelbulbCardDesc:'اغمر في أحجام فركتلية',mandelbulbCardTag:'أحجام عضوية',projectLinksLabel:'روابط المشروع',noAdditionalEffects:'لا مؤثر إضافي',export3dTitle:'تصدير 3D',export3dDesc:'تستخدم فركتلات 3D التقاط لوحة 3D الحالية. إعدادات 16K تخص فركتلات 2D.',invalidCustomExport:'أدخل عرضاً وارتفاعاً صالحين.',downloadedTitle:'تم تنزيل الملف',downloadedDesc:'احتفظ به محلياً.',saveHtmlFallback:'استخدم Ctrl+S للحفظ.',exportCustomChoice:'مخصص',exportCustomChoiceLabel:'أدخل العرض × الارتفاع',customResolution:'دقة مخصصة',customWidth:'العرض',customHeight:'الارتفاع',useCustom:'استخدام',exportCustomHint:'كل جانب محدود بـ 16384 px. سيتم تقليل الصورة تلقائياً إذا تجاوزت حد الإعداد.',slow:'بطيء',verySlow:'بطيء جداً',mouseDrag:'سحب',mouseWheel:'عجلة',shiftDrag:'Shift+سحب',doubleClick:'نقرة مزدوجة',helpNavMove:'تحريك العرض',helpNavWheel:'تكبير نحو المؤشر',helpNavBox:'تكبير مستطيل',helpNavDouble:'تكبير ×2 نحو النقطة',shortcutZoom:'+ / − تكبير لوحة المفاتيح',shortcutPan:'←→↑↓ تحريك',shortcutHome:'Home: العرض الافتراضي',shortcutTab:'P لوحة · H مساعدة',navDragText:'تحريك · Shift+سحب: تكبير مستطيل',navWheelText:'تكبير · نقرة مزدوجة: ×2',navKeyboardText:'تكبير · ←→↑↓ تحريك · Home: إعادة ضبط',navTabText:'P لوحة · H مساعدة',open:'فتح',delete:'حذف',import:'استيراد',exportPng:'تصدير PNG',desktopProfileLabel:'إعداد الأداء',ready:'جاهز',pwaShortName:'فركتلات',pwaDescription:(count)=>`${count} فركتلات تفاعلية 2D و3D`,exportRendering:'جارٍ العرض',exportAssembling:'جارٍ تجميع الصورة…',exportAA:'تنعيم الحواف',exportAAOff:'بدون (الأسرع)',exportAAStd:'قياسي (4 مرات)',exportAAHigh:'عالٍ (16 مرة، بطيء)'},
   d3:{autoQualityReduced:'تم خفض جودة الأبعاد الثلاثية تلقائيًا',fractal:'فركتل',params:'المعلمات',render:'العرض',camera:'الكاميرا',actions:'إجراءات',nav:'التنقل',orbitTrap:'مؤثرات اللون',trapType:'الوضع',trapClassic:'كلاسيكي',trapSphere:'كرة',trapPlane:'مستوى XY',trapAxis:'محور Z',trapCube:'مكعب',trapScale:'المقياس',accumulate:'جودة تدريجية',qualityProfile:'إعداد الجودة',palette:'لوحة الألوان',exposure:'التعريض',brightness:'السطوع',glow:'الوهج',softShadows:'ظلال ناعمة',ao:'إطباق محيطي',fog:'ضباب',fov:'مجال الرؤية',adaptiveRes:'دقة تكيفية',precision:'الدقة',maxSteps:'أقصى خطوات',autoRotate:'دوران تلقائي',rotSpeed:'سرعة الدوران',ultralight:'فائق الخفة 🐢',comfort:'راحة',balanced:'متوازن',quality:'جودة',resetView:'⌂ العرض الافتراضي',applyPreset:'⚙ الإعدادات الموصى بها',restartRotate:'⟳ إعادة تشغيل الدوران',ready:'جاهز',resolution:'الدقة',viewReset:'تمت إعادة ضبط العرض',pointCentered:'تم توسيط النقطة'},
