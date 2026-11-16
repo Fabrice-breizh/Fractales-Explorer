@@ -4815,6 +4815,8 @@ function cancelCpuRender(clearBuddha=false){
   cpuRender.gen++;
   cpuRender.lyapunov={key:'',done:false,running:false};
   cpuRender.lorenz={key:'',done:false,running:false};
+  if(cpuRender.attractor.worker)cpuRender.attractor.worker.terminate();
+  if(cpuRender.attractor.running)hideBuddhaProgress();
   cpuRender.attractor={key:'',done:false,running:false};
   stopBuddhaJob(cpuRender.buddha);
   if(cpuRender.fougere) cpuRender.fougere={key:'',done:false,running:false};
@@ -4834,7 +4836,7 @@ function currentEngineLabel(){
 }
 
 function syncCpuMode(){
-  if(state.ftype!==FRACTAL_BUDDHABROT) hideBuddhaProgress();
+  if(state.ftype!==FRACTAL_BUDDHABROT&&!cpuRender.attractor.running) hideBuddhaProgress();
   const cpu=isCpuFractal()||runtimeProfile.name==='legacy';
 
   // Important: apply setCanvasMode on every frame, not only during a
@@ -5841,6 +5843,36 @@ async function renderAttractorToCtx(ctx,W,H,view,cancelled=()=>false,onProgress=
   paint();
   return true;
 }
+// The attractor renderer above, run off the UI thread. A new view simply
+// terminates the worker of the previous one.
+function attractorWorkerMain(){
+  self.onmessage=({data:d})=>{
+    const ctx={createImageData:(w,h)=>({data:new Uint8ClampedArray(w*h*4)}),
+      putImageData:img=>{const px=img.data.slice().buffer;self.postMessage({type:'frame',pixels:px},[px]);}};
+    renderAttractorToCtx(ctx,d.W,d.H,d.view,()=>false,v=>self.postMessage({type:'progress',value:v}),{draft:d.draft,live:true})
+      .then(()=>self.postMessage({type:'done'}));
+  };
+}
+let attractorWorkerSource=null;
+function createAttractorWorker(){
+  if(typeof Worker==='undefined')return null;
+  if(!attractorWorkerSource)attractorWorkerSource=[
+    'const FRACTAL_CLIFFORD='+FRACTAL_CLIFFORD+',FRACTAL_DEJONG='+FRACTAL_DEJONG+',FRACTAL_HOPALONG='+FRACTAL_HOPALONG+';',
+    viewBounds2D.toString(),builtinPalColor.toString(),renderAttractorToCtx.toString(),'('+attractorWorkerMain.toString()+')();'
+  ].join('\n');
+  const url=URL.createObjectURL(new Blob([attractorWorkerSource],{type:'text/javascript'}));
+  try{return new Worker(url);}finally{URL.revokeObjectURL(url);}
+}
+// Progress of an attractor render, shown in the bar the Buddhabrot uses.
+function showAttractorProgress(name,f){
+  const wrap=$('buddhaProgress'),fill=$('buddhaFill'),count=$('buddhaCount');
+  if(!wrap||!fill||!count)return;
+  const pct=Math.round(Math.max(0,Math.min(1,f))*100);
+  wrap.querySelector('.bp-label').textContent=name;
+  fill.style.width=pct+'%';fill.style.background='linear-gradient(90deg,var(--accent),var(--accent2))';
+  count.textContent=pct+' %';
+  wrap.classList.add('visible');
+}
 async function renderLorenzToCtx(ctx, W, H, scale, cx, cy,cancelled=()=>false,onProgress=null){
     const img = ctx.createImageData(W, H);
     const data = img.data;
@@ -5967,14 +5999,34 @@ function renderCpuFractal(W,H,iters,frameStart){
     cancelCpuRender(false);
     cpuRender.attractor={key,done:false,running:true};
     const gen=cpuRender.gen;
-    renderAttractorToCtx(cpuCtx,W,H,{...state},()=>gen!==cpuRender.gen,null,{draft,live:true}).then(ok=>{
+    const cur=cpuRender.attractor,name=fractMeta(ft).name;
+    const finish=ok=>{
       if(!ok||gen!==cpuRender.gen)return;
-      cpuRender.attractor.running=false;
+      if(cur.worker){cur.worker.terminate();cur.worker=null;}
+      cur.running=false;hideBuddhaProgress();
       if(uiOverlayOpen()||state.ftype!==ft){setCanvasMode(false);return;}
-      cpuRender.attractor.done=true;
+      cur.done=true;
       // a draft drawn while moving is followed by the full picture
       if(draft){scheduleResizeCanvas();requestRender();}
-    });
+    };
+    const progress=f=>{if(gen===cpuRender.gen&&!draft)showAttractorProgress(name,f);};
+    const view={...buddhaColorSettings(),ftype:ft,cx:+state.cx,cy:+state.cy,scale:+state.scale};
+    // Fallback when workers are unavailable: same renderer, in slices on this thread.
+    const onMain=()=>renderAttractorToCtx(cpuCtx,W,H,view,()=>gen!==cpuRender.gen,progress,{draft,live:true}).then(finish);
+    try{
+      const worker=cur.worker=createAttractorWorker();
+      if(!worker)onMain();
+      else{
+        worker.onmessage=({data:d})=>{
+          if(gen!==cpuRender.gen)return;
+          if(d.type==='progress')progress(d.value);
+          else if(d.type==='frame'){if(cpuCanvas.width===W&&cpuCanvas.height===H)cpuCtx.putImageData(new ImageData(new Uint8ClampedArray(d.pixels),W,H),0,0);}
+          else if(d.type==='done')finish(true);
+        };
+        worker.onerror=e=>{if(e.preventDefault)e.preventDefault();worker.terminate();cur.worker=null;if(gen===cpuRender.gen)onMain();};
+        worker.postMessage({W,H,view,draft});
+      }
+    }catch(e){cur.worker=null;onMain();}
     perfState.ms=performance.now()-frameStart;
     handleFrameWatchdog();return;
   }
@@ -7484,6 +7536,7 @@ function updateBuddhaProgress(samples,w=cpuCanvas.width,h=cpuCanvas.height){
   const logS=Math.log10(Math.max(1,samples));
   const logT=Math.log10(BUDDHA_TARGET);
   const pct=Math.min(100,logS/logT*100);
+  wrap.querySelector('.bp-label').textContent='Buddhabrot';
   fill.style.width=pct+'%';
   // Find the current stage
   let stage=BUDDHA_STAGES[0];
